@@ -111,4 +111,28 @@ public class CnabController {
                 recordDTOs
         );
     }
+
+    @PostMapping(value = "/layout/debug-clean", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public List<String> debugCleanLayout(@RequestPart("layoutFile") MultipartFile layoutFile) throws IOException {
+        var layoutFields = layoutParserService.parseLayout(layoutFile);
+
+        return layoutFields.stream()
+                .limit(20)
+                .map(field -> field.getFieldName() + " | "
+                        + field.getStartPosition() + "-" + field.getEndPosition())
+                .toList();
+    }
+    
+    //Checking types
+    @PostMapping(value = "/layout/debug-types", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public List<String> debugLayoutTypes(@RequestPart("layoutFile") MultipartFile layoutFile) throws IOException {
+        var layoutFields = layoutParserService.parseLayout(layoutFile);
+
+        return layoutFields.stream()
+                .limit(30)
+                .map(field -> field.getRecordType() + " | "
+                        + field.getFieldName() + " | "
+                        + field.getStartPosition() + "-" + field.getEndPosition())
+                .toList();
+    }
 }

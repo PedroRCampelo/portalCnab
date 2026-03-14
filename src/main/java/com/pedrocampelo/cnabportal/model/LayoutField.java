@@ -7,17 +7,19 @@ public class LayoutField {
     private int startPosition;
     private int endPosition;
     private int length;
+    private String formatType;
     private String rawConfigLine;
 
     public LayoutField() {
     }
 
-    public LayoutField(String recordType, String fieldName, int startPosition, int endPosition, int length, String rawConfigLine) {
+    public LayoutField(String recordType, String fieldName, int startPosition, int endPosition, int length, String formatType, String rawConfigLine) {
         this.recordType = recordType;
         this.fieldName = fieldName;
         this.startPosition = startPosition;
         this.endPosition = endPosition;
         this.length = length;
+        this.formatType = formatType;
         this.rawConfigLine = rawConfigLine;
     }
 
@@ -59,6 +61,14 @@ public class LayoutField {
 
     public void setLength(int length) {
         this.length = length;
+    }
+
+    public String getFormatType() {
+        return formatType;
+    }
+
+    public void setFormatType(String formatType) {
+        this.formatType = formatType;
     }
 
     public String getRawConfigLine() {

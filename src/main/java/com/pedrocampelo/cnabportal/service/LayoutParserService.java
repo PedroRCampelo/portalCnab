@@ -16,7 +16,17 @@ import java.util.regex.Pattern;
 @Service
 public class LayoutParserService {
 
-    private static final Pattern POSITION_PATTERN = Pattern.compile("(\\d{1,3})\\D+(\\d{1,3})");
+    /**
+     * Exemplo de linha sanitizada:
+     * T. de Registro 0010010"0"
+     * Operacao       0020020"1"
+     * Literal Remessa003009 "REMESSA"
+     *
+     * Padrão:
+     * [nome do campo][pos ini 3][pos fim 3][tipo 1][resto]
+     */
+    private static final Pattern LAYOUT_LINE_PATTERN =
+            Pattern.compile("^(.+?)(\\d{3})(\\d{3})(\\d)(.*)$");
 
     public List<LayoutField> parseLayout(MultipartFile layoutFile) throws IOException {
         List<LayoutField> fields = new ArrayList<>();
@@ -41,64 +51,86 @@ public class LayoutParserService {
             return null;
         }
 
-        String trimmed = line.trim();
-
-        if (trimmed.length() < 8) {
+        String recordType = extractRecordTypeFromOriginalLine(line);
+        if (recordType == null) {
             return null;
         }
 
-        Matcher matcher = POSITION_PATTERN.matcher(trimmed);
-        if (!matcher.find()) {
+        String sanitizedLine = sanitizeLine(line).trim();
+
+        if (sanitizedLine.length() < 8) {
             return null;
         }
 
-        int start = Integer.parseInt(matcher.group(1));
-        int end = Integer.parseInt(matcher.group(2));
+        Matcher matcher = LAYOUT_LINE_PATTERN.matcher(sanitizedLine);
+        if (!matcher.matches()) {
+            return null;
+        }
+
+        String rawFieldName = matcher.group(1).trim();
+        int start = Integer.parseInt(matcher.group(2));
+        int end = Integer.parseInt(matcher.group(3));
+        String formatType = matcher.group(4);
 
         if (end < start) {
             return null;
         }
 
-        String recordType = extractRecordType(trimmed);
-        String fieldName = extractFieldName(trimmed, matcher.start());
+        String fieldName = normalizeFieldName(rawFieldName);
 
-        if (fieldName.isBlank()) {
-            fieldName = "CAMPO_" + start + "_" + end;
-        }
+        LayoutField field = new LayoutField();
+        field.setRecordType(recordType);
+        field.setFieldName(fieldName);
+        field.setStartPosition(start);
+        field.setEndPosition(end);
+        field.setLength((end - start) + 1);
+        field.setFormatType(formatType);
+        field.setRawConfigLine(line);
 
-        return new LayoutField(
-                recordType,
-                normalizeFieldName(fieldName),
-                start,
-                end,
-                (end - start) + 1,
-                line
-        );
+        return field;
     }
 
-    private String extractRecordType(String line) {
+    private String extractRecordTypeFromOriginalLine(String line) {
+        if (line == null || line.isEmpty()) {
+            return null;
+        }
+
         char firstChar = line.charAt(0);
 
-        if (Character.isDigit(firstChar)) {
-            return String.valueOf(firstChar);
-        }
-
-        return "UNKNOWN";
+        return switch (firstChar) {
+            case 1 -> "0"; // header
+            case 2 -> "1"; // detalhe
+            case 4 -> "2"; // complemento
+            case 3 -> "9"; // trailer
+            default -> null;
+        };
     }
 
-    private String extractFieldName(String line, int positionStartIndex) {
-        String beforePosition = line.substring(0, positionStartIndex).trim();
+    /*
+     * Solving the control character problem in layout files.
+     * Before: \u0001Operacao 0020020"1"
+     * After: Operacao 0020020"1"
+     * */
+    private String sanitizeLine(String line) {
+        if (line == null || line.isBlank()) {
+            return line;
+        }
 
-        return beforePosition
-                .replaceAll("^\\d+\\s*", "")
-                .trim();
+        char firstChar = line.charAt(0);
+
+        if (Character.isISOControl(firstChar)) {
+            return line.substring(1);
+        }
+
+        return line;
     }
 
     private String normalizeFieldName(String fieldName) {
         return fieldName
                 .replaceAll("\\s+", "_")
-                .replaceAll("[^A-ZA-Z0-9_]", "")
+                .replaceAll("[^a-zA-Z0-9_]", "")
+                .replaceAll("_+", "_")
+                .replaceAll("^_+|_+$", "")
                 .toUpperCase();
     }
-    
 }
