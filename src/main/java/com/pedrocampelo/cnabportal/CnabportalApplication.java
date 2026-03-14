@@ -1,0 +1,13 @@
+package com.pedrocampelo.cnabportal;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class CnabportalApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(CnabportalApplication.class, args);
+	}
+
+}
