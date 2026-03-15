@@ -1,8 +1,11 @@
 package com.pedrocampelo.cnabportal.controller;
 
 import com.pedrocampelo.cnabportal.dto.UploadAnalysisResponseDTO;
+import com.pedrocampelo.cnabportal.service.ExcelExportService;
 import com.pedrocampelo.cnabportal.service.FileReadingService;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import com.pedrocampelo.cnabportal.dto.ParseResponseDTO;
@@ -24,12 +27,14 @@ public class CnabController {
     
     private final LayoutParserService layoutParserService;
     private final RemessaParserService remessaParserService;
+    private final ExcelExportService excelExportService;
 
     public CnabController(FileReadingService fileReadingService, LayoutParserService layoutParserService,
-                          RemessaParserService remessaParserService) {
+                          RemessaParserService remessaParserService, ExcelExportService excelExportService) {
         this.fileReadingService = fileReadingService;
         this.layoutParserService = layoutParserService;
         this.remessaParserService = remessaParserService;
+        this.excelExportService = excelExportService;
     }
 
     @PostMapping(value = "/analyze", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -140,5 +145,34 @@ public class CnabController {
     @PostMapping(value = "/layout/debug-unmatched", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public List<String> debugUnmatchedLayout(@RequestPart("layoutFile") MultipartFile layoutFile) throws IOException {
         return layoutParserService.findUnmatchedLines(layoutFile);
+    }
+
+    @PostMapping(value = "/export", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<byte[]> exportExcel(
+            @RequestPart("layoutFile") MultipartFile layoutFile,
+            @RequestPart("remessaFile") MultipartFile remessaFile
+    ) throws IOException {
+
+        if (layoutFile.isEmpty()) {
+            throw new IllegalArgumentException("O arquivo de layout está vazio.");
+        }
+
+        if (remessaFile.isEmpty()) {
+            throw new IllegalArgumentException("O arquivo de remessa está vazio.");
+        }
+
+        var layoutFields = layoutParserService.parseLayout(layoutFile);
+        var parsedRecords = remessaParserService.parseRemessa(remessaFile, layoutFields);
+
+        byte[] excelBytes = excelExportService.generateExcel(
+                layoutFile.getOriginalFilename(),
+                remessaFile.getOriginalFilename(),
+                parsedRecords
+        );
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=cnab-export.xlsx")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(excelBytes);
     }
 }
