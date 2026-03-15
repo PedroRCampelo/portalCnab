@@ -67,8 +67,8 @@ public class CnabController {
                 layoutLines.size(),
                 remessaLines.size(),
                 remessaTotalByType,
-                fileReadingService.previewLines(layoutLines, 5),
-                fileReadingService.previewLines(remessaLines, 5)
+                fileReadingService.previewLines(layoutLines, 300),
+                fileReadingService.previewLines(remessaLines, 20)
         );
     }
     @PostMapping(value = "/parse", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -95,7 +95,7 @@ public class CnabController {
                 ));
 
         List<ParsedRecordDTO> recordDTOs = parsedRecords.stream()
-                .limit(30)
+                .limit(200)
                 .map(record -> new ParsedRecordDTO(
                         record.getLineNumber(),
                         record.getRecordType(),
@@ -129,10 +129,16 @@ public class CnabController {
         var layoutFields = layoutParserService.parseLayout(layoutFile);
 
         return layoutFields.stream()
-                .limit(30)
+                .limit(200)
                 .map(field -> field.getRecordType() + " | "
                         + field.getFieldName() + " | "
                         + field.getStartPosition() + "-" + field.getEndPosition())
                 .toList();
+    }
+    
+    //Debug regex
+    @PostMapping(value = "/layout/debug-unmatched", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public List<String> debugUnmatchedLayout(@RequestPart("layoutFile") MultipartFile layoutFile) throws IOException {
+        return layoutParserService.findUnmatchedLines(layoutFile);
     }
 }

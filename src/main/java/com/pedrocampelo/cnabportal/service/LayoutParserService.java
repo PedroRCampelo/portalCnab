@@ -16,17 +16,11 @@ import java.util.regex.Pattern;
 @Service
 public class LayoutParserService {
 
-    /**
-     * Exemplo de linha sanitizada:
-     * T. de Registro 0010010"0"
-     * Operacao       0020020"1"
-     * Literal Remessa003009 "REMESSA"
-     *
-     * Padrão:
-     * [nome do campo][pos ini 3][pos fim 3][tipo 1][resto]
-     */
-    private static final Pattern LAYOUT_LINE_PATTERN =
+    private static final Pattern LAYOUT_WITH_TYPE_PATTERN =
             Pattern.compile("^(.+?)(\\d{3})(\\d{3})(\\d)(.*)$");
+
+    private static final Pattern LAYOUT_NO_TYPE_PATTERN =
+            Pattern.compile("^(.+?)(\\d{3})(\\d{3})(.*)$");
 
     public List<LayoutField> parseLayout(MultipartFile layoutFile) throws IOException {
         List<LayoutField> fields = new ArrayList<>();
@@ -46,6 +40,41 @@ public class LayoutParserService {
         return fields;
     }
 
+    public List<String> findUnmatchedLines(MultipartFile layoutFile) throws IOException {
+        List<String> unmatched = new ArrayList<>();
+
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(layoutFile.getInputStream(), StandardCharsets.ISO_8859_1))) {
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line == null || line.isBlank()) {
+                    continue;
+                }
+
+                String recordType = extractRecordTypeFromOriginalLine(line);
+                if (recordType == null) {
+                    continue;
+                }
+
+                String sanitizedLine = sanitizeLine(line).trim();
+
+                if (sanitizedLine.length() < 8) {
+                    continue;
+                }
+
+                boolean matched = LAYOUT_WITH_TYPE_PATTERN.matcher(sanitizedLine).matches()
+                        || LAYOUT_NO_TYPE_PATTERN.matcher(sanitizedLine).matches();
+
+                if (!matched) {
+                    unmatched.add(sanitizedLine);
+                }
+            }
+        }
+
+        return unmatched;
+    }
+
     private LayoutField parseLayoutLine(String line) {
         if (line == null || line.isBlank()) {
             return null;
@@ -62,15 +91,27 @@ public class LayoutParserService {
             return null;
         }
 
-        Matcher matcher = LAYOUT_LINE_PATTERN.matcher(sanitizedLine);
-        if (!matcher.matches()) {
-            return null;
-        }
+        String rawFieldName;
+        int start;
+        int end;
+        String formatType = "";
 
-        String rawFieldName = matcher.group(1).trim();
-        int start = Integer.parseInt(matcher.group(2));
-        int end = Integer.parseInt(matcher.group(3));
-        String formatType = matcher.group(4);
+        Matcher matcherWithType = LAYOUT_WITH_TYPE_PATTERN.matcher(sanitizedLine);
+        if (matcherWithType.matches()) {
+            rawFieldName = matcherWithType.group(1).trim();
+            start = Integer.parseInt(matcherWithType.group(2));
+            end = Integer.parseInt(matcherWithType.group(3));
+            formatType = matcherWithType.group(4);
+        } else {
+            Matcher matcherNoType = LAYOUT_NO_TYPE_PATTERN.matcher(sanitizedLine);
+            if (!matcherNoType.matches()) {
+                return null;
+            }
+
+            rawFieldName = matcherNoType.group(1).trim();
+            start = Integer.parseInt(matcherNoType.group(2));
+            end = Integer.parseInt(matcherNoType.group(3));
+        }
 
         if (end < start) {
             return null;
@@ -98,19 +139,19 @@ public class LayoutParserService {
         char firstChar = line.charAt(0);
 
         return switch (firstChar) {
-            case 1 -> "0"; // header
-            case 2 -> "1"; // detalhe
-            case 4 -> "2"; // complemento
-            case 3 -> "9"; // trailer
+            case 1 -> "0";
+            case 2 -> "1";
+            case 4 -> "2";
+            case 3 -> "9";
             default -> null;
         };
     }
 
     /*
-     * Solving the control character problem in layout files.
-     * Before: \u0001Operacao 0020020"1"
-     * After: Operacao 0020020"1"
-     * */
+     Solving the control character problem in layout files.
+     Before: \u0001Operacao 0020020"1"
+     After: Operacao 0020020"1"
+     */
     private String sanitizeLine(String line) {
         if (line == null || line.isBlank()) {
             return line;
