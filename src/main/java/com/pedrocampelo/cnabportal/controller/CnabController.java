@@ -8,17 +8,20 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import com.pedrocampelo.cnabportal.dto.ParseResponseDTO;
 import com.pedrocampelo.cnabportal.dto.ParsedRecordDTO;
 import com.pedrocampelo.cnabportal.service.LayoutParserService;
 import com.pedrocampelo.cnabportal.service.RemessaParserService;
-
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/api/cnab")
 public class CnabController {

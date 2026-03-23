@@ -162,7 +162,7 @@ public class LayoutParserService {
         if (Character.isISOControl(firstChar)) {
             return line.substring(1);
         }
-
+        
         return line;
     }
 
