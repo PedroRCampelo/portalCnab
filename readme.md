@@ -63,8 +63,7 @@ Retorno: Arquivo Excel contendo os dados interpretados.
 ## POSSÍVEIS EVOLUÇÕES
 
 -   Não necessidade de arquivo layout (Utilizar o layout universal dos bancos)
--   Interface Web para upload de arquivos
--   Suporte a múltiplos layouts CNAB
+-   Suporte a múltiplos layouts CNAB (240 Posições)
 -   Validação de inconsistências
 -   Conversão automática de datas e valores
 -   Dashboard de análise de remessas

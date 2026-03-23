@@ -88,7 +88,7 @@ function App() {
                     className={`cnab-option ${cnabType === "240" ? "active" : ""}`}
                     onClick={() => setCnabType("240")}
                 >
-                  <span className="cnab-option-title">CNAB 240</span>
+                  <span className="cnab-option-title">CNAB 240 (Construção)</span>
                   <span className="cnab-option-subtitle">Múltiplos segmentos</span>
                 </button>
               </div>
