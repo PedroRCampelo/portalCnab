@@ -32,7 +32,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --text: #9ca3af;
+    --text: #20355a;
     --text-h: #f3f4f6;
     --bg: #16171d;
     --border: #2e303a;
@@ -55,7 +55,7 @@ body {
 }
 
 #root {
-  width: 1126px;
+  width: 1920px;
   max-width: 100%;
   margin: 0 auto;
   text-align: center;
@@ -70,7 +70,7 @@ h1,
 h2 {
   font-family: var(--heading);
   font-weight: 500;
-  color: var(--text-h);
+  color: #0055ff;
 }
 
 h1 {
