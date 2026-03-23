@@ -72,10 +72,26 @@ function App() {
           <form onSubmit={handleExport} className="form">
             <div className="field">
               <label>Tipo CNAB</label>
-              <select value={cnabType} onChange={(e) => setCnabType(e.target.value)}>
-                <option value="400">CNAB 400</option>
-                <option value="240">CNAB 240</option>
-              </select>
+
+              <div className="cnab-toggle" role="group" aria-label="Tipo CNAB">
+                <button
+                    type="button"
+                    className={`cnab-option ${cnabType === "400" ? "active" : ""}`}
+                    onClick={() => setCnabType("400")}
+                >
+                  <span className="cnab-option-title">CNAB 400</span>
+                  <span className="cnab-option-subtitle">Layout clássico</span>
+                </button>
+
+                <button
+                    type="button"
+                    className={`cnab-option ${cnabType === "240" ? "active" : ""}`}
+                    onClick={() => setCnabType("240")}
+                >
+                  <span className="cnab-option-title">CNAB 240</span>
+                  <span className="cnab-option-subtitle">Múltiplos segmentos</span>
+                </button>
+              </div>
             </div>
             
             <div className="field">
