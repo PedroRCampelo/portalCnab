@@ -8,6 +8,8 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
+  const [cnabType, setCnabType] = useState("400");
+
   const handleExport = async (event) => {
     event.preventDefault();
 
@@ -23,6 +25,7 @@ function App() {
       const formData = new FormData();
       formData.append("layoutFile", layoutFile);
       formData.append("remessaFile", remessaFile);
+      formData.append("cnabType", cnabType);
 
       const apiUrl = import.meta.env.VITE_API_URL;
       const response = await axios.post(
@@ -67,6 +70,14 @@ function App() {
           </p>
 
           <form onSubmit={handleExport} className="form">
+            <div className="field">
+              <label>Tipo CNAB</label>
+              <select value={cnabType} onChange={(e) => setCnabType(e.target.value)}>
+                <option value="400">CNAB 400</option>
+                <option value="240">CNAB 240</option>
+              </select>
+            </div>
+            
             <div className="field">
               <label>Arquivo de layout</label>
               <input

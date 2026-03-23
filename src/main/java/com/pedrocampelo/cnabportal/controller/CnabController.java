@@ -1,6 +1,7 @@
 package com.pedrocampelo.cnabportal.controller;
 
 import com.pedrocampelo.cnabportal.dto.UploadAnalysisResponseDTO;
+import com.pedrocampelo.cnabportal.model.ParsedRecord;
 import com.pedrocampelo.cnabportal.service.ExcelExportService;
 import com.pedrocampelo.cnabportal.service.FileReadingService;
 import org.springframework.http.HttpHeaders;
@@ -15,9 +16,10 @@ import com.pedrocampelo.cnabportal.service.LayoutParserService;
 import com.pedrocampelo.cnabportal.service.RemessaParserService;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
-
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -155,8 +157,10 @@ public class CnabController {
 
     @PostMapping(value = "/export", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<byte[]> exportExcel(
+            
             @RequestPart("layoutFile") MultipartFile layoutFile,
-            @RequestPart("remessaFile") MultipartFile remessaFile
+            @RequestPart("remessaFile") MultipartFile remessaFile,
+            @RequestParam("cnabType") String cnabType
     ) throws IOException {
 
         if (layoutFile.isEmpty()) {
@@ -167,18 +171,37 @@ public class CnabController {
             throw new IllegalArgumentException("O arquivo de remessa está vazio.");
         }
 
-        var layoutFields = layoutParserService.parseLayout(layoutFile);
-        var parsedRecords = remessaParserService.parseRemessa(remessaFile, layoutFields);
+        System.out.println("CNAB TYPE RECEBIDO: " + cnabType);
+
+        List<ParsedRecord> parsedRecords;
+
+        if ("240".equals(cnabType)) {
+            parsedRecords = parse240(layoutFile, remessaFile);
+        } else {
+            parsedRecords = parse400(layoutFile, remessaFile);
+        }
 
         byte[] excelBytes = excelExportService.generateExcel(
                 layoutFile.getOriginalFilename(),
                 remessaFile.getOriginalFilename(),
                 parsedRecords
         );
-
+        
+            
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=cnab-export.xlsx")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(excelBytes);
     }
+    private List<ParsedRecord> parse400(MultipartFile layoutFile, MultipartFile remessaFile) throws IOException {
+        var layoutFields = layoutParserService.parseLayout(layoutFile);
+        return remessaParserService.parseRemessa(remessaFile, layoutFields);
+    }
+    private List<ParsedRecord> parse240(MultipartFile layoutFile, MultipartFile remessaFile) throws IOException {
+        System.out.println("Entrou no fluxo CNAB 240");
+
+        return new ArrayList<>();
+    }
+    
+
 }
