@@ -24,8 +24,9 @@ function App() {
       formData.append("layoutFile", layoutFile);
       formData.append("remessaFile", remessaFile);
 
+      const apiUrl = import.meta.env.VITE_API_URL;
       const response = await axios.post(
-          "http://localhost:8080/api/cnab/export",
+          `${apiUrl}/api/cnab/export`,
           formData,
           {
             responseType: "blob",
