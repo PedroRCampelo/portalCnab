@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 
 @CrossOrigin(origins = {
         "http://localhost:5173",
-        "https://SEU-FRONTEND.onrender.com"
+        "https://portalcnab-frontend.onrender.com/"
 })
 @RestController
 @RequestMapping("/api/cnab")
