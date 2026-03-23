@@ -21,10 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@CrossOrigin(origins = {
-        "http://localhost:5173",
-        "https://portalcnab-frontend.onrender.com"
-})
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/cnab")
 public class CnabController {
