@@ -1,6 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
-import "./App.css";
+import "./app.css";
 
 function App() {
   const [layoutFile, setLayoutFile] = useState(null);
@@ -24,13 +24,15 @@ function App() {
       formData.append("layoutFile", layoutFile);
       formData.append("remessaFile", remessaFile);
 
-      const apiUrl = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
-
+      const apiUrl = import.meta.env.VITE_API_URL;
       const response = await axios.post(
           `${apiUrl}/api/cnab/export`,
           formData,
           {
             responseType: "blob",
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
           }
       );
 
