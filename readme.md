@@ -1,8 +1,7 @@
 # Portal CNAB
 
 
-[![Screenshot-2026-03-23-at-11-57-33.png](https://i.postimg.cc/FHVFn8px/Screenshot-2026-03-23-at-11-57-33.png)](https://postimg.cc/gxrPxMfw)
-
+[![Screenshot-2026-03-23-at-19-52-42.png](https://i.postimg.cc/x1wzczJ0/Screenshot-2026-03-23-at-19-52-42.png)](https://postimg.cc/nX1zWMG5)
 
 API desenvolvida em Java + Spring Boot para interpretar arquivos de
 remessa CNAB a partir de um arquivo de layout/configuração e gerar uma
