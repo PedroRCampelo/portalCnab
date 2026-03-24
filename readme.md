@@ -1,7 +1,8 @@
 # Portal CNAB
 
+[![Screenshot-2026-03-23-at-11-57-33.png](https://i.postimg.cc/FHVFn8px/Screenshot-2026-03-23-at-11-57-33.png)](https://postimg.cc/gxrPxMfw)
 
-[![Screenshot-2026-03-23-at-19-52-42.png](https://i.postimg.cc/x1wzczJ0/Screenshot-2026-03-23-at-19-52-42.png)](https://postimg.cc/nX1zWMG5)
+- [Link de acesso](https://portalcnab-frontend.onrender.com/)
 
 API desenvolvida em Java + Spring Boot para interpretar arquivos de
 remessa CNAB a partir de um arquivo de layout/configuração e gerar uma
@@ -16,57 +17,19 @@ tabular fácil de analisar.
 -   Upload de arquivo de layout CNAB
 -   Upload de arquivo de remessa CNAB
 -   Interpretação automática baseada no layout
--   Identificação de tipos de registro:
-    -   Header (0)
-    -   Detalhe (1)
-    -   Complemento (2)
-    -   Trailer (9)
+-   Identificação de tipos de registro
 -   Extração automática dos campos
 -   Geração de Excel (.xlsx) com abas separadas
 
-## ESTRUTURA DO EXCEL GERADO
-
-Aba: Resumo Descrição: Informações gerais do processamento
-
-Aba: Header Descrição: Dados do registro tipo 0
-
-Aba: Detalhe Descrição: Dados dos registros tipo 1
-
-Aba: Complemento Descrição: Dados dos registros tipo 2
-
-Aba: Trailer Descrição: Dados do registro tipo 9
-
-## TECNOLOGIAS UTILIZADAS
-
--   Java 17+
--   Spring Boot
--   Maven
--   Apache POI (geração de Excel)
--   REST API
-
-## ENDPOINT PRINCIPAL
-
-Exportar Excel a partir de CNAB
-
-Endpoint: POST /api/cnab/export
-
-Tipo de requisição: multipart/form-data
-
-Parâmetros:
-
-layoutFile -> Arquivo de layout CNAB remessaFile -> Arquivo de remessa
-CNAB
-
-Retorno: Arquivo Excel contendo os dados interpretados.
-
 ## POSSÍVEIS EVOLUÇÕES
 
--   Não necessidade de arquivo layout (Utilizar o layout universal dos bancos)
--   Suporte a múltiplos layouts CNAB (240 Posições)
+-   Suporte a múltiplos layouts CNAB
 -   Validação de inconsistências
 -   Conversão automática de datas e valores
 -   Dashboard de análise de remessas
+-   Não necessidade de arquivo layout
 -   Integração com sistemas ERP
 
-AUTOR:
-Pedro Campêlo
+## Autor
+
+- [Pedro Campelo](https://github.com/PedroRCampelo)
