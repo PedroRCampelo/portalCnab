@@ -1,6 +1,6 @@
 # Portal CNAB
 
-[![Screenshot-2026-03-23-at-11-57-33.png](https://i.postimg.cc/FHVFn8px/Screenshot-2026-03-23-at-11-57-33.png)](https://postimg.cc/gxrPxMfw)
+[![Screenshot-2026-03-25-at-10-59-38.png](https://i.postimg.cc/bNF21nR8/Screenshot-2026-03-25-at-10-59-38.png)](https://postimg.cc/0bDQsb3H)
 
 - [Link de acesso](https://portalcnab-frontend.onrender.com/)
 
