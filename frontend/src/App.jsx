@@ -154,9 +154,9 @@ function App() {
                       }`}
                       onClick={() => setCnabType("240")}
                   >
-                    <span className="cnab-option-title">CNAB 240</span>
+                    <span className="cnab-option-title">CNAB 240*</span>
                     <span className="cnab-option-subtitle">
-                    Múltiplos segmentos
+                    EM CONSTRUÇÃO
                   </span>
                   </button>
                 </div>
