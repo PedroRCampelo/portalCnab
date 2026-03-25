@@ -21,14 +21,35 @@ tabular fácil de analisar.
 -   Extração automática dos campos
 -   Geração de Excel (.xlsx) com abas separadas
 
-## POSSÍVEIS EVOLUÇÕES
+## PRÓXIMOS PASSOS
+- Não necessidade de arquivo layout
+```
+Validação de LAYOUTS do Protheus
 
--   Suporte a múltiplos layouts CNAB
--   Validação de inconsistências
--   Conversão automática de datas e valores
--   Dashboard de análise de remessas
--   Não necessidade de arquivo layout
--   Integração com sistemas ERP
+Se você precisa validar arquivos de layout do Protheus, será possível:
+
+Enviar o layout desejado
+Gerar automaticamente um arquivo Excel com base nesse layout
+Utilizar o Excel como apoio para conferência e validação dos dados
+
+Essa opção é ideal para quem trabalha diretamente com estruturas personalizadas de layout.
+``` 
+```
+Validação de arquivos de REMESSA
+
+Caso sua necessidade seja apenas validar arquivos de remessa:
+
+Não será necessário enviar um layout personalizado
+O sistema utilizará como base os layouts padrão dos bancos
+A validação será feita automaticamente seguindo essas estruturas já conhecidas
+
+Essa opção é recomendada para validações mais rápidas e padronizadas.
+``` 
+
+- Suporte a layout 240 posições
+- Dashboard de análise de remessas
+- Validação de inconsistências
+- Integração com sistemas ERP
 
 ## Autor
 
