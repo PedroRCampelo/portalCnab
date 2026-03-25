@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
         "http://localhost:5173",
         "https://portalcnab-frontend.onrender.com"
 })
+
 @RestController
 @RequestMapping("/api/cnab")
 public class CnabController {
