@@ -1,7 +1,10 @@
 package com.pedrocampelo.cnabportal.controller;
 
 import com.pedrocampelo.cnabportal.dto.UploadAnalysisResponseDTO;
+import com.pedrocampelo.cnabportal.layout.BankLayout;
 import com.pedrocampelo.cnabportal.model.ParsedRecord;
+import com.pedrocampelo.cnabportal.service.*;
+import com.pedrocampelo.cnabportal.service.CnabParserFactory;
 import com.pedrocampelo.cnabportal.service.ExcelExportService;
 import com.pedrocampelo.cnabportal.service.FileReadingService;
 import org.springframework.http.HttpHeaders;
@@ -9,17 +12,13 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import com.pedrocampelo.cnabportal.dto.ParseResponseDTO;
 import com.pedrocampelo.cnabportal.dto.ParsedRecordDTO;
 import com.pedrocampelo.cnabportal.service.LayoutParserService;
 import com.pedrocampelo.cnabportal.service.RemessaParserService;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestMapping;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -27,24 +26,30 @@ import java.util.stream.Collectors;
         "http://localhost:5173",
         "https://portalcnab-frontend.onrender.com"
 })
-
 @RestController
 @RequestMapping("/api/cnab")
 public class CnabController {
 
-    private final FileReadingService fileReadingService;
-    
-    private final LayoutParserService layoutParserService;
-    private final RemessaParserService remessaParserService;
-    private final ExcelExportService excelExportService;
+    private final FileReadingService    fileReadingService;
+    private final LayoutParserService   layoutParserService;
+    private final RemessaParserService  remessaParserService;
+    private final ExcelExportService    excelExportService;
+    private final CnabParserFactory     cnabParserFactory;
 
-    public CnabController(FileReadingService fileReadingService, LayoutParserService layoutParserService,
-                          RemessaParserService remessaParserService, ExcelExportService excelExportService) {
-        this.fileReadingService = fileReadingService;
-        this.layoutParserService = layoutParserService;
+    public CnabController(
+            FileReadingService    fileReadingService,
+            LayoutParserService   layoutParserService,
+            RemessaParserService  remessaParserService,
+            ExcelExportService    excelExportService,
+            CnabParserFactory     cnabParserFactory) {
+        this.fileReadingService   = fileReadingService;
+        this.layoutParserService  = layoutParserService;
         this.remessaParserService = remessaParserService;
-        this.excelExportService = excelExportService;
+        this.excelExportService   = excelExportService;
+        this.cnabParserFactory    = cnabParserFactory;
     }
+
+    // ── Endpoints existentes (Modo Protheus) — sem alteração ───────────────
 
     @PostMapping(value = "/analyze", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public UploadAnalysisResponseDTO analyzeFiles(
@@ -52,28 +57,19 @@ public class CnabController {
             @RequestPart("remessaFile") MultipartFile remessaFile
     ) throws IOException {
 
-        if (layoutFile.isEmpty()) {
-            throw new IllegalArgumentException("O arquivo de layout está vazio.");
-        }
+        if (layoutFile.isEmpty())  throw new IllegalArgumentException("O arquivo de layout está vazio.");
+        if (remessaFile.isEmpty()) throw new IllegalArgumentException("O arquivo de remessa está vazio.");
 
-        if (remessaFile.isEmpty()) {
-            throw new IllegalArgumentException("O arquivo de remessa está vazio.");
-        }
-
-        List<String> layoutLines = fileReadingService.readAllLines(layoutFile);
+        List<String> layoutLines  = fileReadingService.readAllLines(layoutFile);
         List<String> remessaLines = fileReadingService.readAllLines(remessaFile);
 
-        if (layoutLines.isEmpty()) {
-            throw new IllegalArgumentException("O arquivo de layout não possui linhas válidas.");
-        }
+        if (layoutLines.isEmpty())  throw new IllegalArgumentException("O arquivo de layout não possui linhas válidas.");
+        if (remessaLines.isEmpty()) throw new IllegalArgumentException("O arquivo de remessa não possui linhas válidas.");
 
-        if (remessaLines.isEmpty()) {
-            throw new IllegalArgumentException("O arquivo de remessa não possui linhas válidas.");
-        }
+        Map<String, Long> remessaTotalByType =
+                fileReadingService.countRemessaByRecordType(remessaLines);
 
-        Map<String, Long> remessaTotalByType = fileReadingService.countRemessaByRecordType(remessaLines);
-
-        return new UploadAnalysisResponseDTO(
+        return new com.pedrocampelo.cnabportal.dto.UploadAnalysisResponseDTO(
                 layoutFile.getOriginalFilename(),
                 remessaFile.getOriginalFilename(),
                 layoutFile.getSize(),
@@ -82,39 +78,27 @@ public class CnabController {
                 remessaLines.size(),
                 remessaTotalByType,
                 fileReadingService.previewLines(layoutLines, 300),
-                fileReadingService.previewLines(remessaLines, 20)
-        );
+                fileReadingService.previewLines(remessaLines, 20));
     }
+
     @PostMapping(value = "/parse", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ParseResponseDTO parseFiles(
             @RequestPart("layoutFile") MultipartFile layoutFile,
             @RequestPart("remessaFile") MultipartFile remessaFile
     ) throws IOException {
 
-        if (layoutFile.isEmpty()) {
-            throw new IllegalArgumentException("O arquivo de layout está vazio.");
-        }
+        if (layoutFile.isEmpty())  throw new IllegalArgumentException("O arquivo de layout está vazio.");
+        if (remessaFile.isEmpty()) throw new IllegalArgumentException("O arquivo de remessa está vazio.");
 
-        if (remessaFile.isEmpty()) {
-            throw new IllegalArgumentException("O arquivo de remessa está vazio.");
-        }
-
-        var layoutFields = layoutParserService.parseLayout(layoutFile);
-        var parsedRecords = remessaParserService.parseRemessa(remessaFile, layoutFields);
+        var layoutFields   = layoutParserService.parseLayout(layoutFile);
+        var parsedRecords  = remessaParserService.parseRemessa(remessaFile, layoutFields);
 
         Map<String, Long> totalByType = parsedRecords.stream()
-                .collect(Collectors.groupingBy(
-                        record -> record.getRecordType(),
-                        Collectors.counting()
-                ));
+                .collect(Collectors.groupingBy(ParsedRecord::getRecordType, Collectors.counting()));
 
         List<ParsedRecordDTO> recordDTOs = parsedRecords.stream()
                 .limit(200)
-                .map(record -> new ParsedRecordDTO(
-                        record.getLineNumber(),
-                        record.getRecordType(),
-                        record.getFields()
-                ))
+                .map(r -> new ParsedRecordDTO(r.getLineNumber(), r.getRecordType(), r.getFields()))
                 .toList();
 
         return new ParseResponseDTO(
@@ -122,87 +106,147 @@ public class CnabController {
                 remessaFile.getOriginalFilename(),
                 parsedRecords.size(),
                 totalByType,
-                recordDTOs
-        );
+                recordDTOs);
     }
 
     @PostMapping(value = "/layout/debug-clean", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public List<String> debugCleanLayout(@RequestPart("layoutFile") MultipartFile layoutFile) throws IOException {
-        var layoutFields = layoutParserService.parseLayout(layoutFile);
-
-        return layoutFields.stream()
+    public List<String> debugCleanLayout(@RequestPart("layoutFile") MultipartFile layoutFile)
+            throws IOException {
+        return layoutParserService.parseLayout(layoutFile).stream()
                 .limit(20)
-                .map(field -> field.getFieldName() + " | "
-                        + field.getStartPosition() + "-" + field.getEndPosition())
+                .map(f -> f.getFieldName() + " | " + f.getStartPosition() + "-" + f.getEndPosition())
                 .toList();
     }
-    
-    //Checking types
-    @PostMapping(value = "/layout/debug-types", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public List<String> debugLayoutTypes(@RequestPart("layoutFile") MultipartFile layoutFile) throws IOException {
-        var layoutFields = layoutParserService.parseLayout(layoutFile);
 
-        return layoutFields.stream()
+    @PostMapping(value = "/layout/debug-types", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public List<String> debugLayoutTypes(@RequestPart("layoutFile") MultipartFile layoutFile)
+            throws IOException {
+        return layoutParserService.parseLayout(layoutFile).stream()
                 .limit(200)
-                .map(field -> field.getRecordType() + " | "
-                        + field.getFieldName() + " | "
-                        + field.getStartPosition() + "-" + field.getEndPosition())
+                .map(f -> f.getRecordType() + " | " + f.getFieldName() + " | "
+                        + f.getStartPosition() + "-" + f.getEndPosition())
                 .toList();
     }
-    
-    //Debug regex
+
     @PostMapping(value = "/layout/debug-unmatched", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public List<String> debugUnmatchedLayout(@RequestPart("layoutFile") MultipartFile layoutFile) throws IOException {
+    public List<String> debugUnmatchedLayout(@RequestPart("layoutFile") MultipartFile layoutFile)
+            throws IOException {
         return layoutParserService.findUnmatchedLines(layoutFile);
     }
 
     @PostMapping(value = "/export", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<byte[]> exportExcel(
-            
-            @RequestPart("layoutFile") MultipartFile layoutFile,
+            @RequestPart("layoutFile")  MultipartFile layoutFile,
             @RequestPart("remessaFile") MultipartFile remessaFile,
-            @RequestParam("cnabType") String cnabType
+            @RequestParam("cnabType")   String cnabType
     ) throws IOException {
 
-        if (layoutFile.isEmpty()) {
-            throw new IllegalArgumentException("O arquivo de layout está vazio.");
-        }
-
-        if (remessaFile.isEmpty()) {
-            throw new IllegalArgumentException("O arquivo de remessa está vazio.");
-        }
+        if (layoutFile.isEmpty())  throw new IllegalArgumentException("O arquivo de layout está vazio.");
+        if (remessaFile.isEmpty()) throw new IllegalArgumentException("O arquivo de remessa está vazio.");
 
         System.out.println("CNAB TYPE RECEBIDO: " + cnabType);
 
-        List<ParsedRecord> parsedRecords;
-
-        if ("240".equals(cnabType)) {
-            parsedRecords = parse240(layoutFile, remessaFile);
-        } else {
-            parsedRecords = parse400(layoutFile, remessaFile);
-        }
+        List<ParsedRecord> parsedRecords = "240".equals(cnabType)
+                ? parse240(layoutFile, remessaFile)
+                : parse400(layoutFile, remessaFile);
 
         byte[] excelBytes = excelExportService.generateExcel(
                 layoutFile.getOriginalFilename(),
                 remessaFile.getOriginalFilename(),
-                parsedRecords
-        );
-        
-            
+                parsedRecords);
+
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=cnab-export.xlsx")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(excelBytes);
     }
-    private List<ParsedRecord> parse400(MultipartFile layoutFile, MultipartFile remessaFile) throws IOException {
+
+    private List<ParsedRecord> parse400(MultipartFile layoutFile, MultipartFile remessaFile)
+            throws IOException {
         var layoutFields = layoutParserService.parseLayout(layoutFile);
         return remessaParserService.parseRemessa(remessaFile, layoutFields);
     }
-    private List<ParsedRecord> parse240(MultipartFile layoutFile, MultipartFile remessaFile) throws IOException {
-        System.out.println("Entrou no fluxo CNAB 240");
 
+    private List<ParsedRecord> parse240(MultipartFile layoutFile, MultipartFile remessaFile)
+            throws IOException {
+        System.out.println("Entrou no fluxo CNAB 240");
         return new ArrayList<>();
     }
-    
 
+    // ── Novo endpoint — Modo Bancário ──────────────────────────────────────
+
+    /**
+     * Exporta um arquivo CNAB bancário para Excel sem precisar de arquivo de layout protheus.
+     *
+     * Parâmetros obrigatórios:
+     *   bank    → código do banco    (ex.: "ITAU")
+     *   version → versão CNAB        (ex.: "400" | "240")
+     *   mode    → modalidade         (ex.: "COBRANCA" | "PAGAMENTO")
+     *
+     * Combinações suportadas atualmente:
+     *   ITAU + 400 + COBRANCA   → Itaú CNAB 400 Cobrança (remessa/retorno)
+     *   ITAU + 240 + PAGAMENTO  → Itaú CNAB 240 Pagamento SISPAG (remessa/retorno)
+     */
+    @PostMapping(value = "/export-bank", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<byte[]> exportExcelBank(
+            @RequestPart("remessaFile")  MultipartFile remessaFile,
+            @RequestParam("bank")        String bank,
+            @RequestParam("version")     String version,
+            @RequestParam("mode")        String mode
+    ) throws IOException {
+
+        if (remessaFile.isEmpty()) {
+            throw new IllegalArgumentException("O arquivo de remessa está vazio.");
+        }
+
+        // Resolve o enum — lança IllegalArgumentException com mensagem clara se inválido
+        BankLayout layout = BankLayout.of(bank, version, mode);
+
+        // Seleciona o parser correto
+        CnabParser parser = cnabParserFactory.getParser(layout);
+        List<ParsedRecord> parsedRecords = parser.parse(remessaFile);
+
+        // Para CNAB 240 usamos mapa de abas descritivo; para outros usamos o padrão
+        Map<String, String> tabNames = resolveTabNames(layout);
+
+        String layoutLabel = bank + " CNAB " + version + " " + mode + " (embutido)";
+        byte[] excelBytes  = excelExportService.generateExcel(
+                layoutLabel,
+                remessaFile.getOriginalFilename(),
+                parsedRecords,
+                tabNames);
+
+        String outputName = remessaFile.getOriginalFilename()
+                .replaceAll("[^a-zA-Z0-9._-]", "_") + "_resultado.xlsx";
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + outputName)
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(excelBytes);
+    }
+
+    /**
+     * Retorna o mapa de recordType → nome de aba adequado para cada layout.
+     * Permite que o ExcelExportService crie abas com nomes semânticos.
+     */
+    private Map<String, String> resolveTabNames(BankLayout layout) {
+        return switch (layout) {
+            case ITAU_400_COBRANCA -> Map.of(
+                    "0", "Header",
+                    "1", "Detalhe",
+                    "2", "Complemento",
+                    "9", "Trailer"
+            );
+            case ITAU_240_PAGAMENTO -> Map.of(
+                    "0",  "Header Arquivo",
+                    "1",  "Header Lote",
+                    "3A", "Seg A — Cred TED PIX",
+                    "3J", "Seg J — Boletos",
+                    "3O", "Seg O — Concessionárias",
+                    "3N", "Seg N — Tributos",
+                    "5",  "Trailer Lote",
+                    "9",  "Trailer Arquivo"
+            );
+        };
+    }
 }

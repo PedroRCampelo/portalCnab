@@ -29,6 +29,8 @@ textarea {
   padding: 24px;
 }
 
+/* ── Topbar ────────────────────────────────────────────────────────────────── */
+
 .topbar {
   position: sticky;
   top: 0;
@@ -107,51 +109,7 @@ textarea {
   transform: translateY(-1px);
 }
 
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.brand-badge {
-  width: 48px;
-  height: 48px;
-  border-radius: 16px;
-  display: grid;
-  place-items: center;
-  background: linear-gradient(135deg, #9b51ff, #4f8cff);
-  color: #ffffff;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  box-shadow: 0 16px 32px rgba(79, 140, 255, 0.22);
-}
-
-.brand-text {
-  display: flex;
-  flex-direction: column;
-}
-
-.brand-text strong {
-  font-size: 18px;
-  line-height: 1.1;
-}
-
-.brand-text span {
-  font-size: 13px;
-  color: #64748b;
-  margin-top: 3px;
-}
-
-.topbar-pill {
-  padding: 10px 14px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(203, 213, 225, 0.8);
-  color: #475569;
-  font-size: 13px;
-  font-weight: 700;
-  backdrop-filter: blur(8px);
-}
+/* ── Main layout ───────────────────────────────────────────────────────────── */
 
 .main-layout {
   max-width: 1180px;
@@ -161,6 +119,8 @@ textarea {
   gap: 28px;
   align-items: stretch;
 }
+
+/* ── Hero ──────────────────────────────────────────────────────────────────── */
 
 .hero-panel {
   padding: 32px 8px 32px 0;
@@ -240,6 +200,8 @@ textarea {
   font-size: 14px;
 }
 
+/* ── Tool card ─────────────────────────────────────────────────────────────── */
+
 .tool-card {
   background: rgba(255, 255, 255, 0.82);
   border: 1px solid rgba(255, 255, 255, 0.95);
@@ -264,6 +226,8 @@ textarea {
   color: #64748b;
   line-height: 1.6;
 }
+
+/* ── Form elements ─────────────────────────────────────────────────────────── */
 
 .form {
   display: flex;
@@ -445,6 +409,8 @@ label {
   border: 1px solid #fecaca;
 }
 
+/* ── Features ──────────────────────────────────────────────────────────────── */
+
 .features {
   max-width: 1180px;
   margin: 26px auto 0;
@@ -485,6 +451,168 @@ label {
   line-height: 1.6;
   font-size: 15px;
 }
+
+/* ── Seletor de modo (Protheus / Bancário) ─────────────────────────────────── */
+
+.mode-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.mode-btn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 18px;
+  background: #ffffff;
+  color: #334155;
+  cursor: pointer;
+  text-align: left;
+  transition:
+          border-color 0.2s ease,
+          background 0.2s ease,
+          box-shadow 0.2s ease,
+          transform 0.2s ease;
+}
+
+.mode-btn:hover {
+  border-color: #7b8fff;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(79, 140, 255, 0.1);
+}
+
+.mode-btn--active {
+  border-color: #4f8cff;
+  background: #eef4ff;
+  box-shadow: 0 8px 24px rgba(79, 140, 255, 0.15);
+}
+
+.mode-btn-icon {
+  font-size: 20px;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.mode-btn-label {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.mode-btn-badge {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.mode-btn-badge--protheus {
+  background: rgba(0, 150, 136, 0.12);
+  color: #00695c;
+}
+
+.mode-btn-badge--bank {
+  background: rgba(79, 140, 255, 0.14);
+  color: #1565c0;
+}
+
+/* ── Seletor de layout bancário ────────────────────────────────────────────── */
+
+.bank-layout-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.bank-layout-btn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding: 14px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  background: #ffffff;
+  color: #334155;
+  cursor: pointer;
+  text-align: left;
+  transition:
+          border-color 0.2s ease,
+          background 0.2s ease,
+          box-shadow 0.2s ease,
+          transform 0.2s ease;
+}
+
+.bank-layout-btn:hover {
+  border-color: #7b8fff;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(79, 140, 255, 0.1);
+}
+
+.bank-layout-btn--active {
+  border-color: #4f8cff;
+  background: #eef4ff;
+  box-shadow: 0 8px 22px rgba(79, 140, 255, 0.15);
+}
+
+.bank-layout-icon {
+  font-size: 22px;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.bank-layout-label {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.bank-layout-sublabel {
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.bank-layout-check {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #4f8cff;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+}
+
+/* ── Info box modo bancário ────────────────────────────────────────────────── */
+
+.bank-info-box {
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: #eef4ff;
+  border-left: 4px solid #4f8cff;
+  color: #1e3a5f;
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+/* ── Responsivo ────────────────────────────────────────────────────────────── */
 
 @media (max-width: 1024px) {
   .main-layout {
@@ -529,7 +657,9 @@ label {
     border-radius: 22px;
   }
 
-  .cnab-toggle {
+  .cnab-toggle,
+  .mode-selector,
+  .bank-layout-grid {
     grid-template-columns: 1fr;
   }
 
