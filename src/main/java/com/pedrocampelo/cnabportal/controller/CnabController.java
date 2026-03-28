@@ -28,8 +28,11 @@ import java.util.stream.Collectors;
 
 @CrossOrigin(origins = {
         "http://localhost:5173",
-        "https://portalcnab-frontend.onrender.com"
+        "https://portalcnab-frontend.onrender.com",
+        "https://whallet.com.br",
+        "https://www.whallet.com.br"
 })
+
 @RestController
 @RequestMapping("/api/cnab")
 public class CnabController {
