@@ -1,12 +1,16 @@
 package com.pedrocampelo.cnabportal.controller;
 
+import com.pedrocampelo.cnabportal.dto.CnabReportData;
 import com.pedrocampelo.cnabportal.dto.UploadAnalysisResponseDTO;
 import com.pedrocampelo.cnabportal.layout.BankLayout;
+import com.pedrocampelo.cnabportal.layout.itau.Itau240PagamentoLayout;
 import com.pedrocampelo.cnabportal.model.ParsedRecord;
 import com.pedrocampelo.cnabportal.service.*;
+import com.pedrocampelo.cnabportal.service.CnabAnalysisService;
 import com.pedrocampelo.cnabportal.service.CnabParserFactory;
 import com.pedrocampelo.cnabportal.service.ExcelExportService;
 import com.pedrocampelo.cnabportal.service.FileReadingService;
+import com.pedrocampelo.cnabportal.service.PdfReportService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -35,18 +39,24 @@ public class CnabController {
     private final RemessaParserService  remessaParserService;
     private final ExcelExportService    excelExportService;
     private final CnabParserFactory     cnabParserFactory;
+    private final CnabAnalysisService   cnabAnalysisService;
+    private final PdfReportService      pdfReportService;
 
     public CnabController(
             FileReadingService    fileReadingService,
             LayoutParserService   layoutParserService,
             RemessaParserService  remessaParserService,
             ExcelExportService    excelExportService,
-            CnabParserFactory     cnabParserFactory) {
+            CnabParserFactory     cnabParserFactory,
+            CnabAnalysisService   cnabAnalysisService,
+            PdfReportService      pdfReportService) {
         this.fileReadingService   = fileReadingService;
         this.layoutParserService  = layoutParserService;
         this.remessaParserService = remessaParserService;
         this.excelExportService   = excelExportService;
         this.cnabParserFactory    = cnabParserFactory;
+        this.cnabAnalysisService  = cnabAnalysisService;
+        this.pdfReportService     = pdfReportService;
     }
 
     // ── Endpoints existentes (Modo Protheus) — sem alteração ───────────────
@@ -225,6 +235,54 @@ public class CnabController {
                 .body(excelBytes);
     }
 
+    // ── Endpoint PDF ──────────────────────────────────────────────────────────
+
+    /**
+     * Gera um relatório PDF analítico do arquivo CNAB bancário.
+     * Mesmos parâmetros do /export-bank:  bank, version, mode.
+     *
+     * Seções do relatório:
+     *   1. Capa — logo, tipo, empresa, data
+     *   2. Resumo executivo — valor total, qtd títulos, médias
+     *   3. Distribuição por segmento — barras de proporção
+     *   4. Linha do tempo mensal — vencimentos/pagamentos por mês
+     *   5. Análise e alertas — 9 categorias com severidade
+     *   6. Top favorecidos/pagadores
+     */
+    @PostMapping(value = "/report-bank", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<byte[]> reportPdfBank(
+            @RequestPart("remessaFile")  MultipartFile remessaFile,
+            @RequestParam("bank")        String bank,
+            @RequestParam("version")     String version,
+            @RequestParam("mode")        String mode
+    ) throws IOException {
+
+        if (remessaFile.isEmpty()) {
+            throw new IllegalArgumentException("O arquivo de remessa está vazio.");
+        }
+
+        BankLayout layout = BankLayout.of(bank, version, mode);
+        CnabParser parser = cnabParserFactory.getParser(layout);
+        List<ParsedRecord> parsedRecords = parser.parse(remessaFile);
+
+        CnabReportData reportData = cnabAnalysisService.analyze(
+                parsedRecords,
+                remessaFile.getOriginalFilename(),
+                mode.toUpperCase(),            // "PAGAMENTO" | "COBRANCA"
+                bank + " CNAB " + version      // ex: "ITAU CNAB 240"
+        );
+
+        byte[] pdfBytes = pdfReportService.generate(reportData);
+
+        String outputName = remessaFile.getOriginalFilename()
+                .replaceAll("[^a-zA-Z0-9._-]", "_") + "_relatorio.pdf";
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + outputName)
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdfBytes);
+    }
+
     /**
      * Retorna o mapa de recordType → nome de aba adequado para cada layout.
      * Permite que o ExcelExportService crie abas com nomes semânticos.
@@ -260,7 +318,7 @@ public class CnabController {
                     "1",  "Header Lote",
                     "3A", "Seg A — Cred Cheque OP",
                     "3J", "Seg J — Boletos",
-                    "3O", "Seg O — Tributos Contas",
+                    "3O", "Seg O — Tributos contas",
                     "5",  "Trailer Lote",
                     "9",  "Trailer Arquivo"
             );
