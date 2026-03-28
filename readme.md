@@ -1,4 +1,4 @@
-# Portal CNAB
+# Portal CNAB (Whallet)
 
 [![Screenshot-2026-03-28-at-12-02-17.png](https://i.postimg.cc/9M9NJm9v/Screenshot-2026-03-28-at-12-02-17.png)](https://postimg.cc/MMWDG8dD)
 
