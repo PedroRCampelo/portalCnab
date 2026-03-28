@@ -3,7 +3,9 @@ package com.pedrocampelo.cnabportal.layout;
 public enum BankLayout {
 
     ITAU_400_COBRANCA,
-    ITAU_240_PAGAMENTO;
+    ITAU_240_COBRANCA,
+    ITAU_240_PAGAMENTO,
+    BRADESCO_240_PAGAMENTO;
 
     /**
      * Resolve o enum a partir dos 3 parâmetros vindos da request.
@@ -18,7 +20,8 @@ public enum BankLayout {
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException(
                     "Layout bancário não suportado: " + key +
-                            ". Combinações válidas: ITAU_400_COBRANCA, ITAU_240_PAGAMENTO"
+                            ". Combinações válidas: ITAU_400_COBRANCA, ITAU_240_COBRANCA, " +
+                            "ITAU_240_PAGAMENTO, BRADESCO_240_PAGAMENTO"
             );
         }
     }

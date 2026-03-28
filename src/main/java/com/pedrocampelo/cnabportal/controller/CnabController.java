@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import com.pedrocampelo.cnabportal.dto.ParseResponseDTO;
 import com.pedrocampelo.cnabportal.dto.ParsedRecordDTO;
-import com.pedrocampelo.cnabportal.service.LayoutParserService;
-import com.pedrocampelo.cnabportal.service.RemessaParserService;
+import com.pedrocampelo.cnabportal.service.protheussv.LayoutParserService;
+import com.pedrocampelo.cnabportal.service.protheussv.RemessaParserService;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -176,7 +176,7 @@ public class CnabController {
     // ── Novo endpoint — Modo Bancário ──────────────────────────────────────
 
     /**
-     * Exporta um arquivo CNAB bancário para Excel sem precisar de arquivo de layout protheus.
+     * Exporta um arquivo CNAB bancário para Excel sem precisar de arquivo de layout.
      *
      * Parâmetros obrigatórios:
      *   bank    → código do banco    (ex.: "ITAU")
@@ -237,6 +237,14 @@ public class CnabController {
                     "2", "Complemento",
                     "9", "Trailer"
             );
+            case ITAU_240_COBRANCA -> Map.of(
+                    "0",  "Header Arquivo",
+                    "1",  "Header Lote",
+                    "3P", "Seg P — Título",
+                    "3Q", "Seg Q — Pagador",
+                    "5",  "Trailer Lote",
+                    "9",  "Trailer Arquivo"
+            );
             case ITAU_240_PAGAMENTO -> Map.of(
                     "0",  "Header Arquivo",
                     "1",  "Header Lote",
@@ -244,6 +252,15 @@ public class CnabController {
                     "3J", "Seg J — Boletos",
                     "3O", "Seg O — Concessionárias",
                     "3N", "Seg N — Tributos",
+                    "5",  "Trailer Lote",
+                    "9",  "Trailer Arquivo"
+            );
+            case BRADESCO_240_PAGAMENTO -> Map.of(
+                    "0",  "Header Arquivo",
+                    "1",  "Header Lote",
+                    "3A", "Seg A — Cred Cheque OP",
+                    "3J", "Seg J — Boletos",
+                    "3O", "Seg O — Tributos Contas",
                     "5",  "Trailer Lote",
                     "9",  "Trailer Arquivo"
             );

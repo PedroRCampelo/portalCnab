@@ -1,8 +1,10 @@
-package com.pedrocampelo.cnabportal.service;
+package com.pedrocampelo.cnabportal.service.itausv;
 
 import com.pedrocampelo.cnabportal.layout.BankLayoutField;
-import com.pedrocampelo.cnabportal.layout.itau.Itau240PagamentoLayout;
+import com.pedrocampelo.cnabportal.layout.itau.Itau400RetornoLayout;
+import com.pedrocampelo.cnabportal.layout.itau.Itau400RemessaLayout;
 import com.pedrocampelo.cnabportal.model.ParsedRecord;
+import com.pedrocampelo.cnabportal.service.CnabParser;
 import com.pedrocampelo.cnabportal.util.CnabValueExtractor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,23 +17,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Parser para Itaú CNAB 240 — SISPAG Pagamento.
+ * Parser para Itaú CNAB 400 Cobrança (remessa e retorno).
  *
- * Diferente do CNAB 400 (onde cada linha é independente), o CNAB 240
- * tem estrutura hierárquica: Arquivo → Lotes → Detalhes.
+ * Detecta automaticamente remessa vs retorno pelo caractere na posição 2
+ * do header:  '1' = remessa  |  '2' = retorno
  *
- * O tipo de registro fica na posição 8 (index 7) de cada linha de 240 bytes:
- *   0 = Header Arquivo
- *   1 = Header Lote
- *   3 = Detalhe  (segmento na posição 14 / index 13: A, J, O, N, ...)
- *   5 = Trailer Lote
- *   9 = Trailer Arquivo
- *
- * Remessa vs Retorno: posição 143 (index 142) do Header Arquivo.
- *   '1' = remessa  |  '2' = retorno
+ * Anteriormente chamado de BankRemessaParserService.
  */
 @Service
-public class Itau240PagamentoParser implements CnabParser {
+public class Itau400CobrancaParser implements CnabParser {
 
     @Override
     public List<ParsedRecord> parse(MultipartFile file) throws IOException {
@@ -41,16 +35,14 @@ public class Itau240PagamentoParser implements CnabParser {
             throw new IllegalArgumentException("Arquivo vazio.");
         }
 
-        // Detecta remessa/retorno pelo header do arquivo (primeira linha, pos 143)
-        String headerArquivo = lines.get(0);
-        if (headerArquivo.length() < 143) {
+        String firstLine = lines.get(0);
+        if (firstLine.length() < 2) {
             throw new IllegalArgumentException(
-                    "Arquivo CNAB 240 inválido: header de arquivo muito curto (" +
-                            headerArquivo.length() + " bytes, esperado ≥ 143).");
+                    "Arquivo CNAB 400 inválido: header muito curto.");
         }
 
-        char tipoArquivo = headerArquivo.charAt(142); // pos 143, 1-based
-        boolean isRetorno = (tipoArquivo == '2');
+        // Posição 2 (index 1): '1' = remessa, '2' = retorno
+        boolean isRetorno = firstLine.charAt(1) == '2';
 
         List<ParsedRecord> records = new ArrayList<>();
         int lineNumber = 0;
@@ -59,11 +51,11 @@ public class Itau240PagamentoParser implements CnabParser {
             lineNumber++;
             if (line.isBlank()) continue;
 
-            // Linhas curtas demais não fazem parte de um arquivo CNAB 240 válido
-            if (line.length() < 8) continue;
+            String recordType = String.valueOf(line.charAt(0));
 
-            String recordType = Itau240PagamentoLayout.getRecordType(line);
-            List<BankLayoutField> fields = Itau240PagamentoLayout.getFieldsForLine(line);
+            List<BankLayoutField> fields = isRetorno
+                    ? Itau400RetornoLayout.getFieldsForLine(line)
+                    : Itau400RemessaLayout.getFieldsForLine(line);
 
             ParsedRecord record = new ParsedRecord();
             record.setLineNumber(lineNumber);

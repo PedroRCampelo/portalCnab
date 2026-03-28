@@ -1,4 +1,4 @@
-package com.pedrocampelo.cnabportal.service;
+package com.pedrocampelo.cnabportal.service.protheussv;
 
 import com.pedrocampelo.cnabportal.model.LayoutField;
 import com.pedrocampelo.cnabportal.model.ParsedRecord;
