@@ -2,7 +2,6 @@ import { useState } from "react";
 import axios from "axios";
 import "./App.css";
 import logoWhale from "./assets/logo.png";
-import logoName  from "./assets/LOGO_NAME.png";
 
 // ── SVG logos dos bancos ──────────────────────────────────────────────────────
 const LogoItau = () => (
