@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://whallet.com.br/sitemap.xml

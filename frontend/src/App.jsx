@@ -9,7 +9,7 @@ const LogoItau = () => (
       <rect width="88" height="28" rx="5" fill="#EC7000"/>
       <text x="44" y="19" textAnchor="middle" fill="#fff"
             fontFamily="Arial,sans-serif" fontWeight="900" fontSize="14" letterSpacing="1">
-        itaú
+        Itaú
       </text>
     </svg>
 );
@@ -18,7 +18,7 @@ const LogoBradesco = () => (
     <svg viewBox="0 0 100 28" xmlns="http://www.w3.org/2000/svg" className="bank-logo">
       <rect width="100" height="28" rx="5" fill="#CC092F"/>
       <text x="50" y="19" textAnchor="middle" fill="#fff"
-            fontFamily="Arial,sans-serif" fontWeight="900" fontSize="10" letterSpacing="0.8">
+            fontFamily="Arial,sans-serif" fontWeight="900" fontSize="12" letterSpacing="0.8">
         BRADESCO
       </text>
     </svg>
@@ -217,7 +217,7 @@ function App() {
               4 layouts ativos
             </span>
               <a href="#ferramenta" className="topbar-cta">
-                Gerar Excel
+                Analisar
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                   <path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
