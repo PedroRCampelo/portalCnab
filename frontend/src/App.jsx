@@ -26,10 +26,10 @@ const LogoBradesco = () => (
 
 // ── Catálogo de layouts ───────────────────────────────────────────────────────
 const BANK_LAYOUTS = [
-  { key:"ITAU_400_COBRANCA",      bank:"ITAU",     bankId:"itau",     bankName:"Itaú",    LogoComponent:LogoItau,     version:"400", mode:"COBRANCA",  label:"CNAB 400 — Cobrança",  desc:"Remessa e retorno de boletos (layout clássico)" },
-  { key:"ITAU_240_COBRANCA",      bank:"ITAU",     bankId:"itau",     bankName:"Itaú",    LogoComponent:LogoItau,     version:"240", mode:"COBRANCA",  label:"CNAB 240 — Cobrança",  desc:"Remessa e retorno de boletos (FEBRABAN 240)" },
-  { key:"ITAU_240_PAGAMENTO",     bank:"ITAU",     bankId:"itau",     bankName:"Itaú",    LogoComponent:LogoItau,     version:"240", mode:"PAGAMENTO", label:"CNAB 240 — Pagamento", desc:"SISPAG — TED, PIX, boletos, tributos" },
-  { key:"BRADESCO_240_PAGAMENTO", bank:"BRADESCO", bankId:"bradesco", bankName:"Bradesco",LogoComponent:LogoBradesco, version:"240", mode:"PAGAMENTO", label:"CNAB 240 — Pagamento", desc:"Multipag — crédito conta, boletos, tributos" },
+  { key:"ITAU_400_COBRANCA",      bank:"ITAU",     bankId:"itau",     bankName:"Itaú",     LogoComponent:LogoItau,     version:"400", mode:"COBRANCA",  label:"CNAB 400 — Cobrança",  desc:"Remessa e retorno de boletos (layout clássico)" },
+  { key:"ITAU_240_COBRANCA",      bank:"ITAU",     bankId:"itau",     bankName:"Itaú",     LogoComponent:LogoItau,     version:"240", mode:"COBRANCA",  label:"CNAB 240 — Cobrança",  desc:"Remessa e retorno de boletos (FEBRABAN 240)" },
+  { key:"ITAU_240_PAGAMENTO",     bank:"ITAU",     bankId:"itau",     bankName:"Itaú",     LogoComponent:LogoItau,     version:"240", mode:"PAGAMENTO", label:"CNAB 240 — Pagamento", desc:"SISPAG — TED, PIX, boletos, tributos" },
+  { key:"BRADESCO_240_PAGAMENTO", bank:"BRADESCO", bankId:"bradesco", bankName:"Bradesco", LogoComponent:LogoBradesco, version:"240", mode:"PAGAMENTO", label:"CNAB 240 — Pagamento", desc:"Multipag — crédito conta, boletos, tributos" },
 ];
 
 const BANKS = (() => {
@@ -42,7 +42,7 @@ const BANKS = (() => {
   return [...map.values()];
 })();
 
-// ── Ícones SVG simples ────────────────────────────────────────────────────────
+// ── Ícones ────────────────────────────────────────────────────────────────────
 const IconCheck = () => (
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
       <path d="M2.5 7L5.5 10L11.5 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -61,9 +61,23 @@ const IconUpload = () => (
     </svg>
 );
 const IconSpinner = () => (
-    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" className="spinner">
-      <circle cx="9" cy="9" r="7" stroke="rgba(255,255,255,0.25)" strokeWidth="2"/>
-      <path d="M9 2a7 7 0 017 7" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="spinner">
+      <circle cx="8" cy="8" r="6" stroke="rgba(255,255,255,0.2)" strokeWidth="2"/>
+      <path d="M8 2a6 6 0 016 6" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+);
+const IconExcel = () => (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <rect x="1" y="1" width="14" height="14" rx="2" fill="none" stroke="currentColor" strokeWidth="1.4"/>
+      <path d="M5 5l2 3-2 3M8 11h3M9.5 8h2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+    </svg>
+);
+const IconPdf = () => (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <rect x="1" y="1" width="14" height="14" rx="2" fill="none" stroke="currentColor" strokeWidth="1.4"/>
+      <path d="M4 9.5c0 .8.6 1.5 1.5 1.5S7 10.3 7 9.5 6.4 8 5.5 8H4V12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M9 8h1a1.5 1.5 0 010 3H9V8z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M12 8v4M11 8h2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
     </svg>
 );
 
@@ -73,8 +87,9 @@ function App() {
   const [openBankId, setOpenBankId] = useState("itau");
   const [bankLayout, setBankLayout] = useState(BANK_LAYOUTS[0]);
   const [bankFile, setBankFile]     = useState(null);
-  const [bankLoading, setBankLoading] = useState(false);
-  const [bankMsg, setBankMsg]         = useState("");
+  const [bankLoading, setBankLoading]       = useState(false);
+  const [bankPdfLoading, setBankPdfLoading] = useState(false);
+  const [bankMsg, setBankMsg]               = useState("");
 
   const [layoutFile, setLayoutFile]   = useState(null);
   const [remessaFile, setRemessaFile] = useState(null);
@@ -82,15 +97,20 @@ function App() {
   const [message, setMessage]         = useState("");
   const [cnabType, setCnabType]       = useState("400");
 
-  const downloadBlob = (data, filename) => {
-    const blob = new Blob([data], { type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  const downloadBlob = (data, filename, mime) => {
+    const blob = new Blob([data], { type: mime });
+    const url  = window.URL.createObjectURL(blob);
+    const a    = document.createElement("a");
     a.href = url; a.download = filename;
     document.body.appendChild(a); a.click(); a.remove();
     window.URL.revokeObjectURL(url);
   };
 
+  const bankParams = () =>
+      `?bank=${bankLayout.bank}&version=${bankLayout.version}&mode=${bankLayout.mode}`;
+
+  // ── Handlers bancários ────────────────────────────────────────────────────
   const handleBankExport = async (e) => {
     e.preventDefault();
     if (!bankFile) { setBankMsg("Selecione o arquivo antes de continuar."); return; }
@@ -98,12 +118,15 @@ function App() {
       setBankLoading(true); setBankMsg("");
       const fd = new FormData();
       fd.append("remessaFile", bankFile);
-      const apiUrl = import.meta.env.VITE_API_URL;
       const res = await axios.post(
-          `${apiUrl}/api/cnab/export-bank?bank=${bankLayout.bank}&version=${bankLayout.version}&mode=${bankLayout.mode}`,
+          `${import.meta.env.VITE_API_URL}/api/cnab/export-bank${bankParams()}`,
           fd, { responseType:"blob", headers:{"Content-Type":"multipart/form-data"} }
       );
-      downloadBlob(res.data, bankFile.name.replace(/\.[^/.]+$/, "") + "_resultado.xlsx");
+      downloadBlob(
+          res.data,
+          bankFile.name.replace(/\.[^/.]+$/, "") + "_resultado.xlsx",
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      );
       setBankMsg("Excel gerado com sucesso.");
     } catch (err) {
       console.error(err);
@@ -111,6 +134,29 @@ function App() {
     } finally { setBankLoading(false); }
   };
 
+  const handleBankPdf = async () => {
+    if (!bankFile) { setBankMsg("Selecione o arquivo antes de continuar."); return; }
+    try {
+      setBankPdfLoading(true); setBankMsg("");
+      const fd = new FormData();
+      fd.append("remessaFile", bankFile);
+      const res = await axios.post(
+          `${import.meta.env.VITE_API_URL}/api/cnab/report-bank${bankParams()}`,
+          fd, { responseType:"blob", headers:{"Content-Type":"multipart/form-data"} }
+      );
+      downloadBlob(
+          res.data,
+          bankFile.name.replace(/\.[^/.]+$/, "") + "_relatorio.pdf",
+          "application/pdf"
+      );
+      setBankMsg("Relatório PDF gerado com sucesso.");
+    } catch (err) {
+      console.error(err);
+      setBankMsg("Erro ao gerar o PDF. Verifique a API.");
+    } finally { setBankPdfLoading(false); }
+  };
+
+  // ── Handler Protheus ──────────────────────────────────────────────────────
   const handleExport = async (e) => {
     e.preventDefault();
     if (!layoutFile || !remessaFile) { setMessage("Selecione os dois arquivos."); return; }
@@ -120,10 +166,12 @@ function App() {
       fd.append("layoutFile", layoutFile);
       fd.append("remessaFile", remessaFile);
       fd.append("cnabType", cnabType);
-      const apiUrl = import.meta.env.VITE_API_URL;
-      const res = await axios.post(`${apiUrl}/api/cnab/export`, fd,
-          { responseType:"blob", headers:{"Content-Type":"multipart/form-data"} });
-      downloadBlob(res.data, "cnab-export.xlsx");
+      const res = await axios.post(
+          `${import.meta.env.VITE_API_URL}/api/cnab/export`, fd,
+          { responseType:"blob", headers:{"Content-Type":"multipart/form-data"} }
+      );
+      downloadBlob(res.data, "cnab-export.xlsx",
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
       setMessage("Excel gerado com sucesso.");
     } catch (err) {
       console.error(err);
@@ -133,29 +181,23 @@ function App() {
 
   const selectLayout = (bl) => { setBankLayout(bl); setBankFile(null); setBankMsg(""); };
 
+  const busy = bankLoading || bankPdfLoading;
+
   return (
       <div className="app-shell">
-
-        {/* ── Orbs decorativos de fundo ── */}
         <div className="bg-orb bg-orb--1" aria-hidden="true"/>
         <div className="bg-orb bg-orb--2" aria-hidden="true"/>
 
         {/* ── Topbar ── */}
         <header className="topbar">
-          {/* Linha gradiente decorativa no topo do menu */}
           <div className="topbar-gradient-line" aria-hidden="true"/>
-
           <div className="topbar-inner">
-
-            {/* ── Brand ── */}
             <a href="/" className="brand">
               <div className="brand-whale-wrap">
                 <img src={logoWhale} alt="" className="brand-whale"/>
               </div>
               <span className="brand-wordmark">Whallet</span>
             </a>
-
-            {/* ── Nav central com pill ── */}
             <nav className="topbar-nav" aria-label="Navegação principal">
               <div className="nav-pill">
                 <a href="#ferramenta" className="nav-link">
@@ -169,8 +211,6 @@ function App() {
                 </a>
               </div>
             </nav>
-
-            {/* ── Direita: badge + CTA ── */}
             <div className="topbar-actions">
             <span className="topbar-badge">
               <span className="topbar-badge-dot"/>
@@ -183,12 +223,10 @@ function App() {
                 </svg>
               </a>
             </div>
-
           </div>
         </header>
 
         <main className="main-layout" id="ferramenta">
-
           {/* ── Hero ── */}
           <section className="hero-panel">
             <div className="eyebrow">
@@ -197,22 +235,21 @@ function App() {
             </div>
             <h1>
               Transforme remessas CNAB em
-              <span className="gradient-text"> Excel</span> em segundos
+              <span className="gradient-text"> resultados</span> em segundos
             </h1>
             <p className="hero-text">
-              Selecione o banco, faça upload do arquivo e baixe a planilha
-              estruturada — pronta para análise e conferência.
+              Selecione o banco, envie o arquivo e receba planilha Excel ou
+              relatório PDF analítico — pronto para conferência e auditoria.
             </p>
-
             <div className="hero-stats">
               <div className="stat">
                 <span className="stat-number">4</span>
-                <span className="stat-label">layouts suportados</span>
+                <span className="stat-label">layouts</span>
               </div>
               <div className="stat-divider"/>
               <div className="stat">
                 <span className="stat-number">2</span>
-                <span className="stat-label">bancos integrados</span>
+                <span className="stat-label">bancos</span>
               </div>
               <div className="stat-divider"/>
               <div className="stat">
@@ -220,7 +257,6 @@ function App() {
                 <span className="stat-label">versões CNAB</span>
               </div>
             </div>
-
             <div className="hero-highlights">
               <div className="hero-highlight">
                 <span className="highlight-icon">✦</span>
@@ -230,10 +266,10 @@ function App() {
                 </div>
               </div>
               <div className="hero-highlight">
-                <span className="highlight-icon">⚡</span>
+                <span className="highlight-icon">📊</span>
                 <div>
-                  <strong>Processamento instantâneo</strong>
-                  <p>Excel gerado e baixado direto no navegador.</p>
+                  <strong>Excel ou PDF analítico</strong>
+                  <p>Planilha detalhada ou relatório com alertas e resumo executivo.</p>
                 </div>
               </div>
               <div className="hero-highlight">
@@ -268,6 +304,8 @@ function App() {
             {/* ── Formulário Bancário ── */}
             {mode === "bank" && (
                 <form className="form" onSubmit={handleBankExport}>
+
+                  {/* Seletor de banco */}
                   <div className="field">
                     <label className="field-label">Banco e layout</label>
                     <div className="bank-accordion">
@@ -332,9 +370,16 @@ function App() {
                     </label>
                   </div>
 
-                  <button type="submit" className="submit-button" disabled={bankLoading}>
-                    {bankLoading ? <><IconSpinner/> Gerando…</> : "↓ Gerar Excel"}
-                  </button>
+                  {/* ── Botões duais ── */}
+                  <div className="action-row">
+                    <button type="submit" className="action-btn action-btn--excel" disabled={busy}>
+                      {bankLoading ? <><IconSpinner/> Gerando…</> : <><IconExcel/> Gerar Excel</>}
+                    </button>
+                    <button type="button" className="action-btn action-btn--pdf"
+                            disabled={busy} onClick={handleBankPdf}>
+                      {bankPdfLoading ? <><IconSpinner/> Gerando…</> : <><IconPdf/> Relatório PDF</>}
+                    </button>
+                  </div>
 
                   {bankMsg && (
                       <div className={`msg ${bankMsg.includes("Erro") ? "msg--error" : "msg--success"}`}>
@@ -393,8 +438,8 @@ function App() {
                     </label>
                   </div>
 
-                  <button type="submit" className="submit-button" disabled={loading}>
-                    {loading ? <><IconSpinner/> Gerando…</> : "↓ Gerar Excel"}
+                  <button type="submit" className="action-btn action-btn--excel" disabled={loading}>
+                    {loading ? <><IconSpinner/> Gerando…</> : <><IconExcel/> Gerar Excel</>}
                   </button>
 
                   {message && (
@@ -410,9 +455,9 @@ function App() {
         {/* ── Como funciona ── */}
         <section className="features" id="como-funciona">
           {[
-            { step:"01", title:"Escolha o banco", desc:"Selecione o banco e o tipo de layout CNAB — cobrança ou pagamento." },
+            { step:"01", title:"Escolha o banco", desc:"Selecione o banco e o layout CNAB — cobrança ou pagamento." },
             { step:"02", title:"Envie o arquivo",  desc:"Upload da remessa ou retorno. Nenhum arquivo de configuração necessário." },
-            { step:"03", title:"Baixe o Excel",    desc:"Planilha gerada instantaneamente com abas por tipo de registro." },
+            { step:"03", title:"Excel ou PDF",     desc:"Planilha detalhada ou relatório analítico com alertas e resumo executivo." },
           ].map((f) => (
               <div key={f.step} className="feature-card">
                 <span className="feature-step">{f.step}</span>
