@@ -45,11 +45,17 @@ export default function HomePage() {
             </div>
 
             <div className="hero-trust">
-              <span className="trust-item"><span className="trust-dot"/>Itaú CNAB 240 e 400</span>
+              <span className="trust-item"><span className="trust-dot trust-dot--bank"/>Itaú 240 e 400</span>
               <span className="trust-sep"/>
-              <span className="trust-item"><span className="trust-dot"/>Bradesco Multipag 240</span>
+              <span className="trust-item"><span className="trust-dot trust-dot--bank"/>Bradesco 240 e 400</span>
               <span className="trust-sep"/>
-              <span className="trust-item"><span className="trust-dot"/>Remessa e Retorno</span>
+              <span className="trust-item"><span className="trust-dot trust-dot--bank"/>Banco do Brasil 240</span>
+              <span className="trust-sep"/>
+              <span className="trust-item"><span className="trust-dot trust-dot--bank"/>Caixa 240</span>
+              <span className="trust-sep"/>
+              <span className="trust-item"><span className="trust-dot trust-dot--feature"/>Remessa e Retorno</span>
+              <span className="trust-sep"/>
+              <span className="trust-item"><span className="trust-dot trust-dot--feature"/>Excel e PDF</span>
             </div>
           </div>
 
@@ -97,8 +103,8 @@ export default function HomePage() {
         {/* ── Stats ── */}
         <section className="stats-bar">
           {[
-            { n:"5",       l:"Layouts bancários" },
-            { n:"3",       l:"Bancos integrados" },
+            { n:"7",       l:"Layouts bancários" },
+            { n:"4",       l:"Bancos integrados" },
             { n:"240/400", l:"Versões CNAB" },
             { n:"9",       l:"Tipos de alerta" },
           ].map(s => (
@@ -184,7 +190,6 @@ export default function HomePage() {
         <footer className="footer">
           <img src={logoWhale} alt="" className="footer-whale"/>
           <span>Whallet · Portal CNAB</span>
-          <span>Contato: usewhallet@gmail.com</span>
         </footer>
       </>
   );

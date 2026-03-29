@@ -67,7 +67,9 @@ export default function ExcelPage() {
                 <li><span className="info-bank itau">itaú</span> CNAB 240 Cobrança</li>
                 <li><span className="info-bank itau">itaú</span> CNAB 240 Pagamento</li>
                 <li><span className="info-bank bradesco">B</span> Bradesco CNAB 240 Pagamento</li>
+                <li><span className="info-bank bradesco">B</span> Bradesco CNAB 400 Cobrança</li>
                 <li><span className="info-bank bb">BB</span> Banco do Brasil CNAB 240 Pagamento</li>
+                <li><span className="info-bank caixa">CEF</span> Caixa CNAB 240 Pagamento</li>
                 <li><span className="info-bank protheus">P</span> Layout Protheus customizado</li>
               </ul>
             </div>
