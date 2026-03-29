@@ -184,6 +184,7 @@ export default function HomePage() {
         <footer className="footer">
           <img src={logoWhale} alt="" className="footer-whale"/>
           <span>Whallet · Portal CNAB</span>
+          <span>Contato: usewhallet@gmail.com</span>
         </footer>
       </>
   );
