@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
 
 @CrossOrigin(origins = {
         "http://localhost:5173",
-        "https://portalcnab-frontend.onrender.com",
         "https://whallet.com.br",
         "https://www.whallet.com.br"
 })
@@ -309,7 +308,7 @@ public class CnabController {
             case ITAU_240_PAGAMENTO -> Map.of(
                     "0",  "Header Arquivo",
                     "1",  "Header Lote",
-                    "3A", "Seg A — Cred TED PIX",
+                    "3A", "Seg A — Créd TED PIX",
                     "3J", "Seg J — Boletos",
                     "3O", "Seg O — Concessionárias",
                     "3N", "Seg N — Tributos",
@@ -319,9 +318,20 @@ public class CnabController {
             case BRADESCO_240_PAGAMENTO -> Map.of(
                     "0",  "Header Arquivo",
                     "1",  "Header Lote",
-                    "3A", "Seg A — Cred Cheque OP",
+                    "3A", "Seg A — Créd Cheque OP",
                     "3J", "Seg J — Boletos",
-                    "3O", "Seg O — Tributos contas",
+                    "3O", "Seg O — Tributos Contas",
+                    "5",  "Trailer Lote",
+                    "9",  "Trailer Arquivo"
+            );
+            case BB_240_PAGAMENTO -> Map.of(
+                    "0",  "Header Arquivo",
+                    "1",  "Header Lote",
+                    "3A", "Seg A — Créd TED PIX",
+                    "3B", "Seg B — Compl PIX Endereço",
+                    "3J", "Seg J — Boletos",
+                    "3O", "Seg O — Contas Tributos CB",
+                    "3N", "Seg N — Tributos s CB",
                     "5",  "Trailer Lote",
                     "9",  "Trailer Arquivo"
             );
