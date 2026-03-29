@@ -108,8 +108,7 @@ a     { color: inherit; text-decoration: none; }
 .brand:hover .brand-whale { transform: rotate(-8deg) scale(1.08); }
 .brand-wordmark {
   font-size:33px; font-weight:800; letter-spacing:-.03em; line-height:1;
-  background: White;
-  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  color: white;
   filter: drop-shadow(0 0 20px rgba(124,58,237,0.3));
   transition: filter .3s;
 }
@@ -232,11 +231,13 @@ a     { color: inherit; text-decoration: none; }
 
 /* Trust badges */
 .hero-trust {
-  display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
   font-size:12px; font-weight:600; color:var(--text-dim);
 }
-.trust-dot { width:6px; height:6px; border-radius:50%; background:var(--success); display:inline-block; margin-right:5px; }
-.trust-sep { width:1px; height:16px; background:var(--border); }
+.trust-dot { width:6px; height:6px; border-radius:50%; display:inline-block; margin-right:5px; flex-shrink:0; }
+.trust-dot--bank    { background:var(--purple); box-shadow:0 0 5px rgba(124,58,237,0.7); }
+.trust-dot--feature { background:var(--success); box-shadow:0 0 5px rgba(34,197,94,0.7); }
+.trust-sep { width:1px; height:14px; background:var(--border); flex-shrink:0; }
 
 /* Visual flutuante */
 .hero-visual {
@@ -503,6 +504,7 @@ a     { color: inherit; text-decoration: none; }
 .info-bank.itau     { background:#EC7000; color:#fff; }
 .info-bank.bradesco { background:#CC092F; color:#fff; }
 .info-bank.bb       { background:#003882; color:#F8C400; }
+.info-bank.caixa    { background:#005CA9; color:#fff; }
 
 /* Badges de severidade */
 .sev {
