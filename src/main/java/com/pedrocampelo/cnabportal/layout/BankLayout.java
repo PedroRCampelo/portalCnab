@@ -5,11 +5,12 @@ public enum BankLayout {
     ITAU_400_COBRANCA,
     ITAU_240_COBRANCA,
     ITAU_240_PAGAMENTO,
-    BRADESCO_240_PAGAMENTO;
+    BRADESCO_240_PAGAMENTO,
+    BB_240_PAGAMENTO;
 
     /**
      * Resolve o enum a partir dos 3 parâmetros vindos da request.
-     * bank    → "ITAU"
+     * bank    → "ITAU" | "BRADESCO" | "BB"
      * version → "400" | "240"
      * mode    → "COBRANCA" | "PAGAMENTO"
      */
@@ -21,7 +22,7 @@ public enum BankLayout {
             throw new IllegalArgumentException(
                     "Layout bancário não suportado: " + key +
                             ". Combinações válidas: ITAU_400_COBRANCA, ITAU_240_COBRANCA, " +
-                            "ITAU_240_PAGAMENTO, BRADESCO_240_PAGAMENTO"
+                            "ITAU_240_PAGAMENTO, BRADESCO_240_PAGAMENTO, BB_240_PAGAMENTO"
             );
         }
     }
