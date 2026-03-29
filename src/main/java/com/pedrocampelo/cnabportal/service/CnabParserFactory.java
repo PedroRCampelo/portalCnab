@@ -3,14 +3,15 @@ package com.pedrocampelo.cnabportal.service;
 import com.pedrocampelo.cnabportal.layout.BankLayout;
 import com.pedrocampelo.cnabportal.service.bbsv.BB240PagamentoParser;
 import com.pedrocampelo.cnabportal.service.bradsv.Bradesco240PagamentoParser;
+import com.pedrocampelo.cnabportal.service.bradsv.Bradesco400CobrancaParser;
 import com.pedrocampelo.cnabportal.service.itausv.Itau240CobrancaParser;
 import com.pedrocampelo.cnabportal.service.itausv.Itau240PagamentoParser;
 import com.pedrocampelo.cnabportal.service.itausv.Itau400CobrancaParser;
 import org.springframework.stereotype.Component;
 
 /**
- * Factory que devolve o CnabParser correto para cada combinação
- * banco × versão × modalidade.
+ * Factory que devolve o CnabParser correto para cada combinacao
+ * banco x versao x modalidade.
  */
 @Component
 public class CnabParserFactory {
@@ -19,19 +20,25 @@ public class CnabParserFactory {
     private final Itau240CobrancaParser itau240Cobranca;
     private final Itau240PagamentoParser itau240Pagamento;
     private final Bradesco240PagamentoParser bradesco240Pagamento;
+    private final Bradesco400CobrancaParser bradesco400Cobranca;
     private final BB240PagamentoParser bb240Pagamento;
+    private final com.pedrocampelo.cnabportal.service.Caixa240PagamentoParser caixa240Pagamento;
 
     public CnabParserFactory(
             Itau400CobrancaParser      itau400Cobranca,
             Itau240CobrancaParser      itau240Cobranca,
             Itau240PagamentoParser     itau240Pagamento,
             Bradesco240PagamentoParser bradesco240Pagamento,
-            BB240PagamentoParser       bb240Pagamento) {
+            Bradesco400CobrancaParser  bradesco400Cobranca,
+            BB240PagamentoParser       bb240Pagamento,
+            com.pedrocampelo.cnabportal.service.Caixa240PagamentoParser caixa240Pagamento) {
         this.itau400Cobranca      = itau400Cobranca;
         this.itau240Cobranca      = itau240Cobranca;
         this.itau240Pagamento     = itau240Pagamento;
         this.bradesco240Pagamento = bradesco240Pagamento;
+        this.bradesco400Cobranca  = bradesco400Cobranca;
         this.bb240Pagamento       = bb240Pagamento;
+        this.caixa240Pagamento    = caixa240Pagamento;
     }
 
     public CnabParser getParser(BankLayout layout) {
@@ -40,7 +47,9 @@ public class CnabParserFactory {
             case ITAU_240_COBRANCA      -> itau240Cobranca;
             case ITAU_240_PAGAMENTO     -> itau240Pagamento;
             case BRADESCO_240_PAGAMENTO -> bradesco240Pagamento;
+            case BRADESCO_400_COBRANCA  -> bradesco400Cobranca;
             case BB_240_PAGAMENTO       -> bb240Pagamento;
+            case CAIXA_240_PAGAMENTO    -> caixa240Pagamento;
         };
     }
 }

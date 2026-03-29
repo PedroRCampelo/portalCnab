@@ -324,6 +324,13 @@ public class CnabController {
                     "5",  "Trailer Lote",
                     "9",  "Trailer Arquivo"
             );
+            case BRADESCO_400_COBRANCA -> Map.of(
+                    "0", "Header",
+                    "1", "Transacao — Boleto",
+                    "2", "Mensagem",
+                    "3", "Rateio Credito",
+                    "9", "Trailer"
+            );
             case BB_240_PAGAMENTO -> Map.of(
                     "0",  "Header Arquivo",
                     "1",  "Header Lote",
@@ -332,6 +339,18 @@ public class CnabController {
                     "3J", "Seg J — Boletos",
                     "3O", "Seg O — Contas Tributos CB",
                     "3N", "Seg N — Tributos s CB",
+                    "5",  "Trailer Lote",
+                    "9",  "Trailer Arquivo"
+            );
+            case CAIXA_240_PAGAMENTO -> Map.of(
+                    "0",  "Header Arquivo",
+                    "1",  "Header Lote",
+                    "3A", "Seg A — Créd TED DOC OP",
+                    "3B", "Seg B — Compl Endereço",
+                    "3J", "Seg J — Boletos",
+                    "3O", "Seg O — Concessionárias",
+                    "3N", "Seg N — Tributos s CB",
+                    "3W", "Seg W — FGTS",
                     "5",  "Trailer Lote",
                     "9",  "Trailer Arquivo"
             );

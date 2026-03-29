@@ -505,12 +505,14 @@ public class PdfReportService {
         return switch (tipo) {
             case "0"  -> "Header Arquivo";
             case "1"  -> "Detalhe (CNAB 400)";
-            case "3A" -> "Seg A - Cred TED PIX";
+            case "3A" -> "Seg A - Cred/TED/PIX";
+            case "3B" -> "Seg B - Compl PIX/Endereco";
             case "3J" -> "Seg J - Boletos";
             case "3O" -> "Seg O - Concessionarias";
             case "3N" -> "Seg N - Tributos";
             case "3P" -> "Seg P - Titulo";
             case "3Q" -> "Seg Q - Pagador";
+            case "3W" -> "Seg W - FGTS";
             case "5"  -> "Trailer Lote";
             case "9"  -> "Trailer Arquivo";
             default   -> tipo;
