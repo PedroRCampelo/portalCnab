@@ -108,7 +108,7 @@ a     { color: inherit; text-decoration: none; }
 .brand:hover .brand-whale { transform: rotate(-8deg) scale(1.08); }
 .brand-wordmark {
   font-size:26px; font-weight:800; letter-spacing:-.03em; line-height:1;
-  background: linear-gradient(90deg,#A78BFA 0%,#818CF8 40%,#ff7272 100%);
+  background: linear-gradient(90deg, #A78BFA 0%, #818CF8 40%, #ff7272 100%);
   -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
   filter: drop-shadow(0 0 20px rgba(124,58,237,0.3));
   transition: filter .3s;
@@ -502,6 +502,7 @@ a     { color: inherit; text-decoration: none; }
 }
 .info-bank.itau     { background:#EC7000; color:#fff; }
 .info-bank.bradesco { background:#CC092F; color:#fff; }
+.info-bank.bb       { background:#003882; color:#F8C400; }
 
 /* Badges de severidade */
 .sev {
