@@ -1,9 +1,33 @@
 HELP.md
+
+# Maven / Java
 target/
-.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+build/
+!*/src/main/*/target/
+!*/src/test/*/target/
+!*/src/main/*/build/
+!*/src/test/*/build/
+
+# App files
 files/
+uploads/
+tmp/
+temp/
+logs/
+*.log
+*.xlsx
+*.xls
+*.csv
+*.pdf
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+application-local.properties
+application-local.yml
+application-*.local.properties
+application-*.local.yml
 
 ### STS ###
 .apt_generated
@@ -15,7 +39,7 @@ files/
 .sts4-cache
 
 ### IntelliJ IDEA ###
-.idea
+.idea/
 *.iws
 *.iml
 *.ipr
@@ -26,9 +50,10 @@ files/
 /dist/
 /nbdist/
 /.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
 
 ### VS Code ###
 .vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
