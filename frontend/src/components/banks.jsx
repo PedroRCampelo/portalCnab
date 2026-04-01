@@ -19,7 +19,7 @@ export const LogoBB = () => (
     <svg viewBox="0 0 100 28" xmlns="http://www.w3.org/2000/svg" className="bank-logo">
         <rect width="100" height="28" rx="5" fill="#F8C400"/>
         <text x="50" y="19" textAnchor="middle" fill="#003882"
-              fontFamily="Arial,sans-serif" fontWeight="900" fontSize="11" letterSpacing="0.5">Banco do Brasil</text>
+              fontFamily="Arial,sans-serif" fontWeight="900" fontSize="11" letterSpacing="0.5">BB</text>
     </svg>
 );
 
