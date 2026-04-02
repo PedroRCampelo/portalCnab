@@ -25,26 +25,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
-/**
- * Configuracao central do Spring Security.
- *
- * Decisoes de seguranca tomadas aqui:
- *
- * 1. STATELESS: nao usamos sessao HTTP — cada requisicao e autenticada
- *    pelo token JWT. Isso e essencial para APIs REST e permite escalar
- *    horizontalmente sem estado compartilhado entre instancias.
- *
- * 2. CSRF desabilitado: CSRF e necessario apenas para aplicacoes com
- *    cookies de sessao. Como usamos JWT no header Authorization,
- *    nao ha risco de CSRF.
- *
- * 3. BCrypt com strength 12: o padrao e 10. Strength 12 e mais lento
- *    para atacantes (cada tentativa de brute-force demora mais),
- *    mas ainda rapido o suficiente para login normal (~300ms).
- *
- * 4. @EnableMethodSecurity: habilita @PreAuthorize nos controllers,
- *    permitindo controle de acesso por perfil em cada endpoint.
- */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -52,84 +32,61 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
-    private final UserDetailsServiceImpl userDetailsService;
+    private final UserDetailsServiceImpl  userDetailsService;
+    private final SecurityExceptionHandler exceptionHandler;
 
-    // URLs do frontend — lidas do .env para nao hardcodar
     @Value("${app.cors.allowed-origins:http://localhost:5173,https://whallet.com.br,https://www.whallet.com.br}")
     private List<String> allowedOrigins;
-
-    // ── Filtro principal de seguranca ─────────────────────────────────────────
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // CORS configurado no bean abaixo
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-            // CSRF desabilitado — usamos JWT, nao cookies de sessao
-            .csrf(AbstractHttpConfigurer::disable)
+                // Respostas JSON para 401 e 403 — sem isso o Spring retorna pagina HTML
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(exceptionHandler)
+                        .accessDeniedHandler(exceptionHandler)
+                )
 
-            // Sem sessao HTTP — cada requisicao e independente
-            .sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/login").permitAll()
 
-            // Regras de autorizacao por rota
-            .authorizeHttpRequests(auth -> auth
-                // Rotas publicas — nao precisam de token
-                .requestMatchers(
-                    "/api/auth/login",
-                    "/api/auth/register"
-                ).permitAll()
+                        // Register exige ADMIN — protegido aqui e tambem via @PreAuthorize no controller
+                        .requestMatchers("/api/auth/register").hasRole("ADMIN")
 
-                // Apenas ADMIN pode gerenciar usuarios
-                .requestMatchers("/api/admin/**")
-                    .hasRole("ADMIN")
+                        // Rotas administrativas
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-                // Todas as outras rotas exigem autenticacao
-                .anyRequest().authenticated()
-            )
+                        // Todas as outras rotas exigem autenticacao
+                        // Controle fino por perfil e feito via @PreAuthorize em cada endpoint
+                        .anyRequest().authenticated()
+                )
 
-            // Adiciona o filtro JWT antes do filtro de autenticacao padrao
-            .authenticationProvider(authenticationProvider())
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .authenticationProvider(authenticationProvider())
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    // ── CORS ──────────────────────────────────────────────────────────────────
-
-    /**
-     * Configura CORS para aceitar requisicoes do frontend React.
-     *
-     * Por que expor Authorization nos exposed headers?
-     *   Para que o frontend consiga ler o token da resposta se necessario.
-     *
-     * Por que nao usar "*" nas origens?
-     *   Wildcard nao funciona com credenciais (cookies, Authorization header).
-     *   Listamos explicitamente os dominios permitidos.
-     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-
         config.setAllowedOrigins(allowedOrigins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
         config.setExposedHeaders(List.of("Authorization"));
         config.setAllowCredentials(true);
-        config.setMaxAge(3600L); // Cache do preflight OPTIONS por 1 hora
+        config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
     }
 
-    // ── Autenticacao ──────────────────────────────────────────────────────────
-
-    /**
-     * Provider de autenticacao: usa UserDetailsService + BCrypt.
-     * O Spring usa este provider quando AuthenticationManager.authenticate() e chamado.
-     */
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
@@ -138,26 +95,12 @@ public class SecurityConfig {
         return provider;
     }
 
-    /**
-     * AuthenticationManager e necessario no AuthController para
-     * processar o login (validar email + senha).
-     */
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
-    /**
-     * BCrypt com strength 12.
-     * Usado para:
-     *   - Fazer hash da senha no cadastro
-     *   - Comparar senha no login
-     *
-     * NUNCA use MD5, SHA-1 ou SHA-256 para senhas — sao algoritmos
-     * de hash rapido, vulneraveis a ataques de forca bruta.
-     * BCrypt e especificamente projetado para ser lento.
-     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(12);
