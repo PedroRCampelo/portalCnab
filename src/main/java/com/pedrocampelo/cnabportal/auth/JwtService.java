@@ -85,7 +85,10 @@ public class JwtService {
     public boolean isTokenValid(String token, UserDetails userDetails) {
         try {
             String email = extractUsername(token);
-            return email.equals(userDetails.getUsername()) && !isTokenExpired(token);
+            boolean emailOk   = email.equals(userDetails.getUsername());
+            boolean naoExpirou = !isTokenExpired(token);
+            log.debug("isTokenValid — email={} emailOk={} naoExpirou={}", email, emailOk, naoExpirou);
+            return emailOk && naoExpirou;
         } catch (JwtException | IllegalArgumentException e) {
             log.warn("Token JWT invalido: {}", e.getMessage());
             return false;
