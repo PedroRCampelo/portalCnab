@@ -2,26 +2,31 @@ package com.pedrocampelo.cnabportal.auth;
 
 import com.pedrocampelo.cnabportal.auth.dto.AuthRequest;
 import com.pedrocampelo.cnabportal.auth.dto.AuthResponse;
+import com.pedrocampelo.cnabportal.auth.dto.CadastroRequest;
 import com.pedrocampelo.cnabportal.auth.dto.RegisterRequest;
 import com.pedrocampelo.cnabportal.model.Empresa;
 import com.pedrocampelo.cnabportal.model.Usuario;
 import com.pedrocampelo.cnabportal.model.Usuario.PerfilUsuario;
 import com.pedrocampelo.cnabportal.repository.EmpresaRepository;
 import com.pedrocampelo.cnabportal.repository.UsuarioRepository;
+import com.pedrocampelo.cnabportal.service.EmailService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -34,6 +39,11 @@ public class AuthController {
     private final EmpresaRepository     empresaRepository;
     private final JwtService            jwtService;
     private final PasswordEncoder       passwordEncoder;
+    private final EmailService          emailService;
+
+    // UUID fixo da empresa padrao — todos os auto-cadastros pertencem a ela
+    @Value("${app.empresa-padrao-id:00000000-0000-0000-0000-000000000001}")
+    private String empresaPadraoId;
 
     // ── Login ─────────────────────────────────────────────────────────────────
 
@@ -46,37 +56,129 @@ public class AuthController {
 
             Usuario usuario = (Usuario) auth.getPrincipal();
 
-            // Atualiza ultimo acesso sem precisar de query extra
+            // Bloqueia login se email nao foi verificado
+            if (!Boolean.TRUE.equals(usuario.getEmailVerificado())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(new ErroResponse("Confirme seu email antes de acessar. Verifique sua caixa de entrada."));
+            }
+
             usuarioRepository.atualizarUltimoAcesso(usuario.getId(), LocalDateTime.now());
 
-            String token   = jwtService.generateToken(usuario);
+            String token    = jwtService.generateToken(usuario);
             long   expiraEm = jwtService.extractExpiration(token).getTime();
 
             log.info("Login: {}", usuario.getEmail());
 
             return ResponseEntity.ok(new AuthResponse(
-                    token,
-                    "Bearer",
-                    usuario.getId(),
-                    usuario.getNome(),
-                    usuario.getEmail(),
+                    token, "Bearer",
+                    usuario.getId(), usuario.getNome(), usuario.getEmail(),
                     usuario.getPerfil(),
                     usuario.getEmpresa() != null ? usuario.getEmpresa().getId() : null,
                     expiraEm
             ));
 
+        } catch (DisabledException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new ErroResponse("Conta desativada. Entre em contato com o suporte."));
         } catch (BadCredentialsException e) {
-            // Mensagem generica — nao revela se o email existe ou nao
-            log.warn("Tentativa de login falhou: {}", request.email());
+            log.warn("Login falhou: {}", request.email());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ErroResponse("Credenciais invalidas"));
         }
     }
 
-    // ── Register ──────────────────────────────────────────────────────────────
+    // ── Auto-cadastro publico ─────────────────────────────────────────────────
 
-    // Apenas ADMIN pode criar novos usuarios
-    // Isso evita que qualquer pessoa crie conta e acesse dados financeiros reais
+    @PostMapping("/cadastro")
+    public ResponseEntity<?> cadastro(@Valid @RequestBody CadastroRequest request) {
+
+        if (usuarioRepository.existsByEmail(request.email())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(new ErroResponse("Email ja cadastrado"));
+        }
+
+        Empresa empresa = empresaRepository.findById(UUID.fromString(empresaPadraoId))
+                .orElseThrow(() -> new IllegalStateException("Empresa padrao nao encontrada"));
+
+        String tokenVerificacao = UUID.randomUUID().toString();
+
+        Usuario novo = Usuario.builder()
+                .empresa(empresa)
+                .nome(request.nome())
+                .email(request.email().toLowerCase().trim())
+                .senhaHash(passwordEncoder.encode(request.senha()))
+                .perfil(PerfilUsuario.OPERADOR)
+                .ativo(true)
+                .emailVerificado(false)
+                .tokenVerificacao(tokenVerificacao)
+                .tokenExpiracao(LocalDateTime.now().plusHours(24))
+                .build();
+
+        usuarioRepository.save(novo);
+
+        // Envia email de confirmacao — erro no envio nao bloqueia o cadastro
+        emailService.enviarConfirmacaoEmail(novo.getEmail(), novo.getNome(), tokenVerificacao);
+
+        log.info("Novo cadastro: {}", novo.getEmail());
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ErroResponse("Cadastro realizado! Verifique seu email para ativar a conta."));
+    }
+
+    // ── Verificacao de email ──────────────────────────────────────────────────
+
+    @GetMapping("/verificar")
+    public ResponseEntity<?> verificarEmail(@RequestParam String token) {
+
+        var usuario = usuarioRepository.findByTokenVerificacao(token)
+                .orElse(null);
+
+        if (usuario == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ErroResponse("Link invalido ou ja utilizado"));
+        }
+
+        if (usuario.getTokenExpiracao().isBefore(LocalDateTime.now())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ErroResponse("Link expirado. Solicite um novo email de confirmacao."));
+        }
+
+        usuario.setEmailVerificado(true);
+        usuario.setTokenVerificacao(null);  // invalida o token apos uso
+        usuario.setTokenExpiracao(null);
+        usuarioRepository.save(usuario);
+
+        log.info("Email verificado: {}", usuario.getEmail());
+
+        return ResponseEntity.ok(new ErroResponse("Email confirmado! Voce ja pode fazer login."));
+    }
+
+    // ── Reenviar email de confirmacao ─────────────────────────────────────────
+
+    @PostMapping("/reenviar-verificacao")
+    public ResponseEntity<?> reenviarVerificacao(@RequestBody EmailRequest request) {
+
+        var usuario = usuarioRepository.findByEmail(request.email()).orElse(null);
+
+        // Resposta generica — nao revela se o email existe
+        if (usuario == null || Boolean.TRUE.equals(usuario.getEmailVerificado())) {
+            return ResponseEntity.ok(new ErroResponse(
+                    "Se o email estiver cadastrado e pendente de verificacao, voce recebera um novo link."));
+        }
+
+        String novoToken = UUID.randomUUID().toString();
+        usuario.setTokenVerificacao(novoToken);
+        usuario.setTokenExpiracao(LocalDateTime.now().plusHours(24));
+        usuarioRepository.save(usuario);
+
+        emailService.enviarConfirmacaoEmail(usuario.getEmail(), usuario.getNome(), novoToken);
+
+        return ResponseEntity.ok(new ErroResponse(
+                "Se o email estiver cadastrado e pendente de verificacao, voce recebera um novo link."));
+    }
+
+    // ── Register (admin cria usuario manualmente) ─────────────────────────────
+
     @PostMapping("/register")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
@@ -89,28 +191,25 @@ public class AuthController {
         Empresa empresa = empresaRepository.findById(request.empresaId())
                 .orElseThrow(() -> new IllegalArgumentException("Empresa nao encontrada"));
 
-        PerfilUsuario perfil = request.perfil() != null
-                ? request.perfil()
-                : PerfilUsuario.OPERADOR;
-
         Usuario novoUsuario = Usuario.builder()
                 .empresa(empresa)
                 .nome(request.nome())
                 .email(request.email().toLowerCase().trim())
                 .senhaHash(passwordEncoder.encode(request.senha()))
-                .perfil(perfil)
+                .perfil(request.perfil() != null ? request.perfil() : PerfilUsuario.OPERADOR)
                 .ativo(true)
+                .emailVerificado(true)  // admin cria ja verificado
                 .build();
 
         usuarioRepository.save(novoUsuario);
-
-        log.info("Usuario criado: {} ({})", novoUsuario.getEmail(), perfil);
+        log.info("Usuario criado pelo admin: {} ({})", novoUsuario.getEmail(), novoUsuario.getPerfil());
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new ErroResponse("Usuario criado com sucesso"));
     }
 
-    // ── DTO interno de erro ───────────────────────────────────────────────────
+    // ── DTOs internos ─────────────────────────────────────────────────────────
 
     record ErroResponse(String mensagem) {}
+    record EmailRequest(String email) {}
 }

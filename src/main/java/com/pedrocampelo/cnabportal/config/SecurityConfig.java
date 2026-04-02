@@ -53,16 +53,14 @@ public class SecurityConfig {
                 )
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/login").permitAll()
-
-                        // Register exige ADMIN — protegido aqui e tambem via @PreAuthorize no controller
+                        .requestMatchers(
+                                "/api/auth/login",
+                                "/api/auth/cadastro",
+                                "/api/auth/verificar",
+                                "/api/auth/reenviar-verificacao"
+                        ).permitAll()
                         .requestMatchers("/api/auth/register").hasRole("ADMIN")
-
-                        // Rotas administrativas
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-
-                        // Todas as outras rotas exigem autenticacao
-                        // Controle fino por perfil e feito via @PreAuthorize em cada endpoint
                         .anyRequest().authenticated()
                 )
 
