@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import api from "../services/api.js";
 
 // Componente reutilizavel para mostrar a cota do usuario
@@ -47,9 +48,9 @@ export default function CotaBadge() {
                 />
             </div>
             {esgotado && (
-                <a href="/upgrade" className="cota-upgrade">
+                <Link to="/upgrade" className="cota-upgrade">
                     Fazer upgrade para Pro — R$ 18,90/mes
-                </a>
+                </Link>
             )}
         </div>
     );
