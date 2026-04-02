@@ -71,6 +71,11 @@ export default function Navbar() {
 
                     {autenticado ? (
                         <div className="topbar-user">
+                            {usuario?.perfil === "ADMIN" && (
+                                <Link to="/admin/usuarios" className="topbar-admin-link">
+                                    Admin
+                                </Link>
+                            )}
                             <span className="topbar-user-nome">{usuario?.nome}</span>
                             <button className="topbar-logout" onClick={handleLogout}>
                                 Sair

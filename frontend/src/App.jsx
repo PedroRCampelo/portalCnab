@@ -2,12 +2,14 @@ import { Routes, Route } from "react-router-dom";
 import "./App.css";
 
 import { AuthProvider } from "./context/AuthContext.jsx";
-import ProtectedRoute   from "./components/ProtectedRoute.jsx";
-import Navbar           from "./components/Navbar.jsx";
-import HomePage         from "./pages/HomePage.jsx";
-import ExcelPage        from "./pages/ExcelPage.jsx";
-import PdfPage          from "./pages/PdfPage.jsx";
-import LoginPage        from "./pages/LoginPage.jsx";
+import ProtectedRoute      from "./components/ProtectedRoute.jsx";
+import AdminRoute          from "./components/AdminRoute.jsx";
+import Navbar              from "./components/Navbar.jsx";
+import HomePage            from "./pages/HomePage.jsx";
+import ExcelPage           from "./pages/ExcelPage.jsx";
+import PdfPage             from "./pages/PdfPage.jsx";
+import LoginPage           from "./pages/LoginPage.jsx";
+import AdminUsuariosPage   from "./pages/AdminUsuariosPage.jsx";
 
 export default function App() {
     return (
@@ -19,16 +21,19 @@ export default function App() {
                 <Navbar/>
 
                 <Routes>
-                    {/* Publica */}
                     <Route path="/"      element={<HomePage/>}/>
                     <Route path="/login" element={<LoginPage/>}/>
 
-                    {/* Protegidas — exigem autenticacao */}
                     <Route path="/excel" element={
                         <ProtectedRoute><ExcelPage/></ProtectedRoute>
                     }/>
                     <Route path="/pdf" element={
                         <ProtectedRoute><PdfPage/></ProtectedRoute>
+                    }/>
+
+                    {/* Apenas ADMIN acessa */}
+                    <Route path="/admin/usuarios" element={
+                        <AdminRoute><AdminUsuariosPage/></AdminRoute>
                     }/>
                 </Routes>
             </div>
