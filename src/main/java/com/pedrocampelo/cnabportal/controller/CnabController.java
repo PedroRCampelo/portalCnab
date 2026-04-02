@@ -5,15 +5,19 @@ import com.pedrocampelo.cnabportal.dto.UploadAnalysisResponseDTO;
 import com.pedrocampelo.cnabportal.layout.BankLayout;
 import com.pedrocampelo.cnabportal.layout.itau.Itau240PagamentoLayout;
 import com.pedrocampelo.cnabportal.model.ParsedRecord;
+import com.pedrocampelo.cnabportal.model.Usuario;
 import com.pedrocampelo.cnabportal.service.*;
 import com.pedrocampelo.cnabportal.service.CnabAnalysisService;
 import com.pedrocampelo.cnabportal.service.CnabParserFactory;
+import com.pedrocampelo.cnabportal.service.CotaService;
 import com.pedrocampelo.cnabportal.service.ExcelExportService;
 import com.pedrocampelo.cnabportal.service.FileReadingService;
 import com.pedrocampelo.cnabportal.service.PdfReportService;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import com.pedrocampelo.cnabportal.dto.ParseResponseDTO;
@@ -43,6 +47,7 @@ public class CnabController {
     private final CnabParserFactory     cnabParserFactory;
     private final CnabAnalysisService   cnabAnalysisService;
     private final PdfReportService      pdfReportService;
+    private final CotaService           cotaService;
 
     public CnabController(
             FileReadingService    fileReadingService,
@@ -51,7 +56,8 @@ public class CnabController {
             ExcelExportService    excelExportService,
             CnabParserFactory     cnabParserFactory,
             CnabAnalysisService   cnabAnalysisService,
-            PdfReportService      pdfReportService) {
+            PdfReportService      pdfReportService,
+            CotaService           cotaService) {
         this.fileReadingService   = fileReadingService;
         this.layoutParserService  = layoutParserService;
         this.remessaParserService = remessaParserService;
@@ -59,6 +65,7 @@ public class CnabController {
         this.cnabParserFactory    = cnabParserFactory;
         this.cnabAnalysisService  = cnabAnalysisService;
         this.pdfReportService     = pdfReportService;
+        this.cotaService          = cotaService;
     }
 
     // ── Endpoints existentes (Modo Protheus) — sem alteração ───────────────
@@ -204,21 +211,22 @@ public class CnabController {
             @RequestPart("remessaFile")  MultipartFile remessaFile,
             @RequestParam("bank")        String bank,
             @RequestParam("version")     String version,
-            @RequestParam("mode")        String mode
+            @RequestParam("mode")        String mode,
+            @AuthenticationPrincipal     Usuario usuario
     ) throws IOException {
 
         if (remessaFile.isEmpty()) {
             throw new IllegalArgumentException("O arquivo de remessa está vazio.");
         }
 
-        // Resolve o enum — lança IllegalArgumentException com mensagem clara se inválido
-        BankLayout layout = BankLayout.of(bank, version, mode);
+        if (!cotaService.temCotaDisponivel(usuario)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
+        }
 
-        // Seleciona o parser correto
+        BankLayout layout = BankLayout.of(bank, version, mode);
         CnabParser parser = cnabParserFactory.getParser(layout);
         List<ParsedRecord> parsedRecords = parser.parse(remessaFile);
 
-        // Para CNAB 240 usamos mapa de abas descritivo; para outros usamos o padrão
         Map<String, String> tabNames = resolveTabNames(layout);
 
         String layoutLabel = bank + " CNAB " + version + " " + mode + " (embutido)";
@@ -227,6 +235,8 @@ public class CnabController {
                 remessaFile.getOriginalFilename(),
                 parsedRecords,
                 tabNames);
+
+        cotaService.registrarUso(usuario);
 
         String outputName = remessaFile.getOriginalFilename()
                 .replaceAll("[^a-zA-Z0-9._-]", "_") + "_resultado.xlsx";
@@ -256,11 +266,16 @@ public class CnabController {
             @RequestPart("remessaFile")  MultipartFile remessaFile,
             @RequestParam("bank")        String bank,
             @RequestParam("version")     String version,
-            @RequestParam("mode")        String mode
+            @RequestParam("mode")        String mode,
+            @AuthenticationPrincipal     Usuario usuario
     ) throws IOException {
 
         if (remessaFile.isEmpty()) {
             throw new IllegalArgumentException("O arquivo de remessa está vazio.");
+        }
+
+        if (!cotaService.temCotaDisponivel(usuario)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
         }
 
         BankLayout layout = BankLayout.of(bank, version, mode);
@@ -270,11 +285,13 @@ public class CnabController {
         CnabReportData reportData = cnabAnalysisService.analyze(
                 parsedRecords,
                 remessaFile.getOriginalFilename(),
-                mode.toUpperCase(),            // "PAGAMENTO" | "COBRANCA"
-                bank + " CNAB " + version      // ex: "ITAU CNAB 240"
+                mode.toUpperCase(),
+                bank + " CNAB " + version
         );
 
         byte[] pdfBytes = pdfReportService.generate(reportData);
+
+        cotaService.registrarUso(usuario);
 
         String outputName = remessaFile.getOriginalFilename()
                 .replaceAll("[^a-zA-Z0-9._-]", "_") + "_relatorio.pdf";
