@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import api from "../services/api.js";
+import CotaBadge from "./CotaBadge.jsx";
 import { BANK_LAYOUTS, banks } from "./banks.jsx";
 import { IcoCheck, IcoChevron, IcoUpload, IcoSpinner, IcoExcel, IcoPdf } from "./icons.jsx";
 
@@ -9,6 +10,7 @@ export default function BankForm({ toolMode }) {
   const [bankFile,   setBankFile]   = useState(null);
   const [loading,    setLoading]    = useState(false);
   const [msg,        setMsg]        = useState("");
+  const [cotaKey,    setCotaKey]    = useState(0); // forca re-render do CotaBadge apos gerar
 
   const isExcel = toolMode === "excel";
 
@@ -28,11 +30,11 @@ export default function BankForm({ toolMode }) {
       setLoading(true); setMsg("");
       const fd = new FormData();
       fd.append("remessaFile", bankFile);
-      const params = `?bank=${bankLayout.bank}&version=${bankLayout.version}&mode=${bankLayout.mode}`;
+      const params   = `?bank=${bankLayout.bank}&version=${bankLayout.version}&mode=${bankLayout.mode}`;
       const endpoint = isExcel ? "export-bank" : "report-bank";
       const res = await api.post(
           `/api/cnab/${endpoint}${params}`,
-          fd, { responseType:"blob", headers:{"Content-Type":"multipart/form-data"} }
+          fd, { responseType: "blob", headers: { "Content-Type": "multipart/form-data" } }
       );
       const ext    = isExcel ? "xlsx" : "pdf";
       const mime   = isExcel
@@ -40,27 +42,34 @@ export default function BankForm({ toolMode }) {
           : "application/pdf";
       const suffix = isExcel ? "_resultado" : "_relatorio";
       downloadBlob(res.data, bankFile.name.replace(/\.[^/.]+$/, "") + suffix + "." + ext, mime);
-      setMsg(isExcel ? "Excel gerado com sucesso." : "Relatório PDF gerado com sucesso.");
+      setMsg(isExcel ? "Excel gerado com sucesso." : "Relatorio PDF gerado com sucesso.");
+      setCotaKey(k => k + 1); // atualiza o badge de cota
     } catch (err) {
-      console.error(err);
-      setMsg(`Erro ao gerar o ${isExcel ? "Excel" : "PDF"}. Verifique a API.`);
+      if (err.response?.status === 429) {
+        setMsg("Limite mensal atingido. Faca upgrade para o plano Pro para continuar gerando arquivos.");
+      } else {
+        setMsg(`Erro ao gerar o ${isExcel ? "Excel" : "PDF"}. Verifique a API.`);
+      }
     } finally { setLoading(false); }
   };
 
   return (
       <form className="form" onSubmit={handleSubmit}>
+
+        <CotaBadge key={cotaKey}/>
+
         <div className="field">
           <label className="field-label">Banco e layout</label>
           <div className="bank-accordion">
             {banks.map((bank) => {
               const isOpen = openBankId === bank.bankId;
               return (
-                  <div key={bank.bankId} className={`bank-group ${isOpen?"bank-group--open":""}`}>
+                  <div key={bank.bankId} className={`bank-group ${isOpen ? "bank-group--open" : ""}`}>
                     <button type="button" className="bank-group-header"
                             onClick={() => setOpenBankId(isOpen ? null : bank.bankId)}>
                       <bank.LogoComponent/>
                       <span className="bank-group-count">
-                    {bank.layouts.length} layout{bank.layouts.length>1?"s":""}
+                    {bank.layouts.length} layout{bank.layouts.length > 1 ? "s" : ""}
                   </span>
                       <IcoChevron open={isOpen}/>
                     </button>
@@ -70,7 +79,7 @@ export default function BankForm({ toolMode }) {
                             const isActive = bankLayout.key === bl.key;
                             return (
                                 <button key={bl.key} type="button"
-                                        className={`bank-item ${isActive?"bank-item--active":""}`}
+                                        className={`bank-item ${isActive ? "bank-item--active" : ""}`}
                                         onClick={() => { setBankLayout(bl); setBankFile(null); setMsg(""); }}>
                                   <div className="bank-item-main">
                                     <span className="bank-item-label">{bl.label}</span>
@@ -118,12 +127,12 @@ export default function BankForm({ toolMode }) {
               ? <><IcoSpinner/> Gerando…</>
               : isExcel
                   ? <><IcoExcel/> Gerar Excel</>
-                  : <><IcoPdf/> Gerar Relatório PDF</>}
+                  : <><IcoPdf/> Gerar Relatorio PDF</>}
         </button>
 
         {msg && (
-            <div className={`msg ${msg.includes("Erro") ? "msg--error" : "msg--success"}`}>
-              {msg.includes("Erro") ? "✕ " : "✓ "}{msg}
+            <div className={`msg ${msg.includes("Erro") || msg.includes("Limite") ? "msg--error" : "msg--success"}`}>
+              {msg.includes("Erro") || msg.includes("Limite") ? "✕ " : "✓ "}{msg}
             </div>
         )}
       </form>
