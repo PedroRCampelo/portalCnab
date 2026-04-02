@@ -1,10 +1,18 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import logoWhale from "../assets/logo.png";
 import { IcoExcel, IcoPdf, IcoBack } from "./icons.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
 
 export default function Navbar() {
-    const { pathname } = useLocation();
+    const { pathname }          = useLocation();
+    const navigate              = useNavigate();
+    const { autenticado, usuario, logout } = useAuth();
     const isHome = pathname === "/";
+
+    function handleLogout() {
+        logout();
+        navigate("/login");
+    }
 
     return (
         <header className="topbar">
@@ -21,7 +29,7 @@ export default function Navbar() {
 
                 {/* Nav central */}
                 {isHome ? (
-                    <nav className="topbar-nav" aria-label="Navegação principal">
+                    <nav className="topbar-nav" aria-label="Navegacao principal">
                         <div className="nav-pill">
                             <Link to="/excel" className="nav-link">
                                 <span className="nav-link-icon">⚡</span>
@@ -60,10 +68,20 @@ export default function Navbar() {
             <span className="topbar-badge-dot"/>
             7 layouts ativos
           </span>
-                    {isHome && (
-                        <Link to="/excel" className="topbar-cta">
-                            Começar <IcoArrow/>
-                        </Link>
+
+                    {autenticado ? (
+                        <div className="topbar-user">
+                            <span className="topbar-user-nome">{usuario?.nome}</span>
+                            <button className="topbar-logout" onClick={handleLogout}>
+                                Sair
+                            </button>
+                        </div>
+                    ) : (
+                        isHome && (
+                            <Link to="/excel" className="topbar-cta">
+                                Começar <IcoArrow/>
+                            </Link>
+                        )
                     )}
                 </div>
 
@@ -72,7 +90,6 @@ export default function Navbar() {
     );
 }
 
-// IcoArrow inline pois é único uso aqui
 function IcoArrow() {
     return (
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
