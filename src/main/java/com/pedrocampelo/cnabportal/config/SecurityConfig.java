@@ -57,7 +57,8 @@ public class SecurityConfig {
                                 "/api/auth/login",
                                 "/api/auth/cadastro",
                                 "/api/auth/verificar",
-                                "/api/auth/reenviar-verificacao"
+                                "/api/auth/reenviar-verificacao",
+                                "/api/stripe/webhook"  // Stripe nao envia JWT
                         ).permitAll()
                         .requestMatchers("/api/auth/register").hasRole("ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")

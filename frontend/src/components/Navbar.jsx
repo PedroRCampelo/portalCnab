@@ -75,18 +75,18 @@ export default function Navbar() {
                             <Link to="/historico" className="topbar-admin-link" style={{ borderColor: "rgba(59,130,246,0.3)", color: "#60A5FA" }}>
                                 Historico
                             </Link>
+                            <Link to="/planos" className="topbar-admin-link" style={{ borderColor: "rgba(34,197,94,0.3)", color: "#4ADE80" }}>
+                                Planos
+                            </Link>
                             <span className="topbar-user-nome">{usuario?.nome}</span>
                             <button className="topbar-logout" onClick={handleLogout}>Sair</button>
                         </div>
                     ) : (
                         <div className="topbar-user">
-                            <Link to="/login" className="topbar-cta">
-                                Entrar
-                            </Link>
+                            <Link to="/planos" className="topbar-cta-secondary">Planos</Link>
+                            <Link to="/login" className="topbar-cta">Entrar</Link>
                             {isHome && (
-                                <Link to="/cadastro" className="topbar-cta-secondary">
-                                    Criar conta
-                                </Link>
+                                <Link to="/cadastro" className="topbar-cta-secondary">Criar conta</Link>
                             )}
                         </div>
                     )}

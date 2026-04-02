@@ -31,6 +31,13 @@
 	</properties>
 	<dependencies>
 
+		<!-- Stripe Java SDK -->
+		<dependency>
+			<groupId>com.stripe</groupId>
+			<artifactId>stripe-java</artifactId>
+			<version>26.3.0</version>
+		</dependency>
+
 		<!-- Resend — servico de email transacional -->
 		<!-- Documentacao: https://resend.com/docs/send-with-java -->
 		<dependency>
