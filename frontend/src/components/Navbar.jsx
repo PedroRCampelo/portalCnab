@@ -72,6 +72,9 @@ export default function Navbar() {
                             {usuario?.perfil === "ADMIN" && (
                                 <Link to="/admin/usuarios" className="topbar-admin-link">Admin</Link>
                             )}
+                            <Link to="/historico" className="topbar-admin-link" style={{ borderColor: "rgba(59,130,246,0.3)", color: "#60A5FA" }}>
+                                Historico
+                            </Link>
                             <span className="topbar-user-nome">{usuario?.nome}</span>
                             <button className="topbar-logout" onClick={handleLogout}>Sair</button>
                         </div>

@@ -5,7 +5,9 @@ import com.pedrocampelo.cnabportal.dto.UploadAnalysisResponseDTO;
 import com.pedrocampelo.cnabportal.layout.BankLayout;
 import com.pedrocampelo.cnabportal.layout.itau.Itau240PagamentoLayout;
 import com.pedrocampelo.cnabportal.model.ParsedRecord;
+import com.pedrocampelo.cnabportal.model.Remessa;
 import com.pedrocampelo.cnabportal.model.Usuario;
+import com.pedrocampelo.cnabportal.repository.RemessaRepository;
 import com.pedrocampelo.cnabportal.service.*;
 import com.pedrocampelo.cnabportal.service.CnabAnalysisService;
 import com.pedrocampelo.cnabportal.service.CnabParserFactory;
@@ -48,6 +50,7 @@ public class CnabController {
     private final CnabAnalysisService   cnabAnalysisService;
     private final PdfReportService      pdfReportService;
     private final CotaService           cotaService;
+    private final RemessaRepository     remessaRepository;
 
     public CnabController(
             FileReadingService    fileReadingService,
@@ -57,7 +60,8 @@ public class CnabController {
             CnabParserFactory     cnabParserFactory,
             CnabAnalysisService   cnabAnalysisService,
             PdfReportService      pdfReportService,
-            CotaService           cotaService) {
+            CotaService           cotaService,
+            RemessaRepository     remessaRepository) {
         this.fileReadingService   = fileReadingService;
         this.layoutParserService  = layoutParserService;
         this.remessaParserService = remessaParserService;
@@ -66,6 +70,7 @@ public class CnabController {
         this.cnabAnalysisService  = cnabAnalysisService;
         this.pdfReportService     = pdfReportService;
         this.cotaService          = cotaService;
+        this.remessaRepository    = remessaRepository;
     }
 
     // ── Endpoints existentes (Modo Protheus) — sem alteração ───────────────
@@ -238,6 +243,15 @@ public class CnabController {
 
         cotaService.registrarUso(usuario);
 
+        remessaRepository.save(Remessa.builder()
+                .usuario(usuario)
+                .empresa(usuario.getEmpresa())
+                .nomeArquivo(remessaFile.getOriginalFilename())
+                .banco(bank).versao(version).modo(mode)
+                .tipoSaida("EXCEL")
+                .qtdRegistros(parsedRecords.size())
+                .build());
+
         String outputName = remessaFile.getOriginalFilename()
                 .replaceAll("[^a-zA-Z0-9._-]", "_") + "_resultado.xlsx";
 
@@ -292,6 +306,16 @@ public class CnabController {
         byte[] pdfBytes = pdfReportService.generate(reportData);
 
         cotaService.registrarUso(usuario);
+
+        remessaRepository.save(Remessa.builder()
+                .usuario(usuario)
+                .empresa(usuario.getEmpresa())
+                .nomeArquivo(remessaFile.getOriginalFilename())
+                .banco(bank).versao(version).modo(mode)
+                .tipoSaida("PDF")
+                .qtdRegistros(parsedRecords.size())
+                .valorTotal(reportData.valorTotal())
+                .build());
 
         String outputName = remessaFile.getOriginalFilename()
                 .replaceAll("[^a-zA-Z0-9._-]", "_") + "_relatorio.pdf";

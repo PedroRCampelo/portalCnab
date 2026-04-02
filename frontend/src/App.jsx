@@ -12,6 +12,7 @@ import LoginPage              from "./pages/LoginPage.jsx";
 import CadastroPage           from "./pages/CadastroPage.jsx";
 import VerificarEmailPage     from "./pages/VerificarEmailPage.jsx";
 import AdminUsuariosPage      from "./pages/AdminUsuariosPage.jsx";
+import HistoricoPage          from "./pages/HistoricoPage.jsx";
 
 const AUTH_ROUTES = ["/login", "/cadastro", "/verificar-email"];
 
@@ -32,8 +33,9 @@ function AppShell() {
                 <Route path="/cadastro"        element={<CadastroPage/>}/>
                 <Route path="/verificar-email" element={<VerificarEmailPage/>}/>
 
-                <Route path="/excel" element={<ProtectedRoute><ExcelPage/></ProtectedRoute>}/>
-                <Route path="/pdf"   element={<ProtectedRoute><PdfPage/></ProtectedRoute>}/>
+                <Route path="/excel"     element={<ProtectedRoute><ExcelPage/></ProtectedRoute>}/>
+                <Route path="/pdf"       element={<ProtectedRoute><PdfPage/></ProtectedRoute>}/>
+                <Route path="/historico" element={<ProtectedRoute><HistoricoPage/></ProtectedRoute>}/>
 
                 <Route path="/admin/usuarios" element={<AdminRoute><AdminUsuariosPage/></AdminRoute>}/>
             </Routes>
