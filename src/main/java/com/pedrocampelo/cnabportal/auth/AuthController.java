@@ -4,12 +4,14 @@ import com.pedrocampelo.cnabportal.auth.dto.AuthRequest;
 import com.pedrocampelo.cnabportal.auth.dto.AuthResponse;
 import com.pedrocampelo.cnabportal.auth.dto.CadastroRequest;
 import com.pedrocampelo.cnabportal.auth.dto.RegisterRequest;
+import com.pedrocampelo.cnabportal.config.LoginRateLimiter;
 import com.pedrocampelo.cnabportal.model.Empresa;
 import com.pedrocampelo.cnabportal.model.Usuario;
 import com.pedrocampelo.cnabportal.model.Usuario.PerfilUsuario;
 import com.pedrocampelo.cnabportal.repository.EmpresaRepository;
 import com.pedrocampelo.cnabportal.repository.UsuarioRepository;
 import com.pedrocampelo.cnabportal.service.EmailService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +42,7 @@ public class AuthController {
     private final JwtService            jwtService;
     private final PasswordEncoder       passwordEncoder;
     private final EmailService          emailService;
+    private final LoginRateLimiter      rateLimiter;
 
     // UUID fixo da empresa padrao — todos os auto-cadastros pertencem a ela
     @Value("${app.empresa-padrao-id:00000000-0000-0000-0000-000000000001}")
@@ -48,7 +51,15 @@ public class AuthController {
     // ── Login ─────────────────────────────────────────────────────────────────
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody AuthRequest request) {
+    public ResponseEntity<?> login(@Valid @RequestBody AuthRequest request,
+                                   HttpServletRequest httpRequest) {
+        String ip = obterIp(httpRequest);
+
+        if (!rateLimiter.permitir(ip)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body(new ErroResponse("Muitas tentativas. Aguarde 1 minuto e tente novamente."));
+        }
+
         try {
             Authentication auth = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.email(), request.senha())
@@ -56,12 +67,12 @@ public class AuthController {
 
             Usuario usuario = (Usuario) auth.getPrincipal();
 
-            // Bloqueia login se email nao foi verificado
             if (!Boolean.TRUE.equals(usuario.getEmailVerificado())) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                         .body(new ErroResponse("Confirme seu email antes de acessar. Verifique sua caixa de entrada."));
             }
 
+            rateLimiter.registrarSucesso(ip); // reseta o contador apos sucesso
             usuarioRepository.atualizarUltimoAcesso(usuario.getId(), LocalDateTime.now());
 
             String token    = jwtService.generateToken(usuario);
@@ -212,4 +223,13 @@ public class AuthController {
 
     record ErroResponse(String mensagem) {}
     record EmailRequest(String email) {}
+
+    // Extrai o IP real do cliente — considera proxies reversos (Render, Cloudflare)
+    private String obterIp(HttpServletRequest request) {
+        String forwarded = request.getHeader("X-Forwarded-For");
+        if (forwarded != null && !forwarded.isBlank()) {
+            return forwarded.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
+    }
 }
