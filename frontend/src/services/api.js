@@ -23,10 +23,15 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        // Token expirado ou invalido — limpa a sessao e redireciona para login
+        // Redireciona para login APENAS quando o token expirou ou e invalido
+        // Erros 400, 409, 500 devem ser tratados pelo componente que chamou
         if (error.response?.status === 401) {
-            sessionStorage.removeItem("auth");
-            window.location.href = "/login";
+            const url = window.location.pathname;
+            // Nao redireciona se ja estiver no login ou cadastro
+            if (url !== "/login" && url !== "/cadastro" && url !== "/verificar-email") {
+                sessionStorage.removeItem("auth");
+                window.location.href = "/login";
+            }
         }
         return Promise.reject(error);
     }

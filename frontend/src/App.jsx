@@ -1,42 +1,50 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import "./App.css";
 
-import { AuthProvider } from "./context/AuthContext.jsx";
-import ProtectedRoute      from "./components/ProtectedRoute.jsx";
-import AdminRoute          from "./components/AdminRoute.jsx";
-import Navbar              from "./components/Navbar.jsx";
-import HomePage            from "./pages/HomePage.jsx";
-import ExcelPage           from "./pages/ExcelPage.jsx";
-import PdfPage             from "./pages/PdfPage.jsx";
-import LoginPage           from "./pages/LoginPage.jsx";
-import AdminUsuariosPage   from "./pages/AdminUsuariosPage.jsx";
+import { AuthProvider }       from "./context/AuthContext.jsx";
+import ProtectedRoute         from "./components/ProtectedRoute.jsx";
+import AdminRoute             from "./components/AdminRoute.jsx";
+import Navbar                 from "./components/Navbar.jsx";
+import HomePage               from "./pages/HomePage.jsx";
+import ExcelPage              from "./pages/ExcelPage.jsx";
+import PdfPage                from "./pages/PdfPage.jsx";
+import LoginPage              from "./pages/LoginPage.jsx";
+import CadastroPage           from "./pages/CadastroPage.jsx";
+import VerificarEmailPage     from "./pages/VerificarEmailPage.jsx";
+import AdminUsuariosPage      from "./pages/AdminUsuariosPage.jsx";
+
+const AUTH_ROUTES = ["/login", "/cadastro", "/verificar-email"];
+
+function AppShell() {
+    const { pathname } = useLocation();
+    const isAuth = AUTH_ROUTES.some(r => pathname.startsWith(r));
+
+    return (
+        <div className={isAuth ? "app-shell app-shell--auth" : "app-shell"}>
+            <div className="bg-orb bg-orb--1" aria-hidden="true"/>
+            <div className="bg-orb bg-orb--2" aria-hidden="true"/>
+
+            <Navbar/>
+
+            <Routes>
+                <Route path="/"                element={<HomePage/>}/>
+                <Route path="/login"           element={<LoginPage/>}/>
+                <Route path="/cadastro"        element={<CadastroPage/>}/>
+                <Route path="/verificar-email" element={<VerificarEmailPage/>}/>
+
+                <Route path="/excel" element={<ProtectedRoute><ExcelPage/></ProtectedRoute>}/>
+                <Route path="/pdf"   element={<ProtectedRoute><PdfPage/></ProtectedRoute>}/>
+
+                <Route path="/admin/usuarios" element={<AdminRoute><AdminUsuariosPage/></AdminRoute>}/>
+            </Routes>
+        </div>
+    );
+}
 
 export default function App() {
     return (
         <AuthProvider>
-            <div className="app-shell">
-                <div className="bg-orb bg-orb--1" aria-hidden="true"/>
-                <div className="bg-orb bg-orb--2" aria-hidden="true"/>
-
-                <Navbar/>
-
-                <Routes>
-                    <Route path="/"      element={<HomePage/>}/>
-                    <Route path="/login" element={<LoginPage/>}/>
-
-                    <Route path="/excel" element={
-                        <ProtectedRoute><ExcelPage/></ProtectedRoute>
-                    }/>
-                    <Route path="/pdf" element={
-                        <ProtectedRoute><PdfPage/></ProtectedRoute>
-                    }/>
-
-                    {/* Apenas ADMIN acessa */}
-                    <Route path="/admin/usuarios" element={
-                        <AdminRoute><AdminUsuariosPage/></AdminRoute>
-                    }/>
-                </Routes>
-            </div>
+            <AppShell/>
         </AuthProvider>
     );
 }

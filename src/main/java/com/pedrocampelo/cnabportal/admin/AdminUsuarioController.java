@@ -11,6 +11,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -33,16 +34,30 @@ public class AdminUsuarioController {
     private final EmpresaRepository empresaRepository;
     private final PasswordEncoder   passwordEncoder;
 
-    // ── Listar todos ──────────────────────────────────────────────────────────
+    @Value("${app.env:dev}")
+    private String appEnv;
+
+    // ── Listar com filtros ────────────────────────────────────────────────────
+    // Suporta: ?ativo=true|false, ?perfil=ADMIN|OPERADOR|VISUALIZADOR, ?busca=texto
 
     @GetMapping
-    public List<UsuarioResumo> listar() {
+    public List<UsuarioResumo> listar(
+            @RequestParam(required = false) Boolean ativo,
+            @RequestParam(required = false) String perfil,
+            @RequestParam(required = false) String busca) {
+
         return usuarioRepository.findAll().stream()
+                .filter(u -> ativo == null || u.getAtivo().equals(ativo))
+                .filter(u -> perfil == null || perfil.isBlank()
+                        || u.getPerfil().name().equalsIgnoreCase(perfil))
+                .filter(u -> busca == null || busca.isBlank()
+                        || u.getNome().toLowerCase().contains(busca.toLowerCase())
+                        || u.getEmail().toLowerCase().contains(busca.toLowerCase()))
                 .map(UsuarioResumo::from)
                 .toList();
     }
 
-    // ── Criar novo usuário ────────────────────────────────────────────────────
+    // ── Criar novo usuario ────────────────────────────────────────────────────
 
     @PostMapping
     public ResponseEntity<?> criar(
@@ -64,6 +79,7 @@ public class AdminUsuarioController {
                 .senhaHash(passwordEncoder.encode(req.senha()))
                 .perfil(req.perfil() != null ? req.perfil() : PerfilUsuario.OPERADOR)
                 .ativo(true)
+                .emailVerificado(true) // admin cria ja verificado
                 .build();
 
         usuarioRepository.save(novo);
@@ -84,7 +100,6 @@ public class AdminUsuarioController {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario nao encontrado"));
 
-        // Impede que o admin se desative
         if (usuario.getId().equals(admin.getId()) && !req.ativo()) {
             return ResponseEntity.badRequest()
                     .body(new Resposta("Voce nao pode desativar sua propria conta"));
@@ -100,8 +115,7 @@ public class AdminUsuarioController {
                 usuario.getEmail());
 
         return ResponseEntity.ok(new Resposta(
-                req.ativo() ? "Usuario ativado" : "Usuario desativado"
-        ));
+                req.ativo() ? "Usuario ativado" : "Usuario desativado"));
     }
 
     // ── Redefinir senha ───────────────────────────────────────────────────────
@@ -124,10 +138,36 @@ public class AdminUsuarioController {
         return ResponseEntity.ok(new Resposta("Senha redefinida com sucesso"));
     }
 
-    // ── DTOs internos ─────────────────────────────────────────────────────────
+    // ── Excluir (apenas em ambiente dev) ─────────────────────────────────────
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> excluir(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal Usuario admin) {
+
+        if (!"dev".equals(appEnv)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new Resposta("Exclusao disponivel apenas em ambiente de desenvolvimento"));
+        }
+
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario nao encontrado"));
+
+        if (usuario.getId().equals(admin.getId())) {
+            return ResponseEntity.badRequest()
+                    .body(new Resposta("Voce nao pode excluir sua propria conta"));
+        }
+
+        usuarioRepository.delete(usuario);
+        log.warn("Admin {} EXCLUIU usuario: {}", admin.getEmail(), usuario.getEmail());
+
+        return ResponseEntity.ok(new Resposta("Usuario excluido permanentemente"));
+    }
+
+    // ── DTOs ─────────────────────────────────────────────────────────────────
 
     record CriarUsuarioRequest(
-            UUID          empresaId,
+            UUID empresaId,
             @NotBlank String nome,
             @NotBlank @Email String email,
             @NotBlank @Size(min = 8) String senha,
@@ -144,11 +184,12 @@ public class AdminUsuarioController {
     record Resposta(String mensagem) {}
 
     record UsuarioResumo(
-            UUID          id,
-            String        nome,
-            String        email,
+            UUID id,
+            String nome,
+            String email,
             PerfilUsuario perfil,
-            boolean       ativo,
+            boolean ativo,
+            boolean emailVerificado,
             LocalDateTime criadoEm,
             LocalDateTime ultimoAcesso
     ) {
@@ -156,6 +197,7 @@ public class AdminUsuarioController {
             return new UsuarioResumo(
                     u.getId(), u.getNome(), u.getEmail(),
                     u.getPerfil(), u.getAtivo(),
+                    Boolean.TRUE.equals(u.getEmailVerificado()),
                     u.getCriadoEm(), u.getUltimoAcesso()
             );
         }
