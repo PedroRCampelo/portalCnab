@@ -11,6 +11,8 @@
 --   Flyway exige que a tabela referenciada exista antes da que referencia.
 -- ─────────────────────────────────────────────────────────────────────────────
 
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 CREATE TABLE empresas (
                           id          UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
                           nome        VARCHAR(150) NOT NULL,

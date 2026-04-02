@@ -65,6 +65,6 @@ VALUES (
            'Administrador',
            'admin@portalcnab.local',
            -- Senha: Admin@Portal2026  (BCrypt com strength 12)
-           '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewYpR1tZGLfBdHHe',
+           '$2a$10$9zAjLgVlb5H.qRCji/wx0.PauKlE0mPFGnBrJTA3GJBl6kKUQ2Xvq',
            'ADMIN'
        );
