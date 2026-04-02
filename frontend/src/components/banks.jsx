@@ -42,7 +42,7 @@ export const BANK_LAYOUTS = [
     { key:"CAIXA_240_PAGAMENTO",    bank:"CAIXA",    bankId:"caixa",    LogoComponent:LogoCaixa,    version:"240", mode:"PAGAMENTO", label:"CNAB 240 — Pagamento", desc:"CC, TED, DOC, Boletos, Tributos, FGTS" },
 ];
 
-export const Banks = (() => {
+export const banks = (() => {
     const map = new Map();
     for (const bl of BANK_LAYOUTS) {
         if (!map.has(bl.bankId))
