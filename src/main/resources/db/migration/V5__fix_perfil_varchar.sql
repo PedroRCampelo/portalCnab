@@ -1,22 +1,58 @@
--- ─────────────────────────────────────────────────────────────────────────────
--- Migration V5: Correção do tipo da coluna perfil em produção
---
--- Problema: V2 original criou perfil como ENUM perfil_usuario,
--- mas a aplicação envia VARCHAR. Isso causa erro de tipo no PostgreSQL.
---
--- Solução: converter a coluna para VARCHAR(20) e remover o ENUM.
--- ─────────────────────────────────────────────────────────────────────────────
+-- V5__fix_perfil_varchar.sql
 
--- Converte perfil de ENUM para VARCHAR (USING faz o cast automatico)
+DO $$
+BEGIN
+    -- cria a coluna se ela ainda não existir
+    IF NOT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'usuarios'
+          AND column_name = 'perfil'
+    ) THEN
+ALTER TABLE usuarios
+    ADD COLUMN perfil VARCHAR(20);
+END IF;
+END $$;
+
+DO $$
+DECLARE
+v_data_type text;
+    v_udt_name  text;
+BEGIN
+SELECT data_type, udt_name
+INTO v_data_type, v_udt_name
+FROM information_schema.columns
+WHERE table_schema = 'public'
+  AND table_name = 'usuarios'
+  AND column_name = 'perfil';
+
+-- se ainda estiver como enum, converte para varchar
+IF v_udt_name = 'perfil_usuario' THEN
 ALTER TABLE usuarios
 ALTER COLUMN perfil TYPE VARCHAR(20) USING perfil::text;
+END IF;
+END $$;
 
--- Remove o tipo ENUM que nao e mais necessario
+-- garante default e not null
+ALTER TABLE usuarios
+    ALTER COLUMN perfil SET DEFAULT 'OPERADOR';
+
+UPDATE usuarios
+SET perfil = 'OPERADOR'
+WHERE perfil IS NULL OR TRIM(perfil) = '';
+
+UPDATE usuarios
+SET perfil = 'OPERADOR'
+WHERE perfil NOT IN ('ADMIN', 'OPERADOR', 'VISUALIZADOR');
+
+ALTER TABLE usuarios
+    ALTER COLUMN perfil SET NOT NULL;
+
+-- remove enum antigo só se não estiver mais em uso
 DROP TYPE IF EXISTS perfil_usuario;
 
--- Garante que o admin ficticio esteja desativado
-UPDATE usuarios SET ativo = false WHERE email = 'admin@portalcnab.local';
-
--- Garante perfil correto para usuarios existentes
-UPDATE usuarios SET perfil = 'ADMIN'    WHERE perfil IS NULL OR perfil = '';
-UPDATE usuarios SET perfil = 'OPERADOR' WHERE perfil NOT IN ('ADMIN', 'OPERADOR', 'VISUALIZADOR');
+-- ajuste opcional do admin fictício
+UPDATE usuarios
+SET ativo = false
+WHERE email = 'admin@portalcnab.local';
