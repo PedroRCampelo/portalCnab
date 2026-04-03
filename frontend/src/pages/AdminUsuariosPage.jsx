@@ -42,7 +42,7 @@ export default function AdminUsuariosPage() {
             const { data } = await api.get(`/api/admin/usuarios?${params}`);
             setUsuarios(data);
         } catch {
-            setErro("Erro ao carregar usuarios");
+            setErro("Erro ao carregar usuários");
         } finally {
             setCarregando(false);
         }
@@ -60,7 +60,7 @@ export default function AdminUsuariosPage() {
             setForm({ nome: "", email: "", senha: "", perfil: "OPERADOR" });
             carregarUsuarios();
         } catch (err) {
-            setFormErro(err.response?.data?.mensagem ?? "Erro ao criar usuario");
+            setFormErro(err.response?.data?.mensagem ?? "Erro ao criar usuário");
         } finally {
             setCriando(false);
         }
@@ -133,7 +133,7 @@ export default function AdminUsuariosPage() {
                     <div className="admin-form-row">
                         <div className="field-group">
                             <label>Senha inicial</label>
-                            <input type="text" placeholder="Minimo 8 caracteres"
+                            <input type="text" placeholder="Mínimo 8 caracteres"
                                    value={form.senha} onChange={(e) => setForm({ ...form, senha: e.target.value })}
                                    required minLength={8} disabled={criando} />
                         </div>
@@ -264,7 +264,7 @@ export default function AdminUsuariosPage() {
                         <form onSubmit={handleRedefinirSenha}>
                             <div className="field-group">
                                 <label>Nova senha</label>
-                                <input type="text" placeholder="Minimo 8 caracteres"
+                                <input type="text" placeholder="Mínimo 8 caracteres"
                                        value={novaSenha} onChange={(e) => setNovaSenha(e.target.value)}
                                        required minLength={8} />
                             </div>

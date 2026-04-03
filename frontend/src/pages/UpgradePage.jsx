@@ -41,7 +41,7 @@ export default function UpgradePage() {
                         {[
                             "Arquivos Excel e PDF ilimitados",
                             "Todos os bancos e layouts",
-                            "Historico completo de remessas",
+                            "Histórico completo de remessas",
                             "Cancele quando quiser",
                         ].map((item) => (
                             <li key={item} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, color: "var(--text-muted)" }}>
@@ -55,7 +55,7 @@ export default function UpgradePage() {
                 {erro && <div className="auth-box-erro" style={{ marginBottom: 12 }}>{erro}</div>}
 
                 <button className="auth-box-btn" onClick={handleUpgrade} disabled={carregando}>
-                    {carregando ? "Redirecionando..." : "Assinar agora — R$ 18,90/mes"}
+                    {carregando ? "Redirecionando..." : "Assinar agora — R$ 18,90/mês"}
                 </button>
 
                 <p style={{ textAlign: "center", fontSize: 12, color: "var(--text-dim)", marginTop: 12 }}>

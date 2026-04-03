@@ -35,7 +35,21 @@ public class StripeController {
         }
     }
 
-    // Webhook — recebe eventos do Stripe
+    // Cancela a assinatura Pro — acesso continua ate o fim do periodo pago
+    @PostMapping("/cancelar")
+    public ResponseEntity<?> cancelar(@AuthenticationPrincipal Usuario usuario) {
+        try {
+            stripeService.cancelarAssinatura(usuario);
+            return ResponseEntity.ok(Map.of("mensagem", "Assinatura cancelada. Voce mantem o acesso Pro ate o fim do periodo atual."));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("mensagem", e.getMessage()));
+        } catch (StripeException e) {
+            log.error("Erro ao cancelar assinatura: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("mensagem", "Erro ao cancelar. Tente novamente ou entre em contato."));
+        }
+    }
     // Deve ser publico (sem autenticacao) — a validacao e feita pela assinatura do webhook
     @PostMapping("/webhook")
     public ResponseEntity<Void> webhook(

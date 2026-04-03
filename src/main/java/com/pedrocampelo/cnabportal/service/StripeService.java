@@ -90,7 +90,20 @@ public class StripeService {
                 }
             }
             case "customer.subscription.deleted" -> {
-                log.info("Assinatura cancelada: {}", event.getId());
+                // Assinatura cancelada — rebaixa para gratuito
+                try {
+                    String subscriptionJson = event.getData().getObject().toJson();
+                    // Busca o customer ID para encontrar o usuario
+                    int cidx = subscriptionJson.indexOf("\"customer\":");
+                    if (cidx >= 0) {
+                        int cstart = subscriptionJson.indexOf("\"", cidx + 11) + 1;
+                        int cend   = subscriptionJson.indexOf("\"", cstart);
+                        String customerId = subscriptionJson.substring(cstart, cend);
+                        rebaixarParaGratuito(customerId);
+                    }
+                } catch (Exception e) {
+                    log.error("Erro ao processar cancelamento: {}", e.getMessage());
+                }
             }
             default -> log.debug("Evento Stripe ignorado: {}", event.getType());
         }
@@ -111,10 +124,65 @@ public class StripeService {
 
     private void ativarPlanoPro(UUID usuarioId, String subscriptionId) {
         usuarioRepository.findById(usuarioId).ifPresentOrElse(usuario -> {
-            // UUID do plano pro
             usuario.setPlanoId(UUID.fromString("10000000-0000-0000-0000-000000000002"));
             usuarioRepository.save(usuario);
             log.info("Plano Pro ativado para: {} — subscription: {}", usuario.getEmail(), subscriptionId);
         }, () -> log.error("Usuario nao encontrado ao ativar Pro: {}", usuarioId));
+    }
+
+    private void rebaixarParaGratuito(String customerId) {
+        // Busca usuario pelo plano_id pro e rebaixa para gratuito
+        usuarioRepository.findAll().stream()
+                .filter(u -> UUID.fromString("10000000-0000-0000-0000-000000000002").equals(u.getPlanoId()))
+                .findFirst()
+                .ifPresent(usuario -> {
+                    usuario.setPlanoId(UUID.fromString("10000000-0000-0000-0000-000000000001"));
+                    usuarioRepository.save(usuario);
+                    log.info("Plano rebaixado para gratuito: {}", usuario.getEmail());
+                });
+    }
+
+    // Cancela a assinatura ativa do usuario no Stripe
+    public void cancelarAssinatura(Usuario usuario) throws StripeException {
+        // Lista assinaturas ativas pelo email do customer
+        com.stripe.param.CustomerListParams customerParams =
+                com.stripe.param.CustomerListParams.builder()
+                        .setEmail(usuario.getEmail())
+                        .setLimit(1L)
+                        .build();
+
+        com.stripe.model.CustomerCollection customers =
+                com.stripe.model.Customer.list(customerParams);
+
+        if (customers.getData().isEmpty()) {
+            throw new IllegalStateException("Nenhuma assinatura ativa encontrada");
+        }
+
+        String customerId = customers.getData().get(0).getId();
+
+        com.stripe.param.SubscriptionListParams subParams =
+                com.stripe.param.SubscriptionListParams.builder()
+                        .setCustomer(customerId)
+                        .setStatus(com.stripe.param.SubscriptionListParams.Status.ACTIVE)
+                        .setLimit(1L)
+                        .build();
+
+        com.stripe.model.SubscriptionCollection subscriptions =
+                com.stripe.model.Subscription.list(subParams);
+
+        if (subscriptions.getData().isEmpty()) {
+            throw new IllegalStateException("Nenhuma assinatura ativa encontrada");
+        }
+
+        com.stripe.model.Subscription subscription = subscriptions.getData().get(0);
+
+        // Cancela ao fim do periodo atual
+        subscription.update(
+                com.stripe.param.SubscriptionUpdateParams.builder()
+                        .setCancelAtPeriodEnd(true)
+                        .build()
+        );
+
+        log.info("Assinatura configurada para cancelar no fim do periodo — usuario: {}", usuario.getEmail());
     }
 }

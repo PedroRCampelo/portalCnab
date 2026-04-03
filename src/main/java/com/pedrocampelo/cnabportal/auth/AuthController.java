@@ -123,6 +123,7 @@ public class AuthController {
                 .emailVerificado(false)
                 .tokenVerificacao(tokenVerificacao)
                 .tokenExpiracao(LocalDateTime.now().plusHours(24))
+                .telefone(request.telefone())
                 .build();
 
         usuarioRepository.save(novo);
