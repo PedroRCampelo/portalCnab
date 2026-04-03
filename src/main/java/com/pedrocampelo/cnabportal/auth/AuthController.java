@@ -162,7 +162,7 @@ public class AuthController {
 
         log.info("Email verificado: {}", usuario.getEmail());
 
-        return ResponseEntity.ok(new ErroResponse("Email confirmado! Voce ja pode fazer login."));
+        return ResponseEntity.ok(new ErroResponse("Email confirmado! Você já pode fazer login."));
     }
 
     // ── Reenviar email de confirmacao ─────────────────────────────────────────
