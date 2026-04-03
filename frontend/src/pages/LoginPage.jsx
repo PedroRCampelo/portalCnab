@@ -65,7 +65,7 @@ export default function LoginPage() {
                 </form>
 
                 <p className="auth-box-footer">
-                    Nao tem conta?{" "}
+                    Não tem conta?{" "}
                     <Link to="/cadastro" className="auth-box-link">Criar conta gratuita</Link>
                 </p>
 

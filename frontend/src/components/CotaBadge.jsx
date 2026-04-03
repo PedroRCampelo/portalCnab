@@ -35,7 +35,7 @@ export default function CotaBadge() {
         <span className="cota-texto">
           {esgotado
               ? "Limite mensal atingido"
-              : `${cota.usados} de ${cota.limite} arquivos usados este mes`}
+              : `${cota.usados} de ${cota.limite} arquivos usados este mês`}
         </span>
                 {!esgotado && critico && (
                     <span className="cota-aviso">Apenas {restantes} restante{restantes !== 1 ? "s" : ""}</span>

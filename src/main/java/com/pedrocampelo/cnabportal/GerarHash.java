@@ -7,7 +7,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 public class GerarHash {
     public static void main(String[] args) {
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
-        String senha = "Admin@Portal2026";
+        String senha = "Trabalho02@";
         String hash  = encoder.encode(senha);
         System.out.println("Senha: " + senha);
         System.out.println("Hash:  " + hash);

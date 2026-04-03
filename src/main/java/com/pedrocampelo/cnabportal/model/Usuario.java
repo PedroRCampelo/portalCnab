@@ -71,6 +71,9 @@ public class Usuario implements UserDetails {
     @Column(name = "plano_id")
     private java.util.UUID planoId;
 
+    @Column(name = "telefone", length = 20)
+    private String telefone;
+
     @CreationTimestamp
     @Column(name = "criado_em", nullable = false, updatable = false)
     private LocalDateTime criadoEm;

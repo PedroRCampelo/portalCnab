@@ -32,7 +32,7 @@ export default function HistoricoPage() {
     return (
         <div className="admin-page">
             <div className="admin-header">
-                <h1 className="admin-title">Historico de Remessas</h1>
+                <h1 className="admin-title">Histórico de Remessas</h1>
                 <p className="admin-subtitle">Arquivos gerados pela sua conta</p>
             </div>
 

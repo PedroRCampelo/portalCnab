@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import logoWhale from "../assets/logo.png";
 import { IcoExcel, IcoPdf, IcoBack } from "./icons.jsx";
@@ -8,91 +9,122 @@ export default function Navbar() {
     const navigate                         = useNavigate();
     const { autenticado, usuario, logout } = useAuth();
     const isHome = pathname === "/";
+    const [menuAberto, setMenuAberto] = useState(false);
 
     function handleLogout() {
         logout();
         navigate("/login");
+        setMenuAberto(false);
     }
 
+    function fecharMenu() { setMenuAberto(false); }
+
     return (
-        <header className="topbar">
-            <div className="topbar-gradient-line" aria-hidden="true"/>
-            <div className="topbar-inner">
-
-                {/* Brand */}
-                <Link to="/" className="brand brand-btn">
-                    <div className="brand-whale-wrap">
-                        <img src={logoWhale} alt="" className="brand-whale"/>
-                    </div>
-                    <span className="brand-wordmark">Whallet</span>
-                </Link>
-
-                {/* Nav central */}
-                {isHome ? (
-                    <nav className="topbar-nav" aria-label="Navegacao principal">
-                        <div className="nav-pill">
-                            <Link to={autenticado ? "/excel" : "/login"} className="nav-link">
-                                <span className="nav-link-icon">⚡</span>
-                                <span className="nav-link-text">Ferramenta</span>
-                            </Link>
-                            <div className="nav-divider"/>
-                            <a href="#como-funciona" className="nav-link">
-                                <span className="nav-link-icon">📖</span>
-                                <span className="nav-link-text">Como funciona</span>
-                            </a>
+        <>
+            <header className="topbar">
+                <div className="topbar-gradient-line" aria-hidden="true"/>
+                <div className="topbar-inner">
+                    <Link to="/" className="brand brand-btn" onClick={fecharMenu}>
+                        <div className="brand-whale-wrap">
+                            <img src={logoWhale} alt="" className="brand-whale"/>
                         </div>
-                    </nav>
-                ) : (
-                    <nav className="topbar-nav">
-                        <div className="nav-pill">
-                            <Link to="/" className="nav-link">
-                                <IcoBack/><span className="nav-link-text"> Home</span>
-                            </Link>
-                            <div className="nav-divider"/>
-                            <Link to="/excel" className={`nav-link ${pathname==="/excel"?"nav-link--active":""}`}>
-                                <IcoExcel/><span className="nav-link-text"> Excel</span>
-                            </Link>
-                            <div className="nav-divider"/>
-                            <Link to="/pdf" className={`nav-link ${pathname==="/pdf"?"nav-link--active":""}`}>
-                                <IcoPdf/><span className="nav-link-text"> PDF</span>
-                            </Link>
-                        </div>
-                    </nav>
-                )}
+                        <span className="brand-wordmark">Whallet</span>
+                    </Link>
 
-                {/* Direita */}
-                <div className="topbar-actions">
-          <span className="topbar-badge">
-            <span className="topbar-badge-dot"/>
-            7 layouts ativos
-          </span>
-
-                    {autenticado ? (
-                        <div className="topbar-user">
-                            {usuario?.perfil === "ADMIN" && (
-                                <Link to="/admin/usuarios" className="topbar-admin-link">Admin</Link>
-                            )}
-                            <Link to="/historico" className="topbar-admin-link" style={{ borderColor: "rgba(59,130,246,0.3)", color: "#60A5FA" }}>
-                                Historico
-                            </Link>
-                            <Link to="/planos" className="topbar-admin-link" style={{ borderColor: "rgba(34,197,94,0.3)", color: "#4ADE80" }}>
-                                Planos
-                            </Link>
-                            <span className="topbar-user-nome">{usuario?.nome}</span>
-                            <button className="topbar-logout" onClick={handleLogout}>Sair</button>
-                        </div>
+                    {isHome ? (
+                        <nav className="topbar-nav" aria-label="Navegacao principal">
+                            <div className="nav-pill">
+                                <Link to={autenticado ? "/excel" : "/login"} className="nav-link">
+                                    <span className="nav-link-icon">⚡</span>
+                                    <span className="nav-link-text">Ferramenta</span>
+                                </Link>
+                                <div className="nav-divider"/>
+                                <a href="#como-funciona" className="nav-link">
+                                    <span className="nav-link-icon">📖</span>
+                                    <span className="nav-link-text">Como funciona</span>
+                                </a>
+                            </div>
+                        </nav>
                     ) : (
-                        <div className="topbar-user">
-                            <Link to="/planos" className="topbar-cta-secondary">Planos</Link>
-                            <Link to="/login" className="topbar-cta">Entrar</Link>
-                            {isHome && (
-                                <Link to="/cadastro" className="topbar-cta-secondary">Criar conta</Link>
+                        <nav className="topbar-nav">
+                            <div className="nav-pill">
+                                <Link to="/" className="nav-link">
+                                    <IcoBack/><span className="nav-link-text"> Home</span>
+                                </Link>
+                                <div className="nav-divider"/>
+                                <Link to="/excel" className={"nav-link " + (pathname==="/excel"?"nav-link--active":"")}>
+                                    <IcoExcel/><span className="nav-link-text"> Excel</span>
+                                </Link>
+                                <div className="nav-divider"/>
+                                <Link to="/pdf" className={"nav-link " + (pathname==="/pdf"?"nav-link--active":"")}>
+                                    <IcoPdf/><span className="nav-link-text"> PDF</span>
+                                </Link>
+                            </div>
+                        </nav>
+                    )}
+
+                    <div className="topbar-actions">
+                    <span className="topbar-badge">
+                        <span className="topbar-badge-dot"/>
+                        7 layouts ativos
+                    </span>
+                        {autenticado ? (
+                            <div className="topbar-user">
+                                {usuario?.perfil === "ADMIN" && (
+                                    <Link to="/admin/usuarios" className="topbar-admin-link">Admin</Link>
+                                )}
+                                <Link to="/historico" className="topbar-admin-link" style={{ borderColor: "rgba(59,130,246,0.3)", color: "#60A5FA" }}>Histórico</Link>
+                                <Link to="/planos" className="topbar-admin-link" style={{ borderColor: "rgba(34,197,94,0.3)", color: "#4ADE80" }}>Planos</Link>
+                                <span className="topbar-user-nome">{usuario?.nome}</span>
+                                <button className="topbar-logout" onClick={handleLogout}>Sair</button>
+                            </div>
+                        ) : (
+                            <div className="topbar-user">
+                                <Link to="/planos" className="topbar-admin-link" data-discover="true" style={{ borderColor: "rgba(34,197,94,0.3)", color: "#4ADE80" }}>Planos</Link>
+                                <Link to="/login" className="topbar-cta">Entrar</Link>
+                                {isHome && <Link to="/cadastro" className="topbar-admin-link" data-discover="true">Criar conta</Link>}
+                            </div>
+                        )}
+                    </div>
+
+                    <button className="hamburger" onClick={() => setMenuAberto(o => !o)} aria-label="Menu" aria-expanded={menuAberto}>
+                        <span className={"hamburger-bar" + (menuAberto ? " hamburger-bar--top-open" : "")}/>
+                        <span className={"hamburger-bar" + (menuAberto ? " hamburger-bar--mid-open" : "")}/>
+                        <span className={"hamburger-bar" + (menuAberto ? " hamburger-bar--bot-open" : "")}/>
+                    </button>
+                </div>
+            </header>
+
+            {menuAberto && (
+                <div className="mobile-menu">
+                    <div className="mobile-menu-inner">
+                        <div className="mobile-menu-section">
+                            <Link to="/"      className="mobile-menu-link" onClick={fecharMenu}>🏠 Home</Link>
+                            <Link to="/excel" className="mobile-menu-link" onClick={fecharMenu}>📊 Excel</Link>
+                            <Link to="/pdf"   className="mobile-menu-link" onClick={fecharMenu}>📄 PDF</Link>
+                            <Link to="/planos" className="mobile-menu-link" onClick={fecharMenu}>💎 Planos</Link>
+                            {autenticado && <Link to="/historico" className="mobile-menu-link" onClick={fecharMenu}>📋 Historico</Link>}
+                            {autenticado && usuario?.perfil === "ADMIN" && <Link to="/admin/usuarios" className="mobile-menu-link" onClick={fecharMenu}>⚙️ Admin</Link>}
+                        </div>
+                        <div className="mobile-menu-section" style={{ borderTop: "1px solid var(--border)", paddingTop: 16 }}>
+                            {autenticado ? (
+                                <>
+                                    <div style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 12 }}>
+                                        Logado como <strong style={{ color: "var(--text)" }}>{usuario?.nome}</strong>
+                                    </div>
+                                    <button className="mobile-menu-logout" onClick={handleLogout}>Sair da conta</button>
+                                </>
+                            ) : (
+                                <div style={{ display: "flex", gap: 10 }}>
+                                    <Link to="/login"    className="topbar-cta" style={{ flex: 1, textAlign: "center" }} onClick={fecharMenu}>Entrar</Link>
+                                    <Link to="/cadastro" className="topbar-cta-secondary" style={{ flex: 1, textAlign: "center" }} onClick={fecharMenu}>Criar conta</Link>
+                                </div>
                             )}
                         </div>
-                    )}
+                    </div>
                 </div>
-
-            </div>
-        </header>
+            )}
+            {menuAberto && <div className="mobile-menu-overlay" onClick={fecharMenu}/>}
+        </>
     );
 }

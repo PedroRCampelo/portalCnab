@@ -16,5 +16,8 @@ public record CadastroRequest(
 
         @NotBlank(message = "Senha obrigatoria")
         @Size(min = 8, message = "Senha deve ter no minimo 8 caracteres")
-        String senha
+        String senha,
+
+        @Size(max = 20, message = "Telefone deve ter no maximo 20 caracteres")
+        String telefone  // opcional
 ) {}
