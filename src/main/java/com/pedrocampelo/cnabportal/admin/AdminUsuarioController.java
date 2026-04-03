@@ -102,7 +102,7 @@ public class AdminUsuarioController {
 
         if (usuario.getId().equals(admin.getId()) && !req.ativo()) {
             return ResponseEntity.badRequest()
-                    .body(new Resposta("Voce nao pode desativar sua propria conta"));
+                    .body(new Resposta("Você não pode desativar sua própria conta"));
         }
 
         usuario.setAtivo(req.ativo());
@@ -155,7 +155,7 @@ public class AdminUsuarioController {
 
         if (usuario.getId().equals(admin.getId())) {
             return ResponseEntity.badRequest()
-                    .body(new Resposta("Voce nao pode excluir sua propria conta"));
+                    .body(new Resposta("Você não pode excluir sua própria conta"));
         }
 
         usuarioRepository.delete(usuario);

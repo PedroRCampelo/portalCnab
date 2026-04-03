@@ -24,7 +24,7 @@ export function UpgradeCanceladoPage() {
                 <div style={{ fontSize: 56, marginBottom: 16 }}>↩️</div>
                 <h1 className="auth-box-title">Pagamento cancelado</h1>
                 <p className="auth-box-sub" style={{ marginBottom: 24 }}>
-                    Nenhuma cobranca foi realizada. Voce pode tentar novamente quando quiser.
+                    Nenhuma cobrança foi realizada. Você pode tentar novamente quando quiser.
                 </p>
                 <Link to="/upgrade" className="auth-box-btn" style={{ display: "block", textDecoration: "none", textAlign: "center" }}>
                     Tentar novamente

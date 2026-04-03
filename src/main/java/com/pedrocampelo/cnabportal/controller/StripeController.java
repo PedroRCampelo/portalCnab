@@ -40,7 +40,7 @@ public class StripeController {
     public ResponseEntity<?> cancelar(@AuthenticationPrincipal Usuario usuario) {
         try {
             stripeService.cancelarAssinatura(usuario);
-            return ResponseEntity.ok(Map.of("mensagem", "Assinatura cancelada. Voce mantem o acesso Pro ate o fim do periodo atual."));
+            return ResponseEntity.ok(Map.of("mensagem", "Assinatura cancelada. Você mantém o acesso Pro ate o fim do período atual."));
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("mensagem", e.getMessage()));
