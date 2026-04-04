@@ -42,11 +42,11 @@ export default function BankForm({ toolMode }) {
           : "application/pdf";
       const suffix = isExcel ? "_resultado" : "_relatorio";
       downloadBlob(res.data, bankFile.name.replace(/\.[^/.]+$/, "") + suffix + "." + ext, mime);
-      setMsg(isExcel ? "Excel gerado com sucesso." : "Relatorio PDF gerado com sucesso.");
+      setMsg(isExcel ? "Excel gerado com sucesso." : "Relatório PDF gerado com sucesso.");
       setCotaKey(k => k + 1); // atualiza o badge de cota
     } catch (err) {
       if (err.response?.status === 429) {
-        setMsg("Limite mensal atingido. Faca upgrade para o plano Pro para continuar gerando arquivos.");
+        setMsg("Limite mensal atingido. Faça upgrade para o plano Pro para continuar gerando arquivos.");
       } else {
         setMsg(`Erro ao gerar o ${isExcel ? "Excel" : "PDF"}. Verifique a API.`);
       }

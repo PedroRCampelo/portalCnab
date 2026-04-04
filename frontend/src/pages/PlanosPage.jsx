@@ -113,7 +113,7 @@ export default function PlanosPage() {
                         Planos simples e transparentes
                     </h1>
                     <p style={{ color: "var(--text-dim)", fontSize: 15 }}>
-                        Comece gratuitamente. Faca upgrade quando precisar de mais.
+                        Comece gratuitamente. Faça upgrade quando precisar de mais.
                     </p>
                 </div>
 
@@ -130,14 +130,13 @@ export default function PlanosPage() {
                         <div style={{ fontSize: 36, fontWeight: 800, color: "var(--text)", marginBottom: 4, letterSpacing: "-0.02em", whiteSpace: "nowrap" }}>
                             R$ 0
                         </div>
-                        <div style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 24 }}>por mes, para sempre</div>
+                        <div style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 24 }}>por mês</div>
 
                         <ul style={{ listStyle: "none", padding: 0, margin: "0 0 28px", display: "flex", flexDirection: "column", gap: 12 }}>
                             {[
-                                "8 arquivos por mes",
+                                "8 arquivos por mês",
                                 "Excel e PDF",
                                 "Todos os bancos suportados",
-                                "Historico de remessas",
                             ].map((item) => (
                                 <li key={item} style={{ display: "flex", gap: 10, fontSize: 14, color: "var(--text-muted)" }}>
                                     <span style={{ color: "var(--success)", fontWeight: 700, flexShrink: 0 }}>✓</span>
@@ -146,7 +145,11 @@ export default function PlanosPage() {
                             ))}
                             <li style={{ display: "flex", gap: 10, fontSize: 14, color: "var(--text-dim)" }}>
                                 <span style={{ flexShrink: 0 }}>✗</span>
-                                Integracao com Protheus
+                                Histórico de remessas
+                            </li>
+                            <li style={{ display: "flex", gap: 10, fontSize: 14, color: "var(--text-dim)" }}>
+                                <span style={{ flexShrink: 0 }}>✗</span>
+                                Integração com Protheus
                             </li>
                         </ul>
 
@@ -192,15 +195,15 @@ export default function PlanosPage() {
                         <div style={{ fontSize: 36, fontWeight: 800, color: "var(--text)", marginBottom: 4, letterSpacing: "-0.02em", whiteSpace: "nowrap" }}>
                             R$ 18,90
                         </div>
-                        <div style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 24 }}>por mes, cancele quando quiser</div>
+                        <div style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 24 }}>por mês, cancele quando quiser</div>
 
                         <ul style={{ listStyle: "none", padding: 0, margin: "0 0 28px", display: "flex", flexDirection: "column", gap: 12 }}>
                             {[
                                 "Arquivos ilimitados",
                                 "Excel e PDF",
                                 "Todos os bancos suportados",
-                                "Historico de remessas",
-                                "Suporte prioritario",
+                                "Histórico de remessas",
+                                "Suporte prioritário",
                             ].map((item) => (
                                 <li key={item} style={{ display: "flex", gap: 10, fontSize: 14, color: "var(--text-muted)" }}>
                                     <span style={{ color: "var(--purple)", fontWeight: 700, flexShrink: 0 }}>✓</span>
@@ -209,7 +212,7 @@ export default function PlanosPage() {
                             ))}
                             <li style={{ display: "flex", gap: 10, fontSize: 14, color: "var(--text-dim)" }}>
                                 <span style={{ flexShrink: 0 }}>✗</span>
-                                Integracao com Protheus
+                                Integração com Protheus
                             </li>
                         </ul>
 
@@ -257,7 +260,7 @@ export default function PlanosPage() {
                 }}>
                     <div>
                         <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text)", marginBottom: 4 }}>
-                            Integracao com Protheus
+                            Integração com Protheus
                         </div>
                         <div style={{ fontSize: 13, color: "var(--text-dim)" }}>
                             Busca de titulos, geracao de remessa e write-back direto no ERP. Valor sob consulta.
@@ -281,7 +284,7 @@ export default function PlanosPage() {
                         Precisa de ajuda?
                     </div>
                     <p style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 14 }}>
-                        Duvidas sobre planos, pagamentos ou suporte tecnico — fale com a gente.
+                        Dúvidas sobre planos, pagamentos ou suporte técnico — fale com a gente.
                     </p>
                     <a href="mailto:usewhallet@gmail.com" style={{
                         display: "inline-flex", alignItems: "center", gap: 8,

@@ -32,7 +32,7 @@ public class HistoricoController {
     }
 
     // Registra uma remessa gerada — chamado internamente pelo CnabController
-    // Exposto como endpoint para simplificar a integracao
+    // Exposto como endpoint para simplificar a integração
     @PostMapping("/historico")
     public ResponseEntity<Void> registrar(
             @AuthenticationPrincipal Usuario usuario,
