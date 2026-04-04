@@ -77,6 +77,7 @@ public class Bradesco240PagamentoLayout {
             new BankLayoutField("0", "CODIGO_BANCO",      1,   3),   // 237
             new BankLayoutField("0", "CODIGO_LOTE",       4,   7),   // 0000
             new BankLayoutField("0", "TIPO_REGISTRO",     8,   8),   // 0
+            new BankLayoutField("0", "USO EXCLUSIVO FEB",     9,   17),  
             new BankLayoutField("0", "TIPO_INSCRICAO",    18,  18),  // 1=CPF 2=CNPJ
             new BankLayoutField("0", "INSCRICAO_EMPRESA", 19,  32),
             new BankLayoutField("0", "CONVENIO",          33,  52),
@@ -87,12 +88,13 @@ public class Bradesco240PagamentoLayout {
             new BankLayoutField("0", "DV_AG_CONTA",       72,  72),  // [FIX-1] campo faltante
             new BankLayoutField("0", "NOME_EMPRESA",      73,  102),
             new BankLayoutField("0", "NOME_BANCO",        103, 132),
+            new BankLayoutField("0", "USO EXCLUSIVO FEB",        133, 142),
             new BankLayoutField("0", "ARQUIVO_CODIGO",    143, 143), // 1=remessa 2=retorno
             new BankLayoutField("0", "DATA_GERACAO",      144, 151),
             new BankLayoutField("0", "HORA_GERACAO",      152, 157),
             new BankLayoutField("0", "NUM_SEQ_ARQUIVO",   158, 163),
             new BankLayoutField("0", "VERSAO_LAYOUT",     164, 166)
-    );
+            );
 
     // ── Header de Lote (tipo 1) ───────────────────────────────────────────
     private static final List<BankLayoutField> HEADER_LOTE = List.of(
@@ -103,6 +105,7 @@ public class Bradesco240PagamentoLayout {
             new BankLayoutField("1", "TIPO_SERVICO",      10,  11),
             new BankLayoutField("1", "FORMA_PAGAMENTO",   12,  13),
             new BankLayoutField("1", "VERSAO_LOTE",       14,  16),
+            new BankLayoutField("1", "USO EXCLUSIVO FEB",       17,  17),
             new BankLayoutField("1", "TIPO_INSCRICAO",    18,  18),
             new BankLayoutField("1", "INSCRICAO_EMPRESA", 19,  32),
             new BankLayoutField("1", "CONVENIO",          33,  52),
@@ -112,9 +115,17 @@ public class Bradesco240PagamentoLayout {
             new BankLayoutField("1", "DV_CONTA",          71,  71),
             new BankLayoutField("1", "DV_AG_CONTA",       72,  72),  // [FIX-1] campo faltante
             new BankLayoutField("1", "NOME_EMPRESA",      73,  102),
-            new BankLayoutField("1", "FINALIDADE_LOTE",   103, 142), // [FIX-1] era 103-132 (30→40 chars)
-            new BankLayoutField("1", "HISTORICO_CC",      143, 172), // [FIX-1] era 133-142 (10→30 chars)
-            new BankLayoutField("1", "OCORRENCIAS",       233, 240)  // [FIX-1] era 231-240
+            new BankLayoutField("1", "FINALIDADE_LOTE",   103, 142), 
+            new BankLayoutField("1", "NOME DA RUA, AV",      143, 172), 
+            new BankLayoutField("1", "NUMERO LOC",      173, 177),
+            new BankLayoutField("1", "CASA, APTO",      178, 192), 
+            new BankLayoutField("1", "NOME CIDADE",      193, 212), 
+            new BankLayoutField("1", "CEP",      213, 217),
+            new BankLayoutField("1", "COMP CEP",      218, 220), 
+            new BankLayoutField("1", "SIGLA EST",      221, 222), 
+            new BankLayoutField("1", "FORM PAG",      223, 224), 
+            new BankLayoutField("1", "USO EXCLUSIVO FEB",      225, 230), 
+            new BankLayoutField("1", "OCORRENCIAS",       231, 240)  
     );
 
     // ── Detalhe Segmento A (tipo 3, seg A) ───────────────────────────────
@@ -170,11 +181,11 @@ public class Bradesco240PagamentoLayout {
             new BankLayoutField("3J", "ACRESCIMO",         130, 144),// [FIX-2] era 130-144
             new BankLayoutField("3J", "DATA_PAGTO",        145, 152),// [FIX-2] era 145-152
             new BankLayoutField("3J", "VALOR_PAGTO",       153, 167),// [FIX-2] era 153-167
-            new BankLayoutField("3J", "SEU_NUMERO",        168, 182),// [FIX-2] era 168-187
-            new BankLayoutField("3J", "COD_OCORRENCIA",    183, 202),// [FIX-2] campo faltante
-            new BankLayoutField("3J", "NOSSO_NUMERO",      203, 222),// [FIX-2] era 188-202 — retorno
-            new BankLayoutField("3J", "DATA_CREDITO",      223, 224),// [FIX-2] era 205-212 — retorno
-            new BankLayoutField("3J", "AVISO_FAVORECIDO",  225, 230),
+            new BankLayoutField("3J", "QUANT MOEDA",        168, 182),// [FIX-2] era 168-187
+            new BankLayoutField("3J", "NOSSO_NUMERO",    183, 202),// [FIX-2] campo faltante
+            new BankLayoutField("3J", "NOSSO_NUMERO(BCO)",      203, 222),// [FIX-2] era 188-202 — retorno
+            new BankLayoutField("3J", "COD MOEDA",      223, 224),// [FIX-2] era 205-212 — retorno
+            new BankLayoutField("3J", "USO EXCLUSIVO FEB",  225, 230),
             new BankLayoutField("3J", "OCORRENCIAS",       231, 240)
     );
 
@@ -189,17 +200,20 @@ public class Bradesco240PagamentoLayout {
             new BankLayoutField("3J52", "TIPO_REGISTRO",      8,   8),
             new BankLayoutField("3J52", "NUM_REGISTRO",       9,   13),
             new BankLayoutField("3J52", "SEGMENTO",           14,  14),
-            new BankLayoutField("3J52", "IDENTIFICACAO",      15,  16), // = "52"
-            new BankLayoutField("3J52", "TIPO_INSC_SACADOR",  17,  18),
-            new BankLayoutField("3J52", "NR_INSC_SACADOR",    19,  32),
-            new BankLayoutField("3J52", "NOME_SACADOR",       33,  62),
-            new BankLayoutField("3J52", "TIPO_INSC_CEDENTE",  63,  64),
-            new BankLayoutField("3J52", "NR_INSC_CEDENTE",    65,  78),
-            new BankLayoutField("3J52", "NOME_CEDENTE",       79,  108),
-            new BankLayoutField("3J52", "TIPO_INSC_SACADO",   109, 110),
-            new BankLayoutField("3J52", "NR_INSC_SACADO",     111, 124),
-            new BankLayoutField("3J52", "NOME_SACADO",        125, 154)
-    );
+            new BankLayoutField("3J52", "CNAB - USO EXCLUSIVO FEB",           15,  15),
+            new BankLayoutField("3J52", "CÓD DE MOV",      16,  17), // = "52"
+            new BankLayoutField("3J52", "IDENTIFICACAO",      18,  19), // = "52"
+            new BankLayoutField("3J52", "TIPO_INSC_SACADOR",  20,  20),
+            new BankLayoutField("3J52", "NR_INSC_SACADOR",    21,  35),
+            new BankLayoutField("3J52", "NOME_SACADOR",       36,  75),
+            new BankLayoutField("3J52", "TIPO_INSC_CEDENTE",  76,  76),
+            new BankLayoutField("3J52", "NR_INSC_CEDENTE",    77,  91),
+            new BankLayoutField("3J52", "NOME_CEDENTE",       92,  131),
+            new BankLayoutField("3J52", "TIPO_INSC_SACADO",   132, 132),
+            new BankLayoutField("3J52", "NR_INSC_SACADO",     133, 147),
+            new BankLayoutField("3J52", "NOME_SACADO",        148, 187),
+            new BankLayoutField("3J52", "USO EXCLUSIVO FEBRABAN",        188, 240)
+            );
 
     // ── Detalhe Segmento O (tipo 3, seg O) ───────────────────────────────
     // Pagamento de Contas e Tributos com Código de Barras
@@ -253,7 +267,7 @@ public class Bradesco240PagamentoLayout {
                     "3A",   DETALHE_A,
                     "3J",   DETALHE_J,
                     "3J52", DETALHE_J52,  // [FIX-3] adicionado
-                    "3O",   DETALHE_O,
+                        "3O",   DETALHE_O,
                     "5",    TRAILER_LOTE,
                     "9",    TRAILER_ARQUIVO
             );
