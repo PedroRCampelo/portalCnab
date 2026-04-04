@@ -177,11 +177,11 @@ public class BB240PagamentoLayout {
             new BankLayoutField("3J", "ACRESCIMO",          130, 144), // 13V2
             new BankLayoutField("3J", "DATA_PAGTO",         145, 152),
             new BankLayoutField("3J", "VALOR_PAGTO",        153, 167), // 13V2
-            new BankLayoutField("3J", "SEU_NUMERO",         168, 187),
-            new BankLayoutField("3J", "NOSSO_NUMERO",       188, 202), // retorno
-            new BankLayoutField("3J", "COD_MOEDA",          203, 204),
-            new BankLayoutField("3J", "DATA_CREDITO",       205, 212), // retorno
-            new BankLayoutField("3J", "AVISO_FAVORECIDO",   230, 230),
+            new BankLayoutField("3J", "QTD MOEDA",         168, 182),
+            new BankLayoutField("3J", "NOSSO_NUMERO",         183, 202),
+            new BankLayoutField("3J", "NOSSO_NUMERO (BCO)", 203, 222), 
+            new BankLayoutField("3J", "COD_MOEDA",       223, 224), 
+            new BankLayoutField("3J", "CNAB",          225, 230),
             new BankLayoutField("3J", "OCORRENCIAS",        231, 240)
     );
 
@@ -263,15 +263,15 @@ public class BB240PagamentoLayout {
     // ── Mapa principal ────────────────────────────────────────────────────
     private static final Map<String, List<BankLayoutField>> FIELDS_BY_RECORD_TYPE =
             Map.of(
-                    "0",  HEADER_ARQUIVO,
-                    "1",  HEADER_LOTE,
+                    "0", HEADER_ARQUIVO,
+                    "1", HEADER_LOTE,
                     "3A", DETALHE_A,
                     "3B", DETALHE_B,
                     "3J", DETALHE_J,
                     "3O", DETALHE_O,
                     "3N", DETALHE_N,
-                    "5",  TRAILER_LOTE,
-                    "9",  TRAILER_ARQUIVO
+                    "5", TRAILER_LOTE,
+                    "9", TRAILER_ARQUIVO
             );
 
     public static List<BankLayoutField> getFieldsForLine(String line) {
@@ -289,11 +289,30 @@ public class BB240PagamentoLayout {
 
     public static String getRecordType(String line) {
         if (line == null || line.length() < 8) return "?";
+
         char tipo = line.charAt(7);
+
         if (tipo == '3') {
             if (line.length() < 14) return "3?";
-            return "3" + line.charAt(13);
+
+            char segmento = line.charAt(13);
+
+            if (segmento == 'J') {
+                String complemento = safeSubstring(line, 17, 19).trim(); // pos 18-19
+                if ("52".equals(complemento)) {
+                    return "3J52";
+                }
+            }
+
+            return "3" + segmento;
         }
+
         return String.valueOf(tipo);
+    }
+
+    private static String safeSubstring(String line, int beginInclusive, int endExclusive) {
+        if (line == null) return "";
+        if (beginInclusive >= line.length()) return "";
+        return line.substring(beginInclusive, Math.min(endExclusive, line.length()));
     }
 }

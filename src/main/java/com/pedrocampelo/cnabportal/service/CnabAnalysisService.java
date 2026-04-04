@@ -38,6 +38,19 @@ public class CnabAnalysisService {
             "DATA_GERACAO", "DATA_EMISSAO"
     );
 
+
+    private boolean isDetailForPdf(String recordType) {
+        if (recordType == null || recordType.isBlank()) {
+            return false;
+        }
+
+        return switch (recordType) {
+            case "3B", "3J52" -> false; // não entram no PDF
+            case "3A", "3J", "3O", "3N", "3P", "3Q", "3W" -> true;
+            default -> false;
+        };
+    }
+    
     // ── Entrada pública ───────────────────────────────────────────────────────
 
     public CnabReportData analyze(
@@ -86,10 +99,10 @@ public class CnabAnalysisService {
         // ── Registros de detalhe ──────────────────────────────────────────
         // CNAB 240: tipo "3x" (ex: "3A", "3J", "3P", "3Q")
         // CNAB 400: tipo "1"  (único registro de detalhe)
+
         List<ParsedRecord> detalhes = is240
                 ? records.stream()
-                .filter(r -> r.getRecordType().length() == 2
-                        && r.getRecordType().startsWith("3"))
+                .filter(r -> isDetailForPdf(r.getRecordType()))
                 .toList()
                 : records.stream()
                 .filter(r -> "1".equals(r.getRecordType()))
