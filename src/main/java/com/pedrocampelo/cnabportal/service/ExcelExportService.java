@@ -27,17 +27,35 @@ public class ExcelExportService {
             "9", "Trailer"
     );
 
-    /** CNAB 240 Pagamento: recordType → nome da aba */
-    private static final Map<String, String> TAB_NAMES_240 = Map.of(
-            "0",  "Header Arquivo",
-            "1",  "Header Lote",
-            "3A", "Seg A — Crédito/TED/PIX",
-            "3J", "Seg J — Boletos",
-            "3O", "Seg O — Concessionárias",
-            "3N", "Seg N — Tributos",
-            "5",  "Trailer Lote",
-            "9",  "Trailer Arquivo"
-    );
+    /**
+     * CNAB 240 Pagamento: recordType → nome da aba.
+     *
+     * [FIX-5] Adicionado "3J52" → "Seg J-52" para que o Segmento J-52
+     *         (Sacador/Cedente/Sacado) tenha aba própria em vez de aparecer
+     *         como linha extra e corrompida em "Seg J — Boletos".
+     *
+     * [FIX-6] Trocado Map.of() por LinkedHashMap para garantir a ordem de criação
+     *         das abas no Excel (Map.of não garante ordem de iteração).
+     *
+     * [FIX-7] Nomes de aba sem '/' para evitar erro do Apache POI ao criar planilhas
+     *         (caracteres inválidos: / \ : ? * [ ]).
+     *         Antes: "Seg A — Crédito/TED/PIX" → POI lançava IllegalArgumentException.
+     *         Agora: "Seg A — Cred TED PIX".
+     */
+    private static final Map<String, String> TAB_NAMES_240;
+    static {
+        Map<String, String> m = new LinkedHashMap<>();
+        m.put("0",    "Header Arquivo");
+        m.put("1",    "Header Lote");
+        m.put("3A",   "Seg A - Cred TED PIX");   // [FIX-7] removido '/'
+        m.put("3J",   "Seg J - Boletos");          // [FIX-7] removido '—' e chars especiais
+        m.put("3J52", "Seg J-52 - Sacador Ced");  // [FIX-5] adicionado
+        m.put("3O",   "Seg O - Concessionarias"); // [FIX-7] removido '—' e acento
+        m.put("3N",   "Seg N - Tributos");
+        m.put("5",    "Trailer Lote");
+        m.put("9",    "Trailer Arquivo");
+        TAB_NAMES_240 = Collections.unmodifiableMap(m);
+    }
 
     // ── Public API ─────────────────────────────────────────────────────────
 
@@ -74,8 +92,8 @@ public class ExcelExportService {
             createSummarySheet(workbook, headerStyle, layoutFileName,
                     remessaFileName, parsedRecords);
 
-            // Uma aba por recordType presente no arquivo, na ordem do mapa
-            // Iteramos pelo mapa para garantir a ordem das abas
+            // Uma aba por recordType presente no arquivo, na ordem do mapa.
+            // [FIX-6] tabNames agora é LinkedHashMap → ordem garantida.
             for (Map.Entry<String, String> entry : tabNames.entrySet()) {
                 String recordType = entry.getKey();
                 String tabName    = entry.getValue();
@@ -85,7 +103,7 @@ public class ExcelExportService {
             }
 
             // Abas para recordTypes não previstos no mapa (segmentos opcionais,
-            // registros desconhecidos, etc.) — aparecem no final com nome genérico
+            // registros desconhecidos, etc.) — aparecem no final com nome genérico.
             Set<String> knownTypes = tabNames.keySet();
             parsedRecords.stream()
                     .map(ParsedRecord::getRecordType)
@@ -172,10 +190,10 @@ public class ExcelExportService {
             String sheetName,
             List<ParsedRecord> records) {
 
-        // Excel limita nomes de aba a 31 caracteres
-        String safeName = sheetName.length() > 31
-                ? sheetName.substring(0, 31)
-                : sheetName;
+        // [FIX-7] Sanitiza nome da aba: remove caracteres inválidos para o Excel
+        // (/ \ : ? * [ ]) antes de truncar para 31 chars.
+        // Antes: nomes como "Seg A — Crédito/TED/PIX" causavam IllegalArgumentException no POI.
+        String safeName = sanitizeSheetName(sheetName);
 
         Sheet sheet = workbook.createSheet(safeName);
 
@@ -269,6 +287,22 @@ public class ExcelExportService {
         return new ArrayList<>(columns);
     }
 
+    // ── Utilitários ────────────────────────────────────────────────────────
+
+    /**
+     * [FIX-7] Remove caracteres inválidos para nomes de aba do Excel e trunca para 31 chars.
+     *
+     * Caracteres inválidos: / \ : ? * [ ]
+     * Apache POI lança IllegalArgumentException se o nome da aba contiver qualquer um deles.
+     */
+    private static String sanitizeSheetName(String name) {
+        if (name == null) return "Sem Nome";
+        // Remove os caracteres proibidos pelo Excel
+        String clean = name.replaceAll("[/\\\\:?*\\[\\]]", " ").strip();
+        // Trunca para o limite de 31 chars do Excel
+        return clean.length() > 31 ? clean.substring(0, 31) : clean;
+    }
+
     // ── Style factories ────────────────────────────────────────────────────
 
     private CellStyle createHeaderStyle(Workbook workbook) {
@@ -287,14 +321,14 @@ public class ExcelExportService {
     }
 
     private CellStyle createDateStyle(Workbook workbook) {
-        CellStyle style  = workbook.createCellStyle();
+        CellStyle style   = workbook.createCellStyle();
         DataFormat format = workbook.createDataFormat();
         style.setDataFormat(format.getFormat("dd/MM/yyyy"));
         return style;
     }
 
     private CellStyle createMoneyStyle(Workbook workbook) {
-        CellStyle style  = workbook.createCellStyle();
+        CellStyle style   = workbook.createCellStyle();
         DataFormat format = workbook.createDataFormat();
         style.setDataFormat(format.getFormat("#,##0.00"));
         return style;
