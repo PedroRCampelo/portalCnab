@@ -114,11 +114,11 @@ public class Itau240PagamentoLayout {
             new BankLayoutField("3J", "ACRESCIMO",          130, 144),
             new BankLayoutField("3J", "DATA_PAGTO",         145, 152),
             new BankLayoutField("3J", "VALOR_PAGTO",        153, 167),
-            new BankLayoutField("3J", "SEU_NUMERO",         168, 187),
-            new BankLayoutField("3J", "NOSSO_NUMERO",       188, 202),  // retorno
-            new BankLayoutField("3J", "COD_MOEDA",          203, 204),
-            new BankLayoutField("3J", "DATA_CREDITO",       205, 212),  // retorno
-            new BankLayoutField("3J", "OCORRENCIAS",        231, 240)   // retorno
+            new BankLayoutField("3J", "COMP REGISTRO",        162, 182),
+            new BankLayoutField("3J", "SEU_NUMERO",         183, 202),
+            new BankLayoutField("3J", "COMP REGISTRO",       203, 215),  
+            new BankLayoutField("3J", "NOSSO NUMERO (BCO)",          216, 230),
+            new BankLayoutField("3J", "OCORRENCIAS P/RETORNO",        231, 240)
     );
 
     // ── Detalhe Segmento O (tipo 3, seg O) ────────────────────────────────
