@@ -5,7 +5,7 @@ const api = axios.create({
     timeout: 30000,
 });
 
-// Injeta o token JWT em todas as requisicoes automaticamente
+// Injeta o token JWT em todas as requisições automaticamente
 api.interceptors.request.use((config) => {
     try {
         const auth = sessionStorage.getItem("auth");
@@ -14,7 +14,7 @@ api.interceptors.request.use((config) => {
             if (token) config.headers.Authorization = `Bearer ${token}`;
         }
     } catch {
-        // sessionStorage indisponivel ou dado corrompido — segue sem token
+        // sessionStorage indisponível ou dado corrompido — segue sem token
     }
     return config;
 });
@@ -23,14 +23,27 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        // Redireciona para login APENAS quando o token expirou ou e invalido
-        // Erros 400, 409, 500 devem ser tratados pelo componente que chamou
         if (error.response?.status === 401) {
-            const url = window.location.pathname;
-            // Nao redireciona se ja estiver no login ou cadastro
-            if (url !== "/login" && url !== "/cadastro" && url !== "/verificar-email") {
+            const paginaAtual   = window.location.pathname;
+            const requestUrl    = error.config?.url ?? "";
+
+            // Só redireciona para login se:
+            // 1. Não estiver já em página de autenticação
+            // 2. A requisição veio de uma rota que requer token (não rota pública)
+            const emPaginaAuth = ["/login", "/cadastro", "/verificar-email"]
+                .includes(paginaAtual);
+
+            // Rotas que são públicas e podem retornar 401 para anônimos
+            const ehRotaPublica = requestUrl.includes("/api/cnab/anonimo/")
+                || requestUrl.includes("/api/cnab/export-bank")
+                || requestUrl.includes("/api/cnab/report-bank");
+
+            // Só faz logout se estiver autenticado e o token for inválido/expirado
+            const estaAutenticado = !!sessionStorage.getItem("auth");
+
+            if (!emPaginaAuth && !ehRotaPublica && estaAutenticado) {
                 sessionStorage.removeItem("auth");
-                window.location.href = "/login";
+                window.location.href = "/login?sessao=expirada";
             }
         }
         return Promise.reject(error);

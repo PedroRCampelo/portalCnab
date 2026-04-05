@@ -1,5 +1,6 @@
 package com.pedrocampelo.cnabportal.controller;
 
+import com.pedrocampelo.cnabportal.config.AnonymousUsageTracker;
 import com.pedrocampelo.cnabportal.dto.CnabReportData;
 import com.pedrocampelo.cnabportal.dto.UploadAnalysisResponseDTO;
 import com.pedrocampelo.cnabportal.layout.BankLayout;
@@ -15,6 +16,7 @@ import com.pedrocampelo.cnabportal.service.CotaService;
 import com.pedrocampelo.cnabportal.service.ExcelExportService;
 import com.pedrocampelo.cnabportal.service.FileReadingService;
 import com.pedrocampelo.cnabportal.service.PdfReportService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -51,6 +53,7 @@ public class CnabController {
     private final PdfReportService      pdfReportService;
     private final CotaService           cotaService;
     private final RemessaRepository     remessaRepository;
+    private final AnonymousUsageTracker anonymousTracker;
 
     public CnabController(
             FileReadingService    fileReadingService,
@@ -61,7 +64,8 @@ public class CnabController {
             CnabAnalysisService   cnabAnalysisService,
             PdfReportService      pdfReportService,
             CotaService           cotaService,
-            RemessaRepository     remessaRepository) {
+            RemessaRepository     remessaRepository,
+            AnonymousUsageTracker anonymousTracker) {
         this.fileReadingService   = fileReadingService;
         this.layoutParserService  = layoutParserService;
         this.remessaParserService = remessaParserService;
@@ -71,6 +75,7 @@ public class CnabController {
         this.pdfReportService     = pdfReportService;
         this.cotaService          = cotaService;
         this.remessaRepository    = remessaRepository;
+        this.anonymousTracker     = anonymousTracker;
     }
 
     // ── Endpoints existentes (Modo Protheus) — sem alteração ───────────────
@@ -217,15 +222,26 @@ public class CnabController {
             @RequestParam("bank")        String bank,
             @RequestParam("version")     String version,
             @RequestParam("mode")        String mode,
-            @AuthenticationPrincipal     Usuario usuario
+            @AuthenticationPrincipal     Usuario usuario,
+            HttpServletRequest           request
     ) throws IOException {
 
         if (remessaFile.isEmpty()) {
             throw new IllegalArgumentException("O arquivo de remessa está vazio.");
         }
 
-        if (!cotaService.temCotaDisponivel(usuario)) {
-            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
+        // Verifica cota — autenticado ou anônimo
+        if (usuario == null) {
+            String ip = obterIp(request);
+            if (!anonymousTracker.registrarUso(ip)) {
+                return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                        .header("X-Limite-Anonimo", "true")
+                        .build();
+            }
+        } else {
+            if (!cotaService.temCotaDisponivel(usuario)) {
+                return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
+            }
         }
 
         BankLayout layout = BankLayout.of(bank, version, mode);
@@ -241,16 +257,18 @@ public class CnabController {
                 parsedRecords,
                 tabNames);
 
-        cotaService.registrarUso(usuario);
-
-        remessaRepository.save(Remessa.builder()
-                .usuario(usuario)
-                .empresa(usuario.getEmpresa())
-                .nomeArquivo(remessaFile.getOriginalFilename())
-                .banco(bank).versao(version).modo(mode)
-                .tipoSaida("EXCEL")
-                .qtdRegistros(parsedRecords.size())
-                .build());
+        // Registra histórico apenas para usuários autenticados
+        if (usuario != null) {
+            cotaService.registrarUso(usuario);
+            remessaRepository.save(Remessa.builder()
+                    .usuario(usuario)
+                    .empresa(usuario.getEmpresa())
+                    .nomeArquivo(remessaFile.getOriginalFilename())
+                    .banco(bank).versao(version).modo(mode)
+                    .tipoSaida("EXCEL")
+                    .qtdRegistros(parsedRecords.size())
+                    .build());
+        }
 
         String outputName = remessaFile.getOriginalFilename()
                 .replaceAll("[^a-zA-Z0-9._-]", "_") + "_resultado.xlsx";
@@ -281,15 +299,26 @@ public class CnabController {
             @RequestParam("bank")        String bank,
             @RequestParam("version")     String version,
             @RequestParam("mode")        String mode,
-            @AuthenticationPrincipal     Usuario usuario
+            @AuthenticationPrincipal     Usuario usuario,
+            HttpServletRequest           request
     ) throws IOException {
 
         if (remessaFile.isEmpty()) {
             throw new IllegalArgumentException("O arquivo de remessa está vazio.");
         }
 
-        if (!cotaService.temCotaDisponivel(usuario)) {
-            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
+        // Verifica cota — autenticado ou anônimo
+        if (usuario == null) {
+            String ip = obterIp(request);
+            if (!anonymousTracker.registrarUso(ip)) {
+                return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                        .header("X-Limite-Anonimo", "true")
+                        .build();
+            }
+        } else {
+            if (!cotaService.temCotaDisponivel(usuario)) {
+                return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
+            }
         }
 
         BankLayout layout = BankLayout.of(bank, version, mode);
@@ -305,17 +334,18 @@ public class CnabController {
 
         byte[] pdfBytes = pdfReportService.generate(reportData);
 
-        cotaService.registrarUso(usuario);
-
-        remessaRepository.save(Remessa.builder()
-                .usuario(usuario)
-                .empresa(usuario.getEmpresa())
-                .nomeArquivo(remessaFile.getOriginalFilename())
-                .banco(bank).versao(version).modo(mode)
-                .tipoSaida("PDF")
-                .qtdRegistros(parsedRecords.size())
-                .valorTotal(reportData.valorTotal())
-                .build());
+        if (usuario != null) {
+            cotaService.registrarUso(usuario);
+            remessaRepository.save(Remessa.builder()
+                    .usuario(usuario)
+                    .empresa(usuario.getEmpresa())
+                    .nomeArquivo(remessaFile.getOriginalFilename())
+                    .banco(bank).versao(version).modo(mode)
+                    .tipoSaida("PDF")
+                    .qtdRegistros(parsedRecords.size())
+                    .valorTotal(reportData.valorTotal())
+                    .build());
+        }
 
         String outputName = remessaFile.getOriginalFilename()
                 .replaceAll("[^a-zA-Z0-9._-]", "_") + "_relatorio.pdf";
@@ -396,5 +426,24 @@ public class CnabController {
                     "9",  "Trailer Arquivo"
             );
         };
+    }
+
+    // Consulta usos anônimos restantes — frontend usa para mostrar o banner
+    @GetMapping("/anonimo/usos")
+    public ResponseEntity<Map<String, Object>> usosAnonimos(HttpServletRequest request) {
+        String ip = obterIp(request);
+        return ResponseEntity.ok(Map.of(
+                "usados",    anonymousTracker.usosRealizados(ip),
+                "restantes", anonymousTracker.usosRestantes(ip),
+                "limite",    2
+        ));
+    }
+
+    private String obterIp(HttpServletRequest request) {
+        String forwarded = request.getHeader("X-Forwarded-For");
+        if (forwarded != null && !forwarded.isBlank()) {
+            return forwarded.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 }

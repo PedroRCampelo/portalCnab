@@ -2,17 +2,17 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import BankForm from "../components/BankForm.jsx";
 import ProtheusForm from "../components/ProtheusForm.jsx";
+import BannerAnonimo from "../components/BannerAnonimo.jsx";
 import { IcoExcel, IcoBack } from "../components/icons.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
 
 export default function ExcelPage() {
-  const [source, setSource] = useState("bank"); // "bank" | "protheus"
+  const [source,   setSource]   = useState("bank");
+  const [bloqueado, setBloqueado] = useState(false);
+  const { autenticado } = useAuth();
 
   useEffect(() => {
     document.title = "Exportar CNAB para Excel — Whallet Portal CNAB";
-    document.querySelector('meta[name="description"]')
-        ?.setAttribute("content",
-            "Converta sua remessa ou retorno CNAB do Itaú e Bradesco em planilha Excel " +
-            "estruturada com abas por segmento. Suporte a CNAB 240 e 400, remessa e retorno.");
   }, []);
 
   return (
@@ -32,7 +32,11 @@ export default function ExcelPage() {
 
         <div className="tool-page-body">
           <div className="tool-page-form">
-            {/* Seletor Bancário / Protheus */}
+
+            {!autenticado &&
+                <BannerAnonimo onLimiteBloqueado={() => setBloqueado(true)}/>
+            }
+
             <div className="source-tabs">
               <button type="button"
                       className={`source-tab ${source==="bank"?"source-tab--active":""}`}
@@ -46,8 +50,8 @@ export default function ExcelPage() {
               </button>
             </div>
 
-            {source === "bank"     && <BankForm toolMode="excel"/>}
-            {source === "protheus" && <ProtheusForm/>}
+            {source === "bank"     && <BankForm toolMode="excel" desabilitado={bloqueado}/>}
+            {source === "protheus" && <ProtheusForm desabilitado={bloqueado}/>}
           </div>
 
           <div className="tool-page-info">
