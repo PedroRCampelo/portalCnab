@@ -6,24 +6,89 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="theme-color" content="#0F172A"/>
 
-  <title>Whallet — Conversor de CNAB para Excel e PDF</title>
-  <meta name="description" content="Converta arquivos CNAB 240 e 400 em Excel e PDF em segundos. Suporte a Itaú, Bradesco, Banco do Brasil, Caixa e mais. Grátis para começar.">
-  <meta name="keywords" content="conversor CNAB, CNAB para Excel, CNAB para PDF, CNAB 240, CNAB 400, remessa bancária, FEBRABAN">
-  <meta property="og:title" content="Whallet — Conversor de CNAB para Excel e PDF">
-  <meta property="og:description" content="Converta arquivos CNAB 240 e 400 em Excel e PDF em segundos.">
+  <!-- ── Título e descrição ─────────────────────────────────────────────── -->
+  <title>Whallet — Portal Financeiro · CNAB, Contas a Pagar e Gestão Bancária</title>
+  <meta name="description" content="Converta arquivos CNAB 240 e 400 em Excel e PDF, gerencie contas a pagar, receba alertas de vencimento e gere remessas bancárias integradas. Suporte a Itaú, Bradesco, BB e Caixa. Grátis para começar.">
+  <meta name="keywords" content="conversor CNAB, CNAB para Excel, CNAB para PDF, CNAB 240, CNAB 400, remessa bancária, retorno bancário, contas a pagar, gestão financeira, títulos a pagar, FEBRABAN, Itaú CNAB, Bradesco CNAB, Banco do Brasil CNAB, Caixa CNAB, portal financeiro, controle financeiro empresarial">
+  <meta name="author" content="Whallet">
+  <meta name="robots" content="index, follow">
+
+  <!-- ── Open Graph (WhatsApp, LinkedIn, Facebook) ─────────────────────── -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Whallet">
+  <meta property="og:title" content="Whallet — Portal Financeiro · CNAB, Contas a Pagar e Gestão Bancária">
+  <meta property="og:description" content="Converta arquivos CNAB em Excel e PDF, gerencie contas a pagar e gere remessas bancárias integradas. Grátis para começar.">
   <meta property="og:url" content="https://whallet.com.br">
-  <link rel="canonical" href="https://whallet.com.br">
+  <meta property="og:locale" content="pt_BR">
 
-  <!-- Canonical — ideal configurar por rota via react-helmet-async no futuro -->
-  <link rel="canonical" href="https://whallet.com.br/"/>
+  <!-- ── Twitter Card ───────────────────────────────────────────────────── -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Whallet — Portal Financeiro · CNAB e Gestão Financeira">
+  <meta name="twitter:description" content="Converta arquivos CNAB em Excel e PDF, gerencie contas a pagar e gere remessas bancárias integradas.">
+  <meta name="twitter:site" content="@whallet">
 
-  <!-- Google tag (gtag.js) -->
+  <!-- ── Canonical ─────────────────────────────────────────────────────── -->
+  <link rel="canonical" href="https://whallet.com.br/">
+
+  <!-- ── Sitemap ───────────────────────────────────────────────────────── -->
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml">
+
+  <!-- ── Schema.org — SoftwareApplication ─────────────────────────────── -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Whallet",
+      "url": "https://whallet.com.br",
+      "description": "Portal financeiro para conversão de arquivos CNAB em Excel e PDF, gestão de contas a pagar, alertas de vencimento e geração de remessas bancárias integradas.",
+      "applicationCategory": "FinanceApplication",
+      "operatingSystem": "Web",
+      "offers": [
+        {
+          "@type": "Offer",
+          "name": "Gratuito",
+          "price": "0",
+          "priceCurrency": "BRL"
+        },
+        {
+          "@type": "Offer",
+          "name": "Pro",
+          "price": "18.90",
+          "priceCurrency": "BRL",
+          "billingIncrement": "P1M"
+        },
+        {
+          "@type": "Offer",
+          "name": "Whallet+",
+          "price": "39.90",
+          "priceCurrency": "BRL",
+          "billingIncrement": "P1M"
+        }
+      ],
+      "featureList": [
+        "Conversão de CNAB 240 e 400 para Excel",
+        "Relatório PDF analítico de remessas bancárias",
+        "Gestão de contas a pagar",
+        "Alertas de vencimento por e-mail",
+        "Importação de títulos via Excel",
+        "Suporte a Itaú, Bradesco, Banco do Brasil e Caixa"
+      ],
+      "inLanguage": "pt-BR",
+      "isAccessibleForFree": true,
+      "publisher": {
+        "@type": "Organization",
+        "name": "Whallet",
+        "url": "https://whallet.com.br"
+      }
+    }
+  </script>
+
+  <!-- ── Google Analytics ──────────────────────────────────────────────── -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-MSKQ5RWX49"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-
     gtag('config', 'G-MSKQ5RWX49');
   </script>
 
