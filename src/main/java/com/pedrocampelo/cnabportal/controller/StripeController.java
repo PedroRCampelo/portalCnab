@@ -29,7 +29,22 @@ public class StripeController {
             String url = stripeService.criarCheckoutPro(usuario);
             return ResponseEntity.ok(Map.of("url", url));
         } catch (StripeException e) {
-            log.error("Erro ao criar checkout Stripe: {}", e.getMessage());
+            log.error("Erro ao criar checkout Pro: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("mensagem", "Erro ao iniciar pagamento. Tente novamente."));
+        }
+    }
+
+    @PostMapping("/checkout/whallet-plus")
+    public ResponseEntity<?> checkoutWhalletPlus(@AuthenticationPrincipal Usuario usuario) {
+        try {
+            String url = stripeService.criarCheckoutWhalletPlus(usuario);
+            return ResponseEntity.ok(Map.of("url", url));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                    .body(Map.of("mensagem", e.getMessage()));
+        } catch (StripeException e) {
+            log.error("Erro ao criar checkout Whallet+: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("mensagem", "Erro ao iniciar pagamento. Tente novamente."));
         }
@@ -40,7 +55,7 @@ public class StripeController {
     public ResponseEntity<?> cancelar(@AuthenticationPrincipal Usuario usuario) {
         try {
             stripeService.cancelarAssinatura(usuario);
-            return ResponseEntity.ok(Map.of("mensagem", "Assinatura cancelada. Você mantém o acesso Pro ate o fim do período atual."));
+            return ResponseEntity.ok(Map.of("mensagem", "Assinatura cancelada. Voce mantem o acesso Pro ate o fim do periodo atual."));
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("mensagem", e.getMessage()));
