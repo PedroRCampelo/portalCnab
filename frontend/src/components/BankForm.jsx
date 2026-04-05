@@ -1,16 +1,19 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext.jsx";
 import api from "../services/api.js";
 import CotaBadge from "./CotaBadge.jsx";
 import { BANK_LAYOUTS, banks } from "./banks.jsx";
 import { IcoCheck, IcoChevron, IcoUpload, IcoSpinner, IcoExcel, IcoPdf } from "./icons.jsx";
 
-export default function BankForm({ toolMode }) {
+export default function BankForm({ toolMode, desabilitado = false }) {
+  const { autenticado } = useAuth();
   const [openBankId, setOpenBankId] = useState("itau");
   const [bankLayout, setBankLayout] = useState(BANK_LAYOUTS[0]);
   const [bankFile,   setBankFile]   = useState(null);
   const [loading,    setLoading]    = useState(false);
   const [msg,        setMsg]        = useState("");
-  const [cotaKey,    setCotaKey]    = useState(0); // forca re-render do CotaBadge apos gerar
+  const [cotaKey,    setCotaKey]    = useState(0);
 
   const isExcel = toolMode === "excel";
 
@@ -25,6 +28,7 @@ export default function BankForm({ toolMode }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (desabilitado) return;
     if (!bankFile) { setMsg("Selecione o arquivo antes de continuar."); return; }
     try {
       setLoading(true); setMsg("");
@@ -43,20 +47,46 @@ export default function BankForm({ toolMode }) {
       const suffix = isExcel ? "_resultado" : "_relatorio";
       downloadBlob(res.data, bankFile.name.replace(/\.[^/.]+$/, "") + suffix + "." + ext, mime);
       setMsg(isExcel ? "Excel gerado com sucesso." : "Relatório PDF gerado com sucesso.");
-      setCotaKey(k => k + 1); // atualiza o badge de cota
+      setCotaKey(k => k + 1);
     } catch (err) {
       if (err.response?.status === 429) {
-        setMsg("Limite mensal atingido. Faça upgrade para o plano Pro para continuar gerando arquivos.");
+        setMsg("LIMITE_ANONIMO");
       } else {
-        setMsg(`Erro ao gerar o ${isExcel ? "Excel" : "PDF"}. Verifique a API.`);
+        setMsg(`Erro ao gerar o ${isExcel ? "Excel" : "PDF"}. Verifique o arquivo e tente novamente.`);
       }
     } finally { setLoading(false); }
   };
 
+  if (desabilitado || msg === "LIMITE_ANONIMO") {
+    return (
+        <div style={{
+          background: "rgba(124,58,237,0.06)", border: "1px solid rgba(124,58,237,0.2)",
+          borderRadius: 14, padding: "32px 24px", textAlign: "center"
+        }}>
+          <div style={{ fontSize: 40, marginBottom: 12 }}>🔒</div>
+          <h3 style={{ color: "var(--text)", fontWeight: 700, margin: "0 0 8px" }}>
+            Você usou suas 2 conversões gratuitas
+          </h3>
+          <p style={{ color: "var(--text-dim)", fontSize: 14, margin: "0 0 24px", lineHeight: 1.6 }}>
+            Crie uma conta gratuita e tenha <strong style={{ color: "var(--text)" }}>8 conversões por mês</strong> — sem cartão de crédito.
+          </p>
+          <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+            <Link to="/login" style={{
+              padding: "11px 24px", borderRadius: 10, border: "1px solid var(--border)",
+              color: "var(--text-muted)", fontWeight: 600, fontSize: 14, textDecoration: "none"
+            }}>Entrar</Link>
+            <Link to="/cadastro" style={{
+              padding: "11px 24px", borderRadius: 10, background: "var(--purple)",
+              border: "none", color: "white", fontWeight: 700, fontSize: 14, textDecoration: "none"
+            }}>Criar conta grátis →</Link>
+          </div>
+        </div>
+    );
+  }
+
   return (
       <form className="form" onSubmit={handleSubmit}>
-
-        <CotaBadge key={cotaKey}/>
+        {autenticado && <CotaBadge key={cotaKey}/>}
 
         <div className="field">
           <label className="field-label">Banco e layout</label>
@@ -127,10 +157,10 @@ export default function BankForm({ toolMode }) {
               ? <><IcoSpinner/> Gerando…</>
               : isExcel
                   ? <><IcoExcel/> Gerar Excel</>
-                  : <><IcoPdf/> Gerar Relatorio PDF</>}
+                  : <><IcoPdf/> Gerar Relatório PDF</>}
         </button>
 
-        {msg && (
+        {msg && msg !== "LIMITE_ANONIMO" && (
             <div className={`msg ${msg.includes("Erro") || msg.includes("Limite") ? "msg--error" : "msg--success"}`}>
               {msg.includes("Erro") || msg.includes("Limite") ? "✕ " : "✓ "}{msg}
             </div>

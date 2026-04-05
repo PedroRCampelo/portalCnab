@@ -16,6 +16,7 @@ import HistoricoPage             from "./pages/HistoricoPage.jsx";
 import UpgradePage               from "./pages/UpgradePage.jsx";
 import { UpgradeSucessoPage, UpgradeCanceladoPage } from "./pages/UpgradePages.jsx";
 import PlanosPage                from "./pages/PlanosPage.jsx";
+import TitulosPage               from "./pages/TitulosPage.jsx";
 
 const AUTH_ROUTES = ["/login", "/cadastro", "/verificar-email"];
 
@@ -36,9 +37,10 @@ function AppShell() {
                 <Route path="/cadastro"        element={<CadastroPage/>}/>
                 <Route path="/verificar-email" element={<VerificarEmailPage/>}/>
 
-                <Route path="/excel"     element={<ProtectedRoute><ExcelPage/></ProtectedRoute>}/>
-                <Route path="/pdf"       element={<ProtectedRoute><PdfPage/></ProtectedRoute>}/>
+                <Route path="/excel"     element={<ExcelPage/>}/>
+                <Route path="/pdf"       element={<PdfPage/>}/>
                 <Route path="/historico" element={<ProtectedRoute><HistoricoPage/></ProtectedRoute>}/>
+                <Route path="/titulos"   element={<ProtectedRoute><TitulosPage/></ProtectedRoute>}/>
                 <Route path="/upgrade"   element={<ProtectedRoute><UpgradePage/></ProtectedRoute>}/>
                 <Route path="/upgrade/sucesso"   element={<ProtectedRoute><UpgradeSucessoPage/></ProtectedRoute>}/>
                 <Route path="/upgrade/cancelado" element={<ProtectedRoute><UpgradeCanceladoPage/></ProtectedRoute>}/>

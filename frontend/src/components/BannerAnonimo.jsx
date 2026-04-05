@@ -1,0 +1,100 @@
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext.jsx";
+import api from "../services/api.js";
+
+export default function BannerAnonimo({ onLimiteBloqueado }) {
+    const { autenticado } = useAuth();
+    const [usos, setUsos] = useState(null);
+
+    useEffect(() => {
+        if (!autenticado) {
+            api.get("/api/cnab/anonimo/usos")
+                .then(({ data }) => {
+                    setUsos(data);
+                    if (data.restantes === 0) onLimiteBloqueado?.();
+                })
+                .catch(() => {});
+        }
+    }, [autenticado]);
+
+    // Não mostra nada para usuários logados
+    if (autenticado || usos === null) return null;
+
+    // Limite atingido
+    if (usos.restantes === 0) {
+        return (
+            <div style={{
+                background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.3)",
+                borderRadius: 14, padding: "20px 24px", marginBottom: 24,
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                gap: 16, flexWrap: "wrap"
+            }}>
+                <div>
+                    <div style={{ fontWeight: 700, color: "var(--text)", marginBottom: 4, fontSize: 15 }}>
+                        🔒 Você usou suas 2 conversões gratuitas
+                    </div>
+                    <div style={{ color: "var(--text-dim)", fontSize: 13 }}>
+                        Crie uma conta gratuita e tenha 8 conversões por mês — sem cartão de crédito.
+                    </div>
+                </div>
+                <div style={{ display: "flex", gap: 10, flexShrink: 0 }}>
+                    <Link to="/login" style={{
+                        padding: "10px 18px", borderRadius: 10, border: "1px solid var(--border)",
+                        color: "var(--text-muted)", fontWeight: 600, fontSize: 13, textDecoration: "none"
+                    }}>
+                        Entrar
+                    </Link>
+                    <Link to="/cadastro" style={{
+                        padding: "10px 18px", borderRadius: 10, background: "var(--purple)",
+                        border: "none", color: "white", fontWeight: 700, fontSize: 13, textDecoration: "none"
+                    }}>
+                        Criar conta grátis
+                    </Link>
+                </div>
+            </div>
+        );
+    }
+
+    // Primeiro uso — mostra banner sutil de incentivo
+    if (usos.usados === 0) {
+        return (
+            <div style={{
+                background: "rgba(34,197,94,0.06)", border: "1px solid rgba(34,197,94,0.2)",
+                borderRadius: 14, padding: "14px 20px", marginBottom: 24,
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                gap: 12, flexWrap: "wrap"
+            }}>
+                <div style={{ fontSize: 13, color: "var(--text-muted)" }}>
+                    ✅ <strong style={{ color: "var(--text)" }}>2 conversões gratuitas</strong> disponíveis sem login.{" "}
+                    <Link to="/cadastro" style={{ color: "#4ADE80", fontWeight: 600 }}>
+                        Crie uma conta
+                    </Link>{" "}
+                    para 8/mês.
+                </div>
+            </div>
+        );
+    }
+
+    // Último uso — aviso antes de bloquear
+    if (usos.restantes === 1) {
+        return (
+            <div style={{
+                background: "rgba(251,191,36,0.08)", border: "1px solid rgba(251,191,36,0.25)",
+                borderRadius: 14, padding: "14px 20px", marginBottom: 24,
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                gap: 12, flexWrap: "wrap"
+            }}>
+                <div style={{ fontSize: 13, color: "var(--text-muted)" }}>
+                    ⚠️ Esta é sua <strong style={{ color: "#FCD34D" }}>última conversão gratuita</strong>.{" "}
+                    <Link to="/cadastro" style={{ color: "#FCD34D", fontWeight: 600 }}>
+                        Crie uma conta grátis
+                    </Link>{" "}
+                    para continuar.
+                </div>
+            </div>
+        );
+    }
+
+    return null;
+}

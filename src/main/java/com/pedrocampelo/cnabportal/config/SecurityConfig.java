@@ -58,7 +58,13 @@ public class SecurityConfig {
                                 "/api/auth/cadastro",
                                 "/api/auth/verificar",
                                 "/api/auth/reenviar-verificacao",
-                                "/api/stripe/webhook"  // Stripe nao envia JWT
+                                "/api/stripe/webhook"
+                        ).permitAll()
+                        // Endpoints de geração — aceitam anônimos (limite de 2) e autenticados
+                        .requestMatchers(
+                                "/api/cnab/export-bank",
+                                "/api/cnab/report-bank",
+                                "/api/cnab/anonimo/usos"
                         ).permitAll()
                         .requestMatchers("/api/auth/register").hasRole("ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")

@@ -67,7 +67,7 @@ public class EmailService {
                         <tr>
                           <td align="center" style="background:Se#ffffff;border-radius:12px;">
                             <a href="%s"
-                              style="display:inline-block;padding:16px 48px;color:#6D28D9;font-weight:700;font-size:16px;text-decoration:none;white-space:nowrap;">
+                              style="display:inline-block;padding:16px 48px;color:#ffffff;font-weight:700;font-size:16px;text-decoration:none;white-space:nowrap;">
                               Confirmar email
                             </a>
                           </td>
