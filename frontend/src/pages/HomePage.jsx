@@ -21,6 +21,32 @@ export default function HomePage() {
 
   return (
       <>
+        {/* ── Botão flutuante — Gestão Financeira ── */}
+        <button
+            onClick={() => document.getElementById("gestao-financeira")?.scrollIntoView({ behavior: "smooth" })}
+            style={{
+              position: "fixed", bottom: 28, right: 28, zIndex: 900,
+              display: "flex", alignItems: "center", gap: 8,
+              padding: "12px 20px", borderRadius: 50,
+              background: "linear-gradient(135deg,#F59E0B,#FCD34D)",
+              border: "none", color: "#1a1a1a",
+              fontWeight: 800, fontSize: 13, cursor: "pointer",
+              boxShadow: "0 4px 24px rgba(245,158,11,0.4)",
+              transition: "transform 0.15s, box-shadow 0.15s",
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.transform = "scale(1.05)";
+              e.currentTarget.style.boxShadow = "0 6px 32px rgba(245,158,11,0.55)";
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.transform = "scale(1)";
+              e.currentTarget.style.boxShadow = "0 4px 24px rgba(245,158,11,0.4)";
+            }}
+        >
+          <span style={{ fontSize: 16 }}>💰</span>
+          Gestão Financeira
+        </button>
+
         {/* ── Hero ── */}
         <section className="hero">
           <div className="hero-content">
@@ -169,7 +195,7 @@ export default function HomePage() {
         </section>
 
         {/* ── Gestão Financeira — seção de destaque ── */}
-        <section style={{
+        <section id="gestao-financeira" style={{
           padding: "80px 24px",
           background: "linear-gradient(180deg, transparent, rgba(124,58,237,0.04) 30%, rgba(251,191,36,0.04) 70%, transparent)",
           borderTop: "1px solid var(--border)",

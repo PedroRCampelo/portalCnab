@@ -50,13 +50,21 @@ public class StripeService {
     }
 
     // ── Checkout Whallet+ ─────────────────────────────────────────────────────
+    // Se o usuário tem Pro ativo, cancela antes para evitar cobrança dupla
     public String criarCheckoutWhalletPlus(Usuario usuario) throws StripeException {
         if (priceIdWhalletPlus == null || priceIdWhalletPlus.isBlank()) {
             throw new IllegalStateException("Plano Whallet+ ainda não configurado. Entre em contato.");
         }
+        try {
+            cancelarAssinaturaImediato(usuario);
+            log.info("Assinatura Pro cancelada para upgrade Whallet+: {}", usuario.getEmail());
+        } catch (IllegalStateException e) {
+            log.debug("Nenhuma assinatura ativa ao criar checkout Whallet+: {}", e.getMessage());
+        }
         return criarCheckout(usuario, priceIdWhalletPlus, "whallet-plus");
     }
 
+    // ── Checkout interno ──────────────────────────────────────────────────────
     private String criarCheckout(Usuario usuario, String priceId, String plano) throws StripeException {
         SessionCreateParams params = SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.SUBSCRIPTION)
@@ -76,59 +84,26 @@ public class StripeService {
         return session.getUrl();
     }
 
-    // ── Webhook ───────────────────────────────────────────────────────────────
-    public void processarWebhook(String payload, String sigHeader) throws SignatureVerificationException {
-        Event event = Webhook.constructEvent(payload, sigHeader, webhookSecret);
-
-        switch (event.getType()) {
-            case "checkout.session.completed" -> {
-                try {
-                    String sessionId = extractId(event.getData().getObject().toJson());
-                    if (sessionId != null) {
-                        Session session = Session.retrieve(sessionId);
-                        String usuarioId = session.getMetadata() != null
-                                ? session.getMetadata().get("usuarioId") : null;
-                        String plano = session.getMetadata() != null
-                                ? session.getMetadata().getOrDefault("plano", "pro") : "pro";
-                        if (usuarioId != null) {
-                            if ("whallet-plus".equals(plano)) {
-                                ativarPlanoPorId(UUID.fromString(usuarioId),
-                                        UUID.fromString("10000000-0000-0000-0000-000000000003"),
-                                        session.getSubscription(), "Whallet+");
-                            } else {
-                                ativarPlanoPorId(UUID.fromString(usuarioId),
-                                        UUID.fromString("10000000-0000-0000-0000-000000000002"),
-                                        session.getSubscription(), "Pro");
-                            }
-                        } else {
-                            log.warn("usuarioId não encontrado nos metadados da sessão: {}", sessionId);
-                        }
-                    }
-                } catch (StripeException e) {
-                    log.error("Erro ao buscar sessão do Stripe: {}", e.getMessage());
-                    throw new RuntimeException("Erro ao processar checkout", e);
-                }
-            }
-            case "customer.subscription.deleted" -> {
-                try {
-                    String subscriptionJson = event.getData().getObject().toJson();
-                    int cidx = subscriptionJson.indexOf("\"customer\":");
-                    if (cidx >= 0) {
-                        int cstart = subscriptionJson.indexOf("\"", cidx + 11) + 1;
-                        int cend   = subscriptionJson.indexOf("\"", cstart);
-                        String customerId = subscriptionJson.substring(cstart, cend);
-                        rebaixarParaGratuito(customerId);
-                    }
-                } catch (Exception e) {
-                    log.error("Erro ao processar cancelamento: {}", e.getMessage());
-                }
-            }
-            default -> log.debug("Evento Stripe ignorado: {}", event.getType());
-        }
+    // ── Cancelamento ao fim do período (opção do usuário) ────────────────────
+    public void cancelarAssinatura(Usuario usuario) throws StripeException {
+        com.stripe.model.Subscription subscription = buscarAssinaturaAtiva(usuario);
+        subscription.update(
+                com.stripe.param.SubscriptionUpdateParams.builder()
+                        .setCancelAtPeriodEnd(true)
+                        .build()
+        );
+        log.info("Assinatura configurada para cancelar no fim do período: {}", usuario.getEmail());
     }
 
-    // ── Cancelamento ──────────────────────────────────────────────────────────
-    public void cancelarAssinatura(Usuario usuario) throws StripeException {
+    // ── Cancelamento imediato (usado em upgrades) ─────────────────────────────
+    private void cancelarAssinaturaImediato(Usuario usuario) throws StripeException {
+        com.stripe.model.Subscription subscription = buscarAssinaturaAtiva(usuario);
+        subscription.cancel();
+        log.info("Assinatura cancelada imediatamente para upgrade: {}", usuario.getEmail());
+    }
+
+    // ── Busca assinatura ativa no Stripe ─────────────────────────────────────
+    private com.stripe.model.Subscription buscarAssinaturaAtiva(Usuario usuario) throws StripeException {
         com.stripe.param.CustomerListParams customerParams =
                 com.stripe.param.CustomerListParams.builder()
                         .setEmail(usuario.getEmail())
@@ -158,15 +133,58 @@ public class StripeService {
             throw new IllegalStateException("Nenhuma assinatura ativa encontrada");
         }
 
-        com.stripe.model.Subscription subscription = subscriptions.getData().get(0);
+        return subscriptions.getData().get(0);
+    }
 
-        subscription.update(
-                com.stripe.param.SubscriptionUpdateParams.builder()
-                        .setCancelAtPeriodEnd(true)
-                        .build()
-        );
+    // ── Webhook ───────────────────────────────────────────────────────────────
+    public void processarWebhook(String payload, String sigHeader) throws SignatureVerificationException {
+        Event event = Webhook.constructEvent(payload, sigHeader, webhookSecret);
 
-        log.info("Assinatura configurada para cancelar no fim do período — usuário: {}", usuario.getEmail());
+        switch (event.getType()) {
+            case "checkout.session.completed" -> {
+                try {
+                    String sessionId = extractId(event.getData().getObject().toJson());
+                    if (sessionId != null) {
+                        Session session = Session.retrieve(sessionId);
+                        String usuarioId = session.getMetadata() != null
+                                ? session.getMetadata().get("usuarioId") : null;
+                        String plano = session.getMetadata() != null
+                                ? session.getMetadata().getOrDefault("plano", "pro") : "pro";
+                        if (usuarioId != null) {
+                            if ("whallet-plus".equals(plano)) {
+                                ativarPlanoPorId(UUID.fromString(usuarioId),
+                                        UUID.fromString("10000000-0000-0000-0000-000000000003"),
+                                        session.getSubscription(), "Whallet+");
+                            } else {
+                                ativarPlanoPorId(UUID.fromString(usuarioId),
+                                        UUID.fromString("10000000-0000-0000-0000-000000000002"),
+                                        session.getSubscription(), "Pro");
+                            }
+                        } else {
+                            log.warn("usuarioId não encontrado nos metadados: {}", sessionId);
+                        }
+                    }
+                } catch (StripeException e) {
+                    log.error("Erro ao buscar sessão do Stripe: {}", e.getMessage());
+                    throw new RuntimeException("Erro ao processar checkout", e);
+                }
+            }
+            case "customer.subscription.deleted" -> {
+                try {
+                    String subscriptionJson = event.getData().getObject().toJson();
+                    int cidx = subscriptionJson.indexOf("\"customer\":");
+                    if (cidx >= 0) {
+                        int cstart = subscriptionJson.indexOf("\"", cidx + 11) + 1;
+                        int cend   = subscriptionJson.indexOf("\"", cstart);
+                        String customerId = subscriptionJson.substring(cstart, cend);
+                        rebaixarParaGratuito(customerId);
+                    }
+                } catch (Exception e) {
+                    log.error("Erro ao processar cancelamento: {}", e.getMessage());
+                }
+            }
+            default -> log.debug("Evento Stripe ignorado: {}", event.getType());
+        }
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
