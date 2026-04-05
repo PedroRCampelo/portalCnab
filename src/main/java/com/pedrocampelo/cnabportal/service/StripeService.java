@@ -33,6 +33,9 @@ public class StripeService {
     @Value("${stripe.price-id-pro}")
     private String priceIdPro;
 
+    @Value("${stripe.price-id-whallet-plus:}")
+    private String priceIdWhalletPlus;
+
     @Value("${app.url}")
     private String appUrl;
 
@@ -41,59 +44,74 @@ public class StripeService {
         Stripe.apiKey = secretKey;
     }
 
-    // Cria uma sessao de checkout do Stripe para o plano Pro
-    // O usuario e identificado pelo metadata — o webhook usa isso para atualizar o plano
+    // ── Checkout Pro ──────────────────────────────────────────────────────────
     public String criarCheckoutPro(Usuario usuario) throws StripeException {
+        return criarCheckout(usuario, priceIdPro, "pro");
+    }
+
+    // ── Checkout Whallet+ ─────────────────────────────────────────────────────
+    public String criarCheckoutWhalletPlus(Usuario usuario) throws StripeException {
+        if (priceIdWhalletPlus == null || priceIdWhalletPlus.isBlank()) {
+            throw new IllegalStateException("Plano Whallet+ ainda não configurado. Entre em contato.");
+        }
+        return criarCheckout(usuario, priceIdWhalletPlus, "whallet-plus");
+    }
+
+    private String criarCheckout(Usuario usuario, String priceId, String plano) throws StripeException {
         SessionCreateParams params = SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.SUBSCRIPTION)
                 .setCustomerEmail(usuario.getEmail())
                 .addLineItem(SessionCreateParams.LineItem.builder()
-                        .setPrice(priceIdPro)
+                        .setPrice(priceId)
                         .setQuantity(1L)
                         .build())
                 .putMetadata("usuarioId", usuario.getId().toString())
-                // Redireciona apos o pagamento
+                .putMetadata("plano", plano)
                 .setSuccessUrl(appUrl + "/upgrade/sucesso?session_id={CHECKOUT_SESSION_ID}")
-                .setCancelUrl(appUrl + "/upgrade/cancelado")
+                .setCancelUrl(appUrl + "/planos")
                 .build();
 
         Session session = Session.create(params);
-        log.info("Checkout criado para: {} — session: {}", usuario.getEmail(), session.getId());
+        log.info("Checkout {} criado para: {} — session: {}", plano, usuario.getEmail(), session.getId());
         return session.getUrl();
     }
 
-    // Processa eventos do webhook do Stripe
-    // Chamado pelo StripeWebhookController ao receber POST /api/stripe/webhook
+    // ── Webhook ───────────────────────────────────────────────────────────────
     public void processarWebhook(String payload, String sigHeader) throws SignatureVerificationException {
         Event event = Webhook.constructEvent(payload, sigHeader, webhookSecret);
 
         switch (event.getType()) {
             case "checkout.session.completed" -> {
-                // Usa o ID do evento para buscar a sessao diretamente — mais seguro e compativel
                 try {
-                    String sessionId = event.getData().getObject().toJson()
-                            .contains("\"id\"") ? extractId(event.getData().getObject().toJson()) : null;
-
+                    String sessionId = extractId(event.getData().getObject().toJson());
                     if (sessionId != null) {
                         Session session = Session.retrieve(sessionId);
                         String usuarioId = session.getMetadata() != null
                                 ? session.getMetadata().get("usuarioId") : null;
+                        String plano = session.getMetadata() != null
+                                ? session.getMetadata().getOrDefault("plano", "pro") : "pro";
                         if (usuarioId != null) {
-                            ativarPlanoPro(UUID.fromString(usuarioId), session.getSubscription());
+                            if ("whallet-plus".equals(plano)) {
+                                ativarPlanoPorId(UUID.fromString(usuarioId),
+                                        UUID.fromString("10000000-0000-0000-0000-000000000003"),
+                                        session.getSubscription(), "Whallet+");
+                            } else {
+                                ativarPlanoPorId(UUID.fromString(usuarioId),
+                                        UUID.fromString("10000000-0000-0000-0000-000000000002"),
+                                        session.getSubscription(), "Pro");
+                            }
                         } else {
-                            log.warn("usuarioId nao encontrado nos metadados da sessao: {}", sessionId);
+                            log.warn("usuarioId não encontrado nos metadados da sessão: {}", sessionId);
                         }
                     }
                 } catch (StripeException e) {
-                    log.error("Erro ao buscar sessao do Stripe: {}", e.getMessage());
+                    log.error("Erro ao buscar sessão do Stripe: {}", e.getMessage());
                     throw new RuntimeException("Erro ao processar checkout", e);
                 }
             }
             case "customer.subscription.deleted" -> {
-                // Assinatura cancelada — rebaixa para gratuito
                 try {
                     String subscriptionJson = event.getData().getObject().toJson();
-                    // Busca o customer ID para encontrar o usuario
                     int cidx = subscriptionJson.indexOf("\"customer\":");
                     if (cidx >= 0) {
                         int cstart = subscriptionJson.indexOf("\"", cidx + 11) + 1;
@@ -109,42 +127,8 @@ public class StripeService {
         }
     }
 
-    // Extrai o campo "id" do JSON do evento
-    private String extractId(String json) {
-        try {
-            int idx = json.indexOf("\"id\":");
-            if (idx < 0) return null;
-            int start = json.indexOf("\"", idx + 5) + 1;
-            int end   = json.indexOf("\"", start);
-            return json.substring(start, end);
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private void ativarPlanoPro(UUID usuarioId, String subscriptionId) {
-        usuarioRepository.findById(usuarioId).ifPresentOrElse(usuario -> {
-            usuario.setPlanoId(UUID.fromString("10000000-0000-0000-0000-000000000002"));
-            usuarioRepository.save(usuario);
-            log.info("Plano Pro ativado para: {} — subscription: {}", usuario.getEmail(), subscriptionId);
-        }, () -> log.error("Usuario nao encontrado ao ativar Pro: {}", usuarioId));
-    }
-
-    private void rebaixarParaGratuito(String customerId) {
-        // Busca usuario pelo plano_id pro e rebaixa para gratuito
-        usuarioRepository.findAll().stream()
-                .filter(u -> UUID.fromString("10000000-0000-0000-0000-000000000002").equals(u.getPlanoId()))
-                .findFirst()
-                .ifPresent(usuario -> {
-                    usuario.setPlanoId(UUID.fromString("10000000-0000-0000-0000-000000000001"));
-                    usuarioRepository.save(usuario);
-                    log.info("Plano rebaixado para gratuito: {}", usuario.getEmail());
-                });
-    }
-
-    // Cancela a assinatura ativa do usuario no Stripe
+    // ── Cancelamento ──────────────────────────────────────────────────────────
     public void cancelarAssinatura(Usuario usuario) throws StripeException {
-        // Lista assinaturas ativas pelo email do customer
         com.stripe.param.CustomerListParams customerParams =
                 com.stripe.param.CustomerListParams.builder()
                         .setEmail(usuario.getEmail())
@@ -176,13 +160,45 @@ public class StripeService {
 
         com.stripe.model.Subscription subscription = subscriptions.getData().get(0);
 
-        // Cancela ao fim do periodo atual
         subscription.update(
                 com.stripe.param.SubscriptionUpdateParams.builder()
                         .setCancelAtPeriodEnd(true)
                         .build()
         );
 
-        log.info("Assinatura configurada para cancelar no fim do periodo — usuario: {}", usuario.getEmail());
+        log.info("Assinatura configurada para cancelar no fim do período — usuário: {}", usuario.getEmail());
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+    private void ativarPlanoPorId(UUID usuarioId, UUID planoId, String subscriptionId, String nomePlano) {
+        usuarioRepository.findById(usuarioId).ifPresentOrElse(usuario -> {
+            usuario.setPlanoId(planoId);
+            usuarioRepository.save(usuario);
+            log.info("Plano {} ativado para: {} — subscription: {}", nomePlano, usuario.getEmail(), subscriptionId);
+        }, () -> log.error("Usuário não encontrado ao ativar plano {}: {}", nomePlano, usuarioId));
+    }
+
+    private void rebaixarParaGratuito(String customerId) {
+        usuarioRepository.findAll().stream()
+                .filter(u -> UUID.fromString("10000000-0000-0000-0000-000000000002").equals(u.getPlanoId())
+                        || UUID.fromString("10000000-0000-0000-0000-000000000003").equals(u.getPlanoId()))
+                .findFirst()
+                .ifPresent(usuario -> {
+                    usuario.setPlanoId(UUID.fromString("10000000-0000-0000-0000-000000000001"));
+                    usuarioRepository.save(usuario);
+                    log.info("Plano rebaixado para gratuito: {}", usuario.getEmail());
+                });
+    }
+
+    private String extractId(String json) {
+        try {
+            int idx = json.indexOf("\"id\":");
+            if (idx < 0) return null;
+            int start = json.indexOf("\"", idx + 5) + 1;
+            int end   = json.indexOf("\"", start);
+            return json.substring(start, end);
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

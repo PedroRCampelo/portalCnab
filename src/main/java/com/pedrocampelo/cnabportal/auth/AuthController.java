@@ -85,7 +85,8 @@ public class AuthController {
                     usuario.getId(), usuario.getNome(), usuario.getEmail(),
                     usuario.getPerfil(),
                     usuario.getEmpresa() != null ? usuario.getEmpresa().getId() : null,
-                    expiraEm
+                    expiraEm,
+                    usuario.getPlanoId()
             ));
 
         } catch (DisabledException e) {
@@ -162,7 +163,7 @@ public class AuthController {
 
         log.info("Email verificado: {}", usuario.getEmail());
 
-        return ResponseEntity.ok(new ErroResponse("Email confirmado! Você já pode fazer login."));
+        return ResponseEntity.ok(new ErroResponse("Email confirmado! Voce ja pode fazer login."));
     }
 
     // ── Reenviar email de confirmacao ─────────────────────────────────────────
