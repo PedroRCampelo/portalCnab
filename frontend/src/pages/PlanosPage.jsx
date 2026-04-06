@@ -38,12 +38,12 @@ export default function PlanosPage() {
     const expiresAt            = statusAssinatura?.expiresAt ?? cancelamentoInfo?.expiresAt;
 
     useEffect(() => {
-        if (autenticado && temPlano && !isAdmin) {
+        if (autenticado && !isAdmin) {
             api.get("/api/stripe/status-assinatura")
                 .then(({ data }) => setStatusAssinatura(data))
                 .catch(() => {});
         }
-    }, [autenticado, temPlano, isAdmin]);
+    }, [autenticado, isAdmin]);
 
     useEffect(() => {
         if (autenticado && temPlano) {
@@ -79,6 +79,8 @@ export default function PlanosPage() {
         setErroCancelamento("");
         try {
             const { data } = await api.post("/api/stripe/cancelar");
+            // Atualiza o status local imediatamente para refletir o banco
+            setStatusAssinatura({ status: "cancelando", expiresAt: data.expiresAt });
             setCancelamentoInfo({ expiresAt: data.expiresAt });
         } catch (err) {
             setErroCancelamento(err.response?.data?.mensagem ?? "Erro ao cancelar. Entre em contato.");
