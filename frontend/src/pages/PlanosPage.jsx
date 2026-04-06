@@ -144,11 +144,11 @@ export default function PlanosPage() {
                     </div>
 
                     {/* Pro */}
-                    <div style={{ background: "var(--surface)", border: "2px solid rgb(0 0 0 / 46%)", borderRadius: 16, padding: "28px 24px 32px", position: "relative" }}>
+                    <div style={{ background: "var(--surface)", border: "2px solid rgba(124,58,237,0.5)", borderRadius: 16, padding: "28px 24px 32px", position: "relative" }}>
                         <div style={{ position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)", background: "var(--purple)", borderRadius: 20, padding: "4px 16px", fontSize: 11, fontWeight: 700, color: "white", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
                             RECOMENDADO
                         </div>
-                        <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "2px solid rgba(0, 0, 0, 0.46)", marginBottom: 12 }}>Pro</div>
+                        <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#A78BFA", marginBottom: 12 }}>Pro</div>
                         {tagBeta}
                         <div style={{ fontSize: 34, fontWeight: 800, color: "var(--text)", marginBottom: 4, whiteSpace: "nowrap" }}>R$ 18,90</div>
                         <div style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 4 }}>por mês, cancele quando quiser</div>
@@ -209,8 +209,17 @@ export default function PlanosPage() {
                             ))}
                         </ul>
                         {temWhalletPlus ? (
-                            <div style={{ background: "rgba(251,191,36,0.1)", border: "1px solid rgba(251,191,36,0.25)", borderRadius: 10, padding: "10px 16px", textAlign: "center", fontSize: 13, fontWeight: 600, color: "#FCD34D" }}>
-                                Seu plano atual ✓
+                            <div>
+                                <div style={{ background: "rgba(251,191,36,0.1)", border: "1px solid rgba(251,191,36,0.25)", borderRadius: 10, padding: "10px 16px", textAlign: "center", fontSize: 13, fontWeight: 600, color: "#FCD34D", marginBottom: 10 }}>
+                                    Seu plano atual ✓
+                                </div>
+                                {msgCancelamento ? (
+                                    <div style={{ fontSize: 12, color: "var(--text-dim)", textAlign: "center" }}>{msgCancelamento}</div>
+                                ) : (
+                                    <button onClick={() => setModalAberto(true)} disabled={cancelando} style={{ width: "100%", padding: "9px", borderRadius: 10, background: "transparent", border: "1px solid rgba(239,68,68,0.3)", color: "#F87171", fontWeight: 600, fontSize: 13, cursor: "pointer" }}>
+                                        Cancelar assinatura
+                                    </button>
+                                )}
                             </div>
                         ) : (
                             <button onClick={handleUpgradePlus} disabled={carregandoPlus} style={{ width: "100%", padding: "13px", fontSize: 15, fontWeight: 700, borderRadius: 10, background: "linear-gradient(135deg,#F59E0B,#FCD34D)", border: "none", color: "#1a1a1a", cursor: "pointer", opacity: carregandoPlus ? 0.6 : 1 }}>
