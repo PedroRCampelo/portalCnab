@@ -117,7 +117,7 @@ function Tooltip({ texto }) {
             {vis && (
                 <div style={{
                     position: "absolute", top: "calc(100% + 8px)", right: 0,
-                    background: "#1E293B", border: "1px solid var(--border)",
+                    background: "#ffffff", border: "1px solid var(--border)",
                     borderRadius: 10, padding: "12px 14px", width: 280,
                     fontSize: 12, color: "var(--text-muted)", lineHeight: 1.65,
                     zIndex: 999, boxShadow: "0 8px 32px rgba(0,0,0,0.4)",

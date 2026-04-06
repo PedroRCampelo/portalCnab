@@ -144,11 +144,11 @@ export default function PlanosPage() {
                     </div>
 
                     {/* Pro */}
-                    <div style={{ background: "var(--surface)", border: "2px solid rgba(124,58,237,0.5)", borderRadius: 16, padding: "28px 24px 32px", position: "relative" }}>
+                    <div style={{ background: "var(--surface)", border: "2px solid rgb(0 0 0 / 46%)", borderRadius: 16, padding: "28px 24px 32px", position: "relative" }}>
                         <div style={{ position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)", background: "var(--purple)", borderRadius: 20, padding: "4px 16px", fontSize: 11, fontWeight: 700, color: "white", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
                             RECOMENDADO
                         </div>
-                        <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#A78BFA", marginBottom: 12 }}>Pro</div>
+                        <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "2px solid rgba(0, 0, 0, 0.46)", marginBottom: 12 }}>Pro</div>
                         {tagBeta}
                         <div style={{ fontSize: 34, fontWeight: 800, color: "var(--text)", marginBottom: 4, whiteSpace: "nowrap" }}>R$ 18,90</div>
                         <div style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 4 }}>por mês, cancele quando quiser</div>

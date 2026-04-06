@@ -29,7 +29,6 @@ function AppShell() {
 
     return (
         <div className={isAuth ? "app-shell app-shell--auth" : "app-shell"}>
-            <div className="bg-orb bg-orb--1" aria-hidden="true"/>
             <div className="bg-orb bg-orb--2" aria-hidden="true"/>
 
             <Navbar/>
