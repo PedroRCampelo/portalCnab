@@ -47,7 +47,10 @@ public class CotaService {
 
     public int getLimiteDoPlano(Usuario usuario) {
         if (usuario.getPlanoId() == null) return 8;
-        if ("10000000-0000-0000-0000-000000000002".equals(usuario.getPlanoId().toString())) return -1;
+        String id = usuario.getPlanoId().toString();
+        // Pro E Whallet+ têm conversões ilimitadas
+        if ("10000000-0000-0000-0000-000000000002".equals(id)) return -1;
+        if ("10000000-0000-0000-0000-000000000003".equals(id)) return -1;
         return 8;
     }
 
