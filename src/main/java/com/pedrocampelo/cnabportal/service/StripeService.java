@@ -15,6 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -85,14 +87,58 @@ public class StripeService {
     }
 
     // ── Cancelamento ao fim do período (opção do usuário) ────────────────────
-    public void cancelarAssinatura(Usuario usuario) throws StripeException {
+    public Map<String, Object> cancelarAssinatura(Usuario usuario) throws StripeException {
         com.stripe.model.Subscription subscription = buscarAssinaturaAtiva(usuario);
         subscription.update(
                 com.stripe.param.SubscriptionUpdateParams.builder()
                         .setCancelAtPeriodEnd(true)
                         .build()
         );
+        long expiresAt = subscription.getCurrentPeriodEnd(); // Unix timestamp
         log.info("Assinatura configurada para cancelar no fim do período: {}", usuario.getEmail());
+        return Map.of(
+                "mensagem", "Assinatura cancelada com sucesso.",
+                "expiresAt", expiresAt
+        );
+    }
+
+    // ── Histórico de pagamentos ───────────────────────────────────────────────
+    public List<Map<String, Object>> historicoPageamentos(Usuario usuario) throws StripeException {
+        com.stripe.param.CustomerListParams customerParams =
+                com.stripe.param.CustomerListParams.builder()
+                        .setEmail(usuario.getEmail())
+                        .setLimit(1L)
+                        .build();
+
+        com.stripe.model.CustomerCollection customers =
+                com.stripe.model.Customer.list(customerParams);
+
+        if (customers.getData().isEmpty()) return List.of();
+
+        String customerId = customers.getData().get(0).getId();
+
+        com.stripe.param.PaymentIntentListParams piParams =
+                com.stripe.param.PaymentIntentListParams.builder()
+                        .setCustomer(customerId)
+                        .setLimit(20L)
+                        .build();
+
+        com.stripe.model.PaymentIntentCollection paymentIntents =
+                com.stripe.model.PaymentIntent.list(piParams);
+
+        return paymentIntents.getData().stream()
+                .filter(pi -> "succeeded".equals(pi.getStatus()))
+                .map(pi -> {
+                    Map<String, Object> item = new java.util.LinkedHashMap<>();
+                    item.put("id",          pi.getId());
+                    item.put("valor",       pi.getAmount());        // centavos
+                    item.put("moeda",       pi.getCurrency());
+                    item.put("status",      pi.getStatus());
+                    item.put("descricao",   pi.getDescription() != null ? pi.getDescription() : "Assinatura Whallet");
+                    item.put("criadoEm",    pi.getCreated());       // Unix timestamp
+                    return item;
+                })
+                .toList();
     }
 
     // ── Cancelamento imediato (usado em upgrades) ─────────────────────────────
