@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -92,6 +94,29 @@ public class TituloController {
             return ResponseEntity.notFound().build();
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+    }
+
+    // ── POST /api/titulos/{id}/baixa — registrar pagamento ───────────────────
+    @PostMapping("/{id}/baixa")
+    public ResponseEntity<?> baixar(
+            @AuthenticationPrincipal Usuario usuario,
+            @PathVariable UUID id,
+            @RequestBody Map<String, Object> body) {
+        try {
+            BigDecimal valorPago = new BigDecimal(String.valueOf(body.get("valorPago")));
+            LocalDate dataBaixa  = body.get("dataBaixa") != null
+                    ? LocalDate.parse(String.valueOf(body.get("dataBaixa")))
+                    : LocalDate.now();
+            String observacao    = body.get("observacao") != null
+                    ? String.valueOf(body.get("observacao")) : "";
+            return ResponseEntity.ok(tituloService.registrarBaixa(id, valorPago, dataBaixa, observacao, usuario));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.notFound().build();
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("mensagem", e.getMessage()));
         }
     }
 

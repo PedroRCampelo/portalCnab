@@ -14,11 +14,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "titulos")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Titulo {
 
     @Id
@@ -36,7 +32,7 @@ public class Titulo {
     @JoinColumn(name = "empresa_id", nullable = false)
     private Empresa empresa;
 
-    // ── Identificação (Protheus E2) ────────────────────────────────────────────
+    // ── Identificação ─────────────────────────────────────────────────────────
 
     @Column(nullable = false, length = 10)
     @Builder.Default
@@ -50,23 +46,27 @@ public class Titulo {
     @Builder.Default
     private String parcela = "001";
 
-    // ── Tipo de pagamento ──────────────────────────────────────────────────────
+    // ── Tipo de pagamento ─────────────────────────────────────────────────────
 
     @Column(nullable = false, length = 10)
     @Builder.Default
-    private String tipo = "BOLETO"; // PIX | BOLETO | TED
+    private String tipo = "BOLETO";
 
-    // ── Fornecedor ─────────────────────────────────────────────────────────────
+    // ── Tipo de gasto (referência opcional por UUID) ──────────────────────────
+
+    @Column(name = "tipo_gasto_id")
+    private UUID tipoGastoId;
+
+    // ── Fornecedor ────────────────────────────────────────────────────────────
 
     @Column(name = "fornecedor_nome", nullable = false, length = 150)
     @NotBlank
     private String fornecedorNome;
 
-    @Column(name = "fornecedor_documento", nullable = false, length = 20)
-    @NotBlank
+    @Column(name = "fornecedor_documento", length = 20)  // opcional
     private String fornecedorDocumento;
 
-    // ── Datas ──────────────────────────────────────────────────────────────────
+    // ── Datas ─────────────────────────────────────────────────────────────────
 
     @Column(nullable = false)
     @NotNull
@@ -76,7 +76,10 @@ public class Titulo {
     @NotNull
     private LocalDate vencimento;
 
-    // ── Valores ────────────────────────────────────────────────────────────────
+    @Column(name = "data_baixa")
+    private LocalDate dataBaixa;
+
+    // ── Valores ───────────────────────────────────────────────────────────────
 
     @Column(nullable = false, precision = 18, scale = 2)
     @NotNull
@@ -100,16 +103,16 @@ public class Titulo {
     @Builder.Default
     private BigDecimal multa = BigDecimal.ZERO;
 
-    // ── Outros ─────────────────────────────────────────────────────────────────
+    // ── Outros ────────────────────────────────────────────────────────────────
 
     @Column(length = 500)
     private String observacao;
 
     @Column(nullable = false, length = 10)
     @Builder.Default
-    private String status = "PENDENTE"; // PENDENTE | PAGO | VENCIDO
+    private String status = "PENDENTE";
 
-    // ── Integração futura Protheus/CNAB ────────────────────────────────────────
+    // ── Integração Protheus/CNAB ──────────────────────────────────────────────
 
     @Column(name = "numero_bordero", length = 20)
     private String numeroBordero;
@@ -133,7 +136,7 @@ public class Titulo {
     @Column(name = "atualizado_em", nullable = false)
     private LocalDateTime atualizadoEm;
 
-    // ── Método utilitário: atualiza status automaticamente ────────────────────
+    // ── Utilitário ────────────────────────────────────────────────────────────
 
     public void atualizarStatus() {
         if ("PAGO".equals(this.status)) return;
