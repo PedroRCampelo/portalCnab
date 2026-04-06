@@ -71,6 +71,10 @@ export default function GestaFinanceiraPage() {
                 </h1>
 
                 <p style={{ color: "var(--text-dim)", fontSize: 17, margin: "0 auto 32px", maxWidth: 540, lineHeight: 1.7 }}>
+                    EM DESENVOLVIMENTO...
+                </p>
+
+                <p style={{ color: "var(--text-dim)", fontSize: 17, margin: "0 auto 32px", maxWidth: 540, lineHeight: 1.7 }}>
                     Do cadastro de títulos à geração de remessa CNAB — tudo em uma única plataforma,
                     sem planilhas paralelas ou retrabalho.
                 </p>
@@ -111,8 +115,26 @@ export default function GestaFinanceiraPage() {
 
             {/* ── Features ── */}
             <div style={{ marginBottom: 56 }}>
-                <h2 style={{ fontSize: 22, fontWeight: 800, color: "var(--text)", margin: "0 0 24px", textAlign: "center" }}>
-                    O que está incluso no Whallet+
+                <h2
+                    style={{
+                        fontSize: 22,
+                        fontWeight: 800,
+                        color: "var(--text)",
+                        margin: "0 0 24px",
+                        textAlign: "center",
+                    }}
+                >
+                    O que está incluso no{" "}
+                    <span
+                        style={{
+                            background: "linear-gradient(135deg, rgb(245, 158, 11), rgb(252, 211, 77))",
+                            WebkitBackgroundClip: "text",
+                            WebkitTextFillColor: "transparent",
+                            display: "inline-block",
+                        }}
+                    >
+    Whallet+
+  </span>
                 </h2>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
                     {features.map(f => (

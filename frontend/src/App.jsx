@@ -4,6 +4,7 @@ import "./App.css";
 import { AuthProvider }          from "./context/AuthContext.jsx";
 import ProtectedRoute            from "./components/ProtectedRoute.jsx";
 import AdminRoute                from "./components/AdminRoute.jsx";
+import ScrollToTop               from "./components/ScrollToTop.jsx";
 import Navbar                    from "./components/Navbar.jsx";
 import HomePage                  from "./pages/HomePage.jsx";
 import ExcelPage                 from "./pages/ExcelPage.jsx";
@@ -17,7 +18,8 @@ import UpgradePage               from "./pages/UpgradePage.jsx";
 import { UpgradeSucessoPage, UpgradeCanceladoPage } from "./pages/UpgradePages.jsx";
 import PlanosPage                from "./pages/PlanosPage.jsx";
 import TitulosPage               from "./pages/TitulosPage.jsx";
-import GestaFinanceiraPage       from "./pages/GestaFinanceriaPage.jsx";
+import TiposGastoPage            from "./pages/TiposGastoPage.jsx";
+import GestaFinanceiraPage       from "./pages/GestaoFinanceiraPage.jsx";
 
 const AUTH_ROUTES = ["/login", "/cadastro", "/verificar-email"];
 
@@ -31,6 +33,7 @@ function AppShell() {
             <div className="bg-orb bg-orb--2" aria-hidden="true"/>
 
             <Navbar/>
+            <ScrollToTop/>
 
             <Routes>
                 <Route path="/"                element={<HomePage/>}/>
@@ -42,6 +45,7 @@ function AppShell() {
                 <Route path="/pdf"       element={<PdfPage/>}/>
                 <Route path="/historico" element={<ProtectedRoute><HistoricoPage/></ProtectedRoute>}/>
                 <Route path="/titulos"            element={<ProtectedRoute><TitulosPage/></ProtectedRoute>}/>
+                <Route path="/tipos-gasto"        element={<ProtectedRoute><TiposGastoPage/></ProtectedRoute>}/>
                 <Route path="/gestao-financeira"  element={<GestaFinanceiraPage/>}/>
                 <Route path="/upgrade"   element={<ProtectedRoute><UpgradePage/></ProtectedRoute>}/>
                 <Route path="/upgrade/sucesso"   element={<ProtectedRoute><UpgradeSucessoPage/></ProtectedRoute>}/>

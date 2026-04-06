@@ -101,6 +101,7 @@ public class TituloService {
         existente.setObservacao(dados.getObservacao());
         existente.setCodigoBarras(dados.getCodigoBarras());
         existente.setLinhaDigitavel(dados.getLinhaDigitavel());
+        existente.setTipoGastoId(dados.getTipoGastoId());
 
         // Só atualiza status se não for PAGO
         if (!"PAGO".equals(dados.getStatus())) {
@@ -110,6 +111,55 @@ public class TituloService {
         }
 
         return tituloRepository.save(existente);
+    }
+
+    // ── Baixa (pagamento total, parcial ou com acréscimos) ────────────────────
+
+    public Titulo registrarBaixa(UUID id, BigDecimal valorPago, LocalDate dataBaixa, String observacao, Usuario usuario) {
+        Titulo titulo = tituloRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Título não encontrado"));
+
+        if (!titulo.getUsuario().getId().equals(usuario.getId())) {
+            throw new SecurityException("Acesso negado");
+        }
+
+        if (valorPago == null || valorPago.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Valor da baixa deve ser maior que zero");
+        }
+
+        BigDecimal saldoAtual = titulo.getSaldo() != null ? titulo.getSaldo() : titulo.getValor();
+        BigDecimal novoSaldo  = saldoAtual.subtract(valorPago);
+
+        if (novoSaldo.compareTo(BigDecimal.ZERO) <= 0) {
+            titulo.setSaldo(BigDecimal.ZERO);
+            titulo.setStatus("PAGO");
+            titulo.setDataBaixa(dataBaixa != null ? dataBaixa : LocalDate.now());
+        } else {
+            titulo.setSaldo(novoSaldo);
+            titulo.setDataBaixa(dataBaixa != null ? dataBaixa : LocalDate.now());
+            titulo.atualizarStatus();
+        }
+
+        // Acumula acréscimo (diferença acima do saldo original)
+        if (valorPago.compareTo(saldoAtual) > 0) {
+            BigDecimal acrescimo = valorPago.subtract(saldoAtual);
+            BigDecimal jurosAtuais = titulo.getJuros() != null ? titulo.getJuros() : BigDecimal.ZERO;
+            titulo.setJuros(jurosAtuais.add(acrescimo));
+        }
+
+        if (observacao != null && !observacao.isBlank()) {
+            String obsAtual = titulo.getObservacao() != null ? titulo.getObservacao() : "";
+            String dataStr  = dataBaixa != null ? dataBaixa.toString() : LocalDate.now().toString();
+            titulo.setObservacao((obsAtual.isBlank() ? "" : obsAtual + " | ")
+                    + "Baixa " + dataStr + ": " + fmtBrl(valorPago)
+                    + (observacao.isBlank() ? "" : " — " + observacao));
+        }
+
+        return tituloRepository.save(titulo);
+    }
+
+    private static String fmtBrl(BigDecimal v) {
+        return "R$ " + String.format("%.2f", v).replace(".", ",");
     }
 
     // ── Exclusão ──────────────────────────────────────────────────────────────
