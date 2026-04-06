@@ -50,12 +50,12 @@ public class StripeController {
         }
     }
 
-    // Cancela a assinatura Pro — acesso continua ate o fim do periodo pago
+    // Cancela assinatura — acesso continua até o fim do período
     @PostMapping("/cancelar")
     public ResponseEntity<?> cancelar(@AuthenticationPrincipal Usuario usuario) {
         try {
-            stripeService.cancelarAssinatura(usuario);
-            return ResponseEntity.ok(Map.of("mensagem", "Assinatura cancelada. Voce mantem o acesso Pro ate o fim do periodo atual."));
+            Map<String, Object> resultado = stripeService.cancelarAssinatura(usuario);
+            return ResponseEntity.ok(resultado);
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("mensagem", e.getMessage()));
@@ -63,6 +63,18 @@ public class StripeController {
             log.error("Erro ao cancelar assinatura: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("mensagem", "Erro ao cancelar. Tente novamente ou entre em contato."));
+        }
+    }
+
+    // Histórico de pagamentos do usuário
+    @GetMapping("/historico-pagamentos")
+    public ResponseEntity<?> historicoPagamentos(@AuthenticationPrincipal Usuario usuario) {
+        try {
+            return ResponseEntity.ok(stripeService.historicoPageamentos(usuario));
+        } catch (StripeException e) {
+            log.error("Erro ao buscar histórico: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("mensagem", "Erro ao buscar histórico."));
         }
     }
     // Deve ser publico (sem autenticacao) — a validacao e feita pela assinatura do webhook
