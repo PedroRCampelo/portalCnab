@@ -26,12 +26,24 @@ export default function PlanosPage() {
     const [modalAberto,     setModalAberto]     = useState(false);
     const [pagamentos,      setPagamentos]      = useState([]);
     const [carregandoPag,   setCarregandoPag]   = useState(false);
+    const [statusAssinatura, setStatusAssinatura] = useState(null);
     const navigate = useNavigate();
 
     const isAdmin        = usuario?.perfil === "ADMIN";
     const temWhalletPlus = isAdmin || usuario?.planoId === PLANO_WHALLET_PLUS;
     const temPro         = isAdmin || usuario?.planoId === PLANO_PRO || temWhalletPlus;
     const temPlano       = temPro || temWhalletPlus;
+
+    const assinaturaCancelando = statusAssinatura?.status === "cancelando";
+    const expiresAt            = statusAssinatura?.expiresAt ?? cancelamentoInfo?.expiresAt;
+
+    useEffect(() => {
+        if (autenticado && temPlano && !isAdmin) {
+            api.get("/api/stripe/status-assinatura")
+                .then(({ data }) => setStatusAssinatura(data))
+                .catch(() => {});
+        }
+    }, [autenticado, temPlano, isAdmin]);
 
     useEffect(() => {
         if (autenticado && temPlano) {
@@ -82,18 +94,21 @@ export default function PlanosPage() {
         }}>🎯 Preço beta</div>
     );
 
-    // Botão de cancelamento + mensagem pós-cancelamento (reutilizado em Pro e Whallet+)
-    function BotaoCancelamento({ corDestaque }) {
-        if (cancelamentoInfo) {
+    // Botão de cancelamento — usa statusAssinatura para persistir após F5
+    function BotaoCancelamento() {
+        // Cancelando = status do Stripe OU acabou de cancelar nesta sessão
+        const mostraCancelando = assinaturaCancelando || cancelamentoInfo;
+
+        if (mostraCancelando) {
             return (
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                     <div style={{
                         padding: "12px 16px", borderRadius: 10,
-                        background: "rgba(251,191,36,0.06)", border: "1px solid rgba(251,191,36,0.2)",
+                        background: "rgba(245,158,11,0.06)", border: "1px solid rgba(245,158,11,0.2)",
                         fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6
                     }}>
                         ✅ Assinatura cancelada. Você mantém acesso até{" "}
-                        <strong style={{ color: "var(--text)" }}>{fmtData(cancelamentoInfo.expiresAt)}</strong>.
+                        <strong style={{ color: "var(--text)" }}>{fmtData(expiresAt)}</strong>.
                     </div>
                     <button
                         onClick={temWhalletPlus ? handleUpgradePlus : handleUpgradePro}

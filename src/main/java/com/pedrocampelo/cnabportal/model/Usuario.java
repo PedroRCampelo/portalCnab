@@ -8,6 +8,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -70,6 +71,24 @@ public class Usuario implements UserDetails {
 
     @Column(name = "plano_id")
     private java.util.UUID planoId;
+
+    // ── Controle de assinatura ────────────────────────────────────────────────
+
+    // SEM_ASSINATURA | ATIVA | CANCELANDO | EXPIRADA
+    @Column(name = "assinatura_status", length = 20)
+    @Builder.Default
+    private String assinaturaStatus = "SEM_ASSINATURA";
+
+    // Data em que o acesso expira (preenchida ao cancelar ou ao receber webhook)
+    @Column(name = "assinatura_expira_em")
+    private LocalDate assinaturaExpiraEm;
+
+    // IDs do Stripe para não precisar buscar por e-mail em webhooks
+    @Column(name = "stripe_subscription_id", length = 100)
+    private String stripeSubscriptionId;
+
+    @Column(name = "stripe_customer_id", length = 100)
+    private String stripeCustomerId;
 
     @Column(name = "telefone", length = 20)
     private String telefone;
