@@ -172,15 +172,41 @@ public class StripeService {
             case "customer.subscription.deleted" -> {
                 try {
                     String subscriptionJson = event.getData().getObject().toJson();
+
+                    // Extrai customerId
                     int cidx = subscriptionJson.indexOf("\"customer\":");
-                    if (cidx >= 0) {
-                        int cstart = subscriptionJson.indexOf("\"", cidx + 11) + 1;
-                        int cend   = subscriptionJson.indexOf("\"", cstart);
-                        String customerId = subscriptionJson.substring(cstart, cend);
-                        rebaixarParaGratuito(customerId);
+                    if (cidx < 0) break;
+                    int cstart = subscriptionJson.indexOf("\"", cidx + 11) + 1;
+                    int cend   = subscriptionJson.indexOf("\"", cstart);
+                    String customerId = subscriptionJson.substring(cstart, cend);
+
+                    // Busca o usuário pelo e-mail do customer no Stripe
+                    com.stripe.model.Customer customer = com.stripe.model.Customer.retrieve(customerId);
+                    String email = customer.getEmail();
+                    if (email == null) {
+                        log.warn("Customer sem e-mail ao processar cancelamento: {}", customerId);
+                        break;
                     }
+
+                    usuarioRepository.findByEmail(email).ifPresent(usuario -> {
+                        // Só rebaixa se o usuário ainda estiver no plano que foi cancelado.
+                        // Se já está no Whallet+ (upgrade em andamento), NÃO rebaixa.
+                        UUID planoAtual = usuario.getPlanoId();
+                        UUID gratuito   = UUID.fromString("10000000-0000-0000-0000-000000000001");
+                        UUID pro        = UUID.fromString("10000000-0000-0000-0000-000000000002");
+
+                        if (pro.equals(planoAtual)) {
+                            // Cancelou o Pro sem upgrade — rebaixa para gratuito
+                            usuario.setPlanoId(gratuito);
+                            usuarioRepository.save(usuario);
+                            log.info("Plano Pro cancelado — rebaixado para gratuito: {}", email);
+                        } else {
+                            // Whallet+ ou gratuito — evento de cancelamento do Pro durante upgrade, ignora
+                            log.info("subscription.deleted ignorado para {} — plano atual: {}", email, planoAtual);
+                        }
+                    });
                 } catch (Exception e) {
-                    log.error("Erro ao processar cancelamento: {}", e.getMessage());
+                    log.error("Erro ao processar cancelamento de assinatura: {}", e.getMessage());
                 }
             }
             default -> log.debug("Evento Stripe ignorado: {}", event.getType());
@@ -194,18 +220,6 @@ public class StripeService {
             usuarioRepository.save(usuario);
             log.info("Plano {} ativado para: {} — subscription: {}", nomePlano, usuario.getEmail(), subscriptionId);
         }, () -> log.error("Usuário não encontrado ao ativar plano {}: {}", nomePlano, usuarioId));
-    }
-
-    private void rebaixarParaGratuito(String customerId) {
-        usuarioRepository.findAll().stream()
-                .filter(u -> UUID.fromString("10000000-0000-0000-0000-000000000002").equals(u.getPlanoId())
-                        || UUID.fromString("10000000-0000-0000-0000-000000000003").equals(u.getPlanoId()))
-                .findFirst()
-                .ifPresent(usuario -> {
-                    usuario.setPlanoId(UUID.fromString("10000000-0000-0000-0000-000000000001"));
-                    usuarioRepository.save(usuario);
-                    log.info("Plano rebaixado para gratuito: {}", usuario.getEmail());
-                });
     }
 
     private String extractId(String json) {
