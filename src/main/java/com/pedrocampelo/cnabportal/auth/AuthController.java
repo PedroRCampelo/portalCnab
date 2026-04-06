@@ -86,7 +86,9 @@ public class AuthController {
                     usuario.getPerfil(),
                     usuario.getEmpresa() != null ? usuario.getEmpresa().getId() : null,
                     expiraEm,
-                    usuario.getPlanoId()
+                    usuario.getPlanoId(),
+                    usuario.getAssinaturaStatus(),
+                    usuario.getAssinaturaExpiraEm()
             ));
 
         } catch (DisabledException e) {
@@ -95,7 +97,7 @@ public class AuthController {
         } catch (BadCredentialsException e) {
             log.warn("Login falhou: {}", request.email());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ErroResponse("Credenciais invalidas"));
+                    .body(new ErroResponse("Credenciais inválidas"));
         }
     }
 
@@ -110,7 +112,7 @@ public class AuthController {
         }
 
         Empresa empresa = empresaRepository.findById(UUID.fromString(empresaPadraoId))
-                .orElseThrow(() -> new IllegalStateException("Empresa padrao nao encontrada"));
+                .orElseThrow(() -> new IllegalStateException("Empresa padrão não encontrada"));
 
         String tokenVerificacao = UUID.randomUUID().toString();
 
@@ -148,12 +150,12 @@ public class AuthController {
 
         if (usuario == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ErroResponse("Link invalido ou ja utilizado"));
+                    .body(new ErroResponse("Link inválido ou já utilizado"));
         }
 
         if (usuario.getTokenExpiracao().isBefore(LocalDateTime.now())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ErroResponse("Link expirado. Solicite um novo email de confirmacao."));
+                    .body(new ErroResponse("Link expirado. Solicite um novo email de confirmação."));
         }
 
         usuario.setEmailVerificado(true);
@@ -163,7 +165,7 @@ public class AuthController {
 
         log.info("Email verificado: {}", usuario.getEmail());
 
-        return ResponseEntity.ok(new ErroResponse("Email confirmado! Voce ja pode fazer login."));
+        return ResponseEntity.ok(new ErroResponse("Email confirmado! Você já pode fazer login."));
     }
 
     // ── Reenviar email de confirmacao ─────────────────────────────────────────
@@ -176,7 +178,7 @@ public class AuthController {
         // Resposta generica — nao revela se o email existe
         if (usuario == null || Boolean.TRUE.equals(usuario.getEmailVerificado())) {
             return ResponseEntity.ok(new ErroResponse(
-                    "Se o email estiver cadastrado e pendente de verificacao, voce recebera um novo link."));
+                    "Se o email estiver cadastrado e pendente de verificação, você receberá um novo link."));
         }
 
         String novoToken = UUID.randomUUID().toString();
@@ -187,7 +189,7 @@ public class AuthController {
         emailService.enviarConfirmacaoEmail(usuario.getEmail(), usuario.getNome(), novoToken);
 
         return ResponseEntity.ok(new ErroResponse(
-                "Se o email estiver cadastrado e pendente de verificacao, voce recebera um novo link."));
+                "Se o email estiver cadastrado e pendente de verificação, você receberá um novo link."));
     }
 
     // ── Register (admin cria usuario manualmente) ─────────────────────────────
@@ -202,7 +204,7 @@ public class AuthController {
         }
 
         Empresa empresa = empresaRepository.findById(request.empresaId())
-                .orElseThrow(() -> new IllegalArgumentException("Empresa nao encontrada"));
+                .orElseThrow(() -> new IllegalArgumentException("Empresa não encontrada"));
 
         Usuario novoUsuario = Usuario.builder()
                 .empresa(empresa)
@@ -215,10 +217,10 @@ public class AuthController {
                 .build();
 
         usuarioRepository.save(novoUsuario);
-        log.info("Usuario criado pelo admin: {} ({})", novoUsuario.getEmail(), novoUsuario.getPerfil());
+        log.info("Usuário criado pelo admin: {} ({})", novoUsuario.getEmail(), novoUsuario.getPerfil());
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ErroResponse("Usuario criado com sucesso"));
+                .body(new ErroResponse("Usuário criado com sucesso"));
     }
 
     // ── DTOs internos ─────────────────────────────────────────────────────────

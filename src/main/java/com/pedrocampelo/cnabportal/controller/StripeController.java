@@ -66,6 +66,12 @@ public class StripeController {
         }
     }
 
+    // Status da assinatura — lê do banco (sem chamada ao Stripe)
+    @GetMapping("/status-assinatura")
+    public ResponseEntity<?> statusAssinatura(@AuthenticationPrincipal Usuario usuario) {
+        return ResponseEntity.ok(stripeService.getStatusAssinatura(usuario));
+    }
+
     // Histórico de pagamentos do usuário
     @GetMapping("/historico-pagamentos")
     public ResponseEntity<?> historicoPagamentos(@AuthenticationPrincipal Usuario usuario) {
