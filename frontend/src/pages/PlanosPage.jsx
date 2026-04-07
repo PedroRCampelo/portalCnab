@@ -34,7 +34,9 @@ export default function PlanosPage() {
     const temPro         = isAdmin || usuario?.planoId === PLANO_PRO || temWhalletPlus;
     const temPlano       = temPro || temWhalletPlus;
 
-    const assinaturaCancelando = statusAssinatura?.status === "cancelando";
+    const assinaturaCancelando =
+        String(statusAssinatura?.status || "").toUpperCase() === "CANCELANDO";
+    
     const expiresAt            = statusAssinatura?.expiresAt ?? cancelamentoInfo?.expiresAt;
 
     useEffect(() => {
