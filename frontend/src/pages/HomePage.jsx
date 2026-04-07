@@ -28,19 +28,19 @@ export default function HomePage() {
               position: "fixed", bottom: 28, right: 28, zIndex: 900,
               display: "flex", alignItems: "center", gap: 8,
               padding: "12px 20px", borderRadius: 50,
-              background: "linear-gradient(135deg,#F59E0B,#FCD34D)",
-              border: "none", color: "#1a1a1a",
+              background: "#111111",
+              border: "1px solid rgba(212,160,23,0.35)", color: "#FFFFFF",
               fontWeight: 800, fontSize: 13, cursor: "pointer",
-              boxShadow: "0 4px 24px rgba(245,158,11,0.4)",
+              boxShadow: "0 4px 20px rgba(17,17,17,0.28)",
               transition: "transform 0.15s, box-shadow 0.15s",
             }}
             onMouseEnter={e => {
               e.currentTarget.style.transform = "scale(1.05)";
-              e.currentTarget.style.boxShadow = "0 6px 32px rgba(245,158,11,0.55)";
+              e.currentTarget.style.boxShadow = "0 6px 28px rgba(17,17,17,0.34)";
             }}
             onMouseLeave={e => {
               e.currentTarget.style.transform = "scale(1)";
-              e.currentTarget.style.boxShadow = "0 4px 24px rgba(245,158,11,0.4)";
+              e.currentTarget.style.boxShadow = "0 4px 20px rgba(17,17,17,0.28)";
             }}
         >
           <span style={{ fontSize: 16 }}>💰</span>
@@ -91,43 +91,38 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Cards flutuantes decorativos */}
+          {/* Showcase editorial */}
           <div className="hero-visual" aria-hidden="true">
-            <div className="float-card float-card--top">
-              <span className="float-card-icon">📊</span>
-              <div>
-                <div className="float-card-label">Valor total processado</div>
-                <div className="float-card-val">R$ 1.284.900,00</div>
-                <div className="float-card-sub">128 títulos · Itaú CNAB 240</div>
+            <div className="hero-showcase">
+              <div className="hero-showcase-head">
+                <span className="hero-showcase-kicker">Prévia da experiência</span>
+                <span className="hero-showcase-period">sem dados reais</span>
               </div>
-              <span className="float-card-badge float-card-badge--ok">✓</span>
-            </div>
-            <div className="float-card float-card--mid">
-              <span className="float-card-icon">⚠️</span>
-              <div>
-                <div className="float-card-label">Alerta detectado</div>
-                <div className="float-card-val">3 vencimentos no passado</div>
-                <div className="float-card-sub">Verificar antes de enviar ao banco</div>
+
+              <div className="hero-showcase-balance">
+                <div className="hero-showcase-balance-label">Fluxo principal</div>
+                <div className="hero-showcase-balance-value">Upload → Validação → Exportação</div>
               </div>
-              <span className="float-card-badge float-card-badge--warn">!</span>
-            </div>
-            <div className="float-card float-card--bot">
-              <span className="float-card-icon">🏦</span>
-              <div>
-                <div className="float-card-label">Relatório PDF gerado</div>
-                <div className="float-card-val">retorno_mar2026.pdf</div>
-                <div className="float-card-sub">Bradesco Multipag · 247 registros</div>
+
+              <div className="hero-showcase-list">
+                <div className="hero-showcase-row">
+                  <span>Layout bancário guiado</span>
+                  <strong>Ativo</strong>
+                </div>
+                <div className="hero-showcase-row">
+                  <span>Conversão para Excel</span>
+                  <strong>Disponível</strong>
+                </div>
+                <div className="hero-showcase-row">
+                  <span>Relatório PDF analítico</span>
+                  <strong>Disponível</strong>
+                </div>
               </div>
-              <span className="float-card-badge float-card-badge--ok">✓</span>
-            </div>
-            <div className="float-card float-card--xs">
-              <span className="float-card-icon">🔍</span>
-              <div>
-                <div className="float-card-label">Nosso número duplicado</div>
-                <div className="float-card-val">2 ocorrências críticas</div>
-                <div className="float-card-sub">Linha 47 e linha 89</div>
+
+              <div className="hero-showcase-footer">
+                <div className="hero-showcase-tag">Sem necessidade de instalação</div>
+                <div className="hero-showcase-tag">Interface web responsiva</div>
               </div>
-              <span className="float-card-badge float-card-badge--err">✕</span>
             </div>
           </div>
         </section>
@@ -195,21 +190,16 @@ export default function HomePage() {
         </section>
 
         {/* ── Gestão Financeira — seção de destaque ── */}
-        <section id="gestao-financeira" style={{
-          padding: "80px 24px",
-          background: "linear-gradient(180deg, transparent, rgba(124,58,237,0.04) 30%, rgba(251,191,36,0.04) 70%, transparent)",
-          borderTop: "1px solid var(--border)",
-          borderBottom: "1px solid var(--border)",
-        }}>
+        <section id="gestao-financeira" className="gestao-section">
           <div style={{ maxWidth: 1100, margin: "0 auto" }}>
 
             {/* Header */}
             <div style={{ textAlign: "center", marginBottom: 48 }}>
               <div style={{
                 display: "inline-flex", alignItems: "center", gap: 8,
-                background: "rgba(251,191,36,0.08)", border: "1px solid rgba(251,191,36,0.2)",
+                background: "rgba(212,160,23,0.10)", border: "1px solid rgba(212,160,23,0.28)",
                 borderRadius: 20, padding: "6px 18px", marginBottom: 20,
-                fontSize: 12, fontWeight: 700, color: "#FCD34D", letterSpacing: "0.06em"
+                fontSize: 12, fontWeight: 700, color: "#6c5310", letterSpacing: "0.06em"
               }}>
                 ✦ WHALLET+ — GESTÃO FINANCEIRA
               </div>
@@ -250,9 +240,9 @@ export default function HomePage() {
                     {f.novo && (
                         <div style={{
                           position: "absolute", top: 12, right: 12,
-                          background: "rgba(34,197,94,0.12)", border: "1px solid rgba(34,197,94,0.25)",
+                          background: "rgba(17,17,17,0.06)", border: "1px solid rgba(17,17,17,0.18)",
                           borderRadius: 20, padding: "2px 8px",
-                          fontSize: 10, fontWeight: 700, color: "#4ADE80", letterSpacing: "0.04em"
+                          fontSize: 10, fontWeight: 700, color: "#111111", letterSpacing: "0.04em"
                         }}>DISPONÍVEL</div>
                     )}
                     <div style={{ fontSize: 26, marginBottom: 10 }}>{f.icon}</div>
@@ -267,8 +257,9 @@ export default function HomePage() {
               <Link to={rotaGestao} style={{
                 display: "inline-flex", alignItems: "center", gap: 10,
                 padding: "14px 32px", borderRadius: 12,
-                background: "linear-gradient(135deg,#F59E0B,#FCD34D)",
-                color: "#1a1a1a", fontWeight: 800, fontSize: 16,
+                background: "#111111",
+                border: "1px solid rgba(212,160,23,0.35)",
+                color: "#FFFFFF", fontWeight: 800, fontSize: 16,
                 textDecoration: "none"
               }}>
                 {temWhalletPlus ? "Abrir Gestão Financeira" : "Conhecer o Whallet+"} <IcoArrow/>

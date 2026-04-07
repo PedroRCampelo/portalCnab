@@ -1,7 +1,7 @@
-/* ── Global reset para o tema escuro ─────────────────────────────────────── */
+/* ── Base global ─────────────────────────────────────── */
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 html {
@@ -10,18 +10,18 @@ html {
 
 body {
   margin: 0;
-  background: #ffff;
+  background: #f6f4ef;
   color: #111111;
 }
 
 /* Scrollbar customizada */
 ::-webkit-scrollbar       { width: 6px; }
-::-webkit-scrollbar-track { background: #0F172A; }
-::-webkit-scrollbar-thumb { background: #2D3F58; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #3D5270; }
+::-webkit-scrollbar-track { background: #e8e5dc; }
+::-webkit-scrollbar-thumb { background: #b9b4a8; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #9d9688; }
 
 /* Seleção de texto */
 ::selection {
-  background: #FCD34D;
-  color: #fff;
+  background: #d4a017;
+  color: #111;
 }

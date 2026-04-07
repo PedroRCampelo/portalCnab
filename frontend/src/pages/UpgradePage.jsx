@@ -30,8 +30,8 @@ export default function UpgradePage() {
                 <h1 className="auth-box-title">Upgrade para Pro</h1>
                 <p className="auth-box-sub">Acesso ilimitado ao Excel e PDF por R$ 18,90/mes</p>
 
-                <div style={{ background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.2)", borderRadius: 12, padding: "20px 24px", margin: "20px 0" }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#A78BFA", marginBottom: 8 }}>
+                <div style={{ background: "rgba(17,17,17,0.05)", border: "1px solid rgba(17,17,17,0.16)", borderRadius: 12, padding: "20px 24px", margin: "20px 0" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 8 }}>
                         Plano Pro
                     </div>
                     <div style={{ fontSize: 32, fontWeight: 800, color: "var(--text)", letterSpacing: "-0.02em", marginBottom: 16 }}>

@@ -60,7 +60,7 @@ export default function TiposGastoPage() {
         cursor: "pointer", border: "none",
         ...(variant === "primary"  && { background: "var(--purple)", color: "white" }),
         ...(variant === "ghost"    && { background: "transparent", border: "1px solid var(--border)", color: "var(--text-muted)" }),
-        ...(variant === "danger"   && { background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.25)", color: "#F87171" }),
+        ...(variant === "danger"   && { background: "rgba(212,160,23,0.1)", border: "1px solid rgba(212,160,23,0.25)", color: "var(--warning)" }),
     });
 
     return (
@@ -105,7 +105,7 @@ export default function TiposGastoPage() {
                     </button>
                 </div>
                 {erro && (
-                    <div style={{ marginTop: 10, fontSize: 13, color: "#F87171" }}>{erro}</div>
+                    <div style={{ marginTop: 10, fontSize: 13, color: "var(--warning)" }}>{erro}</div>
                 )}
             </div>
 
@@ -127,9 +127,9 @@ export default function TiposGastoPage() {
                         }}>
                             <div style={{
                                 width: 32, height: 32, borderRadius: 8, flexShrink: 0,
-                                background: "rgba(124,58,237,0.1)",
+                                background: "rgba(17,17,17,0.08)",
                                 display: "flex", alignItems: "center", justifyContent: "center",
-                                fontSize: 14, color: "#A78BFA", fontWeight: 700
+                                fontSize: 14, color: "var(--text-muted)", fontWeight: 700
                             }}>
                                 {t.nome.charAt(0).toUpperCase()}
                             </div>
