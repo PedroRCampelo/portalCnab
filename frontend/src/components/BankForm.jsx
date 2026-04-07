@@ -60,7 +60,7 @@ export default function BankForm({ toolMode, desabilitado = false }) {
   if (desabilitado || msg === "LIMITE_ANONIMO") {
     return (
         <div style={{
-          background: "rgba(124,58,237,0.06)", border: "1px solid rgba(124,58,237,0.2)",
+          background: "rgba(17,17,17,0.05)", border: "1px solid rgba(17,17,17,0.18)",
           borderRadius: 14, padding: "32px 24px", textAlign: "center"
         }}>
           <div style={{ fontSize: 40, marginBottom: 12 }}>🔒</div>

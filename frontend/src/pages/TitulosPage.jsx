@@ -6,9 +6,9 @@ import api from "../services/api.js";
 // Constantes
 // ─────────────────────────────────────────────────────────────────────────────
 const STATUS_COR = {
-    PENDENTE: { bg: "rgba(251,191,36,0.12)", border: "rgba(251,191,36,0.3)", color: "#FCD34D" },
-    VENCIDO:  { bg: "rgba(239,68,68,0.12)",  border: "rgba(239,68,68,0.3)",  color: "#F87171" },
-    PAGO:     { bg: "rgba(34,197,94,0.12)",  border: "rgba(34,197,94,0.3)",  color: "#4ADE80" },
+    PENDENTE: { bg: "rgba(212,160,23,0.12)", border: "rgba(212,160,23,0.3)", color: "#6c5310" },
+    VENCIDO:  { bg: "rgba(17,17,17,0.08)",  border: "rgba(17,17,17,0.18)",  color: "var(--text-muted)" },
+    PAGO:     { bg: "rgba(17,17,17,0.06)",  border: "rgba(17,17,17,0.14)",  color: "var(--text)" },
 };
 const TIPOS        = ["BOLETO", "PIX", "TED"];
 const STATUS_OPS   = ["PENDENTE", "VENCIDO", "PAGO"];
@@ -66,7 +66,7 @@ const CampoInput = memo(function CampoInput({ label, value, onChange, tipo = "te
     return (
         <div style={{ marginBottom: 12 }}>
             <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-dim)", marginBottom: 4, display: "block" }}>
-                {label}{obrigatorio && <span style={{ color: "#F87171", marginLeft: 3 }}>*</span>}
+                {label}{obrigatorio && <span style={{ color: "var(--warning)", marginLeft: 3 }}>*</span>}
             </label>
             {select ? (
                 <select value={value} onChange={e => onChange(e.target.value)}
@@ -88,7 +88,7 @@ const CampoInput = memo(function CampoInput({ label, value, onChange, tipo = "te
                     maxLength={maxLength}
                     style={{
                         width: "100%", padding: "8px 12px", borderRadius: 8, background: "var(--bg)",
-                        border: `1px solid ${obrigatorio && !value ? "rgba(239,68,68,0.4)" : "var(--border)"}`,
+                        border: `1px solid ${obrigatorio && !value ? "rgba(212,160,23,0.45)" : "var(--border)"}`,
                         color: "var(--text)", fontSize: 14, boxSizing: "border-box"
                     }}
                 />
@@ -125,7 +125,7 @@ function Tooltip({ texto }) {
                 }}>
                     <div style={{
                         position: "absolute", top: -5, right: 10,
-                        width: 8, height: 8, background: "#1E293B",
+                        width: 8, height: 8, background: "var(--surface)",
                         border: "1px solid var(--border)", borderBottom: "none",
                         borderRight: "none", transform: "rotate(45deg)"
                     }}/>
@@ -380,9 +380,9 @@ export default function TitulosPage() {
 
             {msgImport && (
                 <div style={{ padding: "10px 16px", borderRadius: 10, marginBottom: 16,
-                    background: msgImport.startsWith("✅") ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)",
-                    border: `1px solid ${msgImport.startsWith("✅") ? "rgba(34,197,94,0.3)" : "rgba(239,68,68,0.3)"}`,
-                    color: msgImport.startsWith("✅") ? "#4ADE80" : "#F87171", fontSize: 13 }}>
+                    background: msgImport.startsWith("✅") ? "rgba(17,17,17,0.06)" : "rgba(212,160,23,0.08)",
+                    border: `1px solid ${msgImport.startsWith("✅") ? "rgba(17,17,17,0.16)" : "rgba(212,160,23,0.3)"}`,
+                    color: msgImport.startsWith("✅") ? "var(--text)" : "var(--warning)", fontSize: 13 }}>
                     {msgImport}
                 </div>
             )}
@@ -391,10 +391,10 @@ export default function TitulosPage() {
             {resumo && (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 12, marginBottom: 24 }}>
                     {[
-                        { label: "Total em aberto", valor: fmtValor(resumo.totalAberto), cor: "#A78BFA" },
-                        { label: "Pendentes",        valor: resumo.qtdPendentes,          cor: "#FCD34D" },
-                        { label: "Vencidos",         valor: resumo.qtdVencidos,           cor: "#F87171" },
-                        { label: "Pagos",            valor: resumo.qtdPagos,              cor: "#4ADE80" },
+                        { label: "Total em aberto", valor: fmtValor(resumo.totalAberto), cor: "var(--text)" },
+                        { label: "Pendentes",        valor: resumo.qtdPendentes,          cor: "#6c5310" },
+                        { label: "Vencidos",         valor: resumo.qtdVencidos,           cor: "var(--text-muted)" },
+                        { label: "Pagos",            valor: resumo.qtdPagos,              cor: "var(--text)" },
                     ].map(c => (
                         <div key={c.label} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: "16px 20px" }}>
                             <div style={{ fontSize: 11, color: "var(--text-dim)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>{c.label}</div>
@@ -464,7 +464,7 @@ export default function TitulosPage() {
                                         </td>
                                         <td style={{ fontSize: 13 }}>{fmtData(t.vencimento)}</td>
                                         <td style={{ fontWeight: 600 }}>{fmtValor(t.valor)}</td>
-                                        <td style={{ fontWeight: 600, color: t.saldo > 0 ? "#F87171" : "#4ADE80" }}>{fmtValor(t.saldo)}</td>
+                                        <td style={{ fontWeight: 600, color: t.saldo > 0 ? "var(--warning)" : "var(--text)" }}>{fmtValor(t.saldo)}</td>
                                         <td>
                                             <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px",
                                                 borderRadius: 20, background: cor.bg, border: `1px solid ${cor.border}`, color: cor.color }}>
@@ -476,7 +476,7 @@ export default function TitulosPage() {
                                                 {t.status !== "PAGO" && (
                                                     <button onClick={() => abrirBaixa(t)} title="Registrar baixa"
                                                             className="btn-acao"
-                                                            style={{ fontSize: 12, background: "rgba(34,197,94,0.1)", borderColor: "rgba(34,197,94,0.25)", color: "#4ADE80" }}>
+                                                            style={{ fontSize: 12, background: "rgba(17,17,17,0.06)", borderColor: "rgba(17,17,17,0.18)", color: "var(--text)" }}>
                                                         💰
                                                     </button>
                                                 )}
@@ -508,7 +508,7 @@ export default function TitulosPage() {
                         {editando ? "Editar título" : "Novo título"}
                     </h2>
                     <p style={{ fontSize: 12, color: "var(--text-dim)", margin: "0 0 20px" }}>
-                        Campos marcados com <span style={{ color: "#F87171" }}>*</span> são obrigatórios
+                        Campos marcados com <span style={{ color: "var(--warning)" }}>*</span> são obrigatórios
                     </p>
 
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0 12px" }}>
@@ -541,8 +541,8 @@ export default function TitulosPage() {
 
                     {erro && (
                         <div style={{ padding: "10px 14px", borderRadius: 8, marginBottom: 12,
-                            background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)",
-                            color: "#F87171", fontSize: 13 }}>{erro}</div>
+                            background: "rgba(212,160,23,0.08)", border: "1px solid rgba(212,160,23,0.3)",
+                            color: "var(--warning)", fontSize: 13 }}>{erro}</div>
                     )}
                     <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
                         <button onClick={() => setModalAberto(false)}
@@ -564,7 +564,7 @@ export default function TitulosPage() {
                 <Modal largura={420}>
                     <div style={{ textAlign: "center" }}>
                         <div style={{ width: 52, height: 52, borderRadius: "50%", margin: "0 auto 16px",
-                            background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.25)",
+                            background: "rgba(17,17,17,0.08)", border: "1px solid rgba(17,17,17,0.2)",
                             display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>🗑️</div>
                         <h3 style={{ color: "var(--text)", fontSize: 17, fontWeight: 800, margin: "0 0 8px" }}>Excluir título?</h3>
                         <p style={{ color: "var(--text-dim)", fontSize: 14, margin: "0 0 24px" }}>
@@ -578,8 +578,8 @@ export default function TitulosPage() {
                             </button>
                             <button onClick={confirmarExcluir}
                                     style={{ flex: 1, padding: "12px", borderRadius: 10,
-                                        background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.35)",
-                                        color: "#F87171", fontWeight: 700, cursor: "pointer" }}>
+                                        background: "rgba(212,160,23,0.10)", border: "1px solid rgba(212,160,23,0.35)",
+                                        color: "var(--warning)", fontWeight: 700, cursor: "pointer" }}>
                                 Excluir
                             </button>
                         </div>
@@ -598,11 +598,11 @@ export default function TitulosPage() {
                         borderRadius: 10, padding: "12px 16px", marginBottom: 20,
                         display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <span style={{ fontSize: 13, color: "var(--text-dim)" }}>Saldo atual</span>
-                        <span style={{ fontSize: 16, fontWeight: 800, color: "#F87171" }}>{fmtValor(saldoAtual)}</span>
+                        <span style={{ fontSize: 16, fontWeight: 800, color: "var(--warning)" }}>{fmtValor(saldoAtual)}</span>
                     </div>
                     <div style={{ marginBottom: 12 }}>
                         <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-dim)", display: "block", marginBottom: 4 }}>
-                            Valor pago (R$) <span style={{ color: "#F87171" }}>*</span>
+                            Valor pago (R$) <span style={{ color: "var(--warning)" }}>*</span>
                         </label>
                         <input inputMode="numeric" value={baixaValor}
                                onChange={e => setBaixaValor(mascaraMoeda(e.target.value))}
@@ -613,16 +613,16 @@ export default function TitulosPage() {
                     </div>
                     {valorBaixa > 0 && (
                         <div style={{ marginBottom: 16, padding: "10px 14px", borderRadius: 10,
-                            background: quita ? "rgba(34,197,94,0.08)" : "rgba(251,191,36,0.08)",
-                            border: `1px solid ${quita ? "rgba(34,197,94,0.25)" : "rgba(251,191,36,0.25)"}`,
+                            background: quita ? "rgba(17,17,17,0.06)" : "rgba(212,160,23,0.08)",
+                            border: `1px solid ${quita ? "rgba(17,17,17,0.16)" : "rgba(212,160,23,0.25)"}`,
                             fontSize: 13 }}>
                             {quita ? (
-                                <span style={{ color: "#4ADE80" }}>
+                                <span style={{ color: "var(--text)" }}>
                                     ✅ Título quitado
                                     {acrescimo > 0 && <span style={{ color: "var(--text-dim)" }}> · acréscimo de {fmtValor(acrescimo)}</span>}
                                 </span>
                             ) : (
-                                <span style={{ color: "#FCD34D" }}>
+                                <span style={{ color: "#6c5310" }}>
                                     ⚡ Pagamento parcial · saldo restante: <strong>{fmtValor(novoSaldo)}</strong>
                                 </span>
                             )}
@@ -645,8 +645,8 @@ export default function TitulosPage() {
                     </div>
                     {erroBaixa && (
                         <div style={{ padding: "10px 14px", borderRadius: 8, marginBottom: 12,
-                            background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)",
-                            color: "#F87171", fontSize: 13 }}>{erroBaixa}</div>
+                            background: "rgba(212,160,23,0.08)", border: "1px solid rgba(212,160,23,0.3)",
+                            color: "var(--warning)", fontSize: 13 }}>{erroBaixa}</div>
                     )}
                     <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
                         <button onClick={() => setModalBaixa(null)}
@@ -655,8 +655,8 @@ export default function TitulosPage() {
                             Cancelar
                         </button>
                         <button onClick={confirmarBaixa} disabled={baixando || valorBaixa <= 0}
-                                style={{ flex: 2, padding: "12px", borderRadius: 10, background: "#059669",
-                                    border: "none", color: "white", fontWeight: 700, cursor: "pointer",
+                                style={{ flex: 2, padding: "12px", borderRadius: 10, background: "var(--grad)",
+                                    border: "1px solid rgba(212,160,23,0.45)", color: "#1a1a1a", fontWeight: 700, cursor: "pointer",
                                     opacity: (baixando || valorBaixa <= 0) ? 0.5 : 1 }}>
                             {baixando ? "Registrando..." : quita ? "✅ Confirmar quitação" : "⚡ Confirmar baixa parcial"}
                         </button>

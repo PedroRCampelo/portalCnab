@@ -25,7 +25,7 @@ export default function BannerAnonimo({ onLimiteBloqueado }) {
     if (usos.restantes === 0) {
         return (
             <div style={{
-                background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.3)",
+                background: "rgba(17,17,17,0.04)", border: "1px solid rgba(17,17,17,0.18)",
                 borderRadius: 14, padding: "20px 24px", marginBottom: 24,
                 display: "flex", alignItems: "center", justifyContent: "space-between",
                 gap: 16, flexWrap: "wrap"
@@ -46,8 +46,8 @@ export default function BannerAnonimo({ onLimiteBloqueado }) {
                         Entrar
                     </Link>
                     <Link to="/cadastro" style={{
-                        padding: "10px 18px", borderRadius: 10, background: "var(--purple)",
-                        border: "none", color: "white", fontWeight: 700, fontSize: 13, textDecoration: "none"
+                        padding: "10px 18px", borderRadius: 10, background: "var(--grad)",
+                        border: "1px solid rgba(212,160,23,0.4)", color: "#1a1a1a", fontWeight: 700, fontSize: 13, textDecoration: "none"
                     }}>
                         Criar conta grátis
                     </Link>
@@ -60,14 +60,14 @@ export default function BannerAnonimo({ onLimiteBloqueado }) {
     if (usos.usados === 0) {
         return (
             <div style={{
-                background: "rgba(34,197,94,0.06)", border: "1px solid rgba(34,197,94,0.2)",
+                background: "rgba(17,17,17,0.03)", border: "1px solid rgba(17,17,17,0.12)",
                 borderRadius: 14, padding: "14px 20px", marginBottom: 24,
                 display: "flex", alignItems: "center", justifyContent: "space-between",
                 gap: 12, flexWrap: "wrap"
             }}>
                 <div style={{ fontSize: 13, color: "var(--text-muted)" }}>
                     ✅ <strong style={{ color: "var(--text)" }}>2 conversões gratuitas</strong> disponíveis sem login.{" "}
-                    <Link to="/cadastro" style={{ color: "#4ADE80", fontWeight: 600 }}>
+                    <Link to="/cadastro" style={{ color: "var(--warning)", fontWeight: 600 }}>
                         Crie uma conta
                     </Link>{" "}
                     para 8/mês.
@@ -86,8 +86,8 @@ export default function BannerAnonimo({ onLimiteBloqueado }) {
                 gap: 12, flexWrap: "wrap"
             }}>
                 <div style={{ fontSize: 13, color: "var(--text-muted)" }}>
-                    ⚠️ Esta é sua <strong style={{ color: "#FCD34D" }}>última conversão gratuita</strong>.{" "}
-                    <Link to="/cadastro" style={{ color: "#FCD34D", fontWeight: 600 }}>
+                    ⚠️ Esta é sua <strong style={{ color: "var(--warning)" }}>última conversão gratuita</strong>.{" "}
+                    <Link to="/cadastro" style={{ color: "var(--warning)", fontWeight: 600 }}>
                         Crie uma conta grátis
                     </Link>{" "}
                     para continuar.

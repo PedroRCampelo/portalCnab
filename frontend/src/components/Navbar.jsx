@@ -103,31 +103,17 @@ export default function Navbar() {
 
                         {autenticado ? (
                             <div className="topbar-user" ref={dropdownRef} style={{ position: "relative" }}>
-                                <Link to="/planos" className="topbar-admin-link"
-                                      style={{ borderColor: "rgba(34,197,94,0.3)", color: "#4ADE80" }}>
+                                <Link to="/planos" className="topbar-admin-link topbar-admin-link--planos">
                                     Planos
                                 </Link>
-                                <Link to={rotaGestao} className="topbar-admin-link"
-                                      style={{ borderColor: "rgba(251,191,36,0.3)", color: "#FCD34D" }}>
+                                <Link to={rotaGestao} className="topbar-admin-link topbar-admin-link--gestao">
                                     Gestão Financeira
                                 </Link>
 
                                 {/* Avatar + dropdown */}
-                                <button onClick={() => setDropdownAberto(o => !o)} style={{
-                                    display: "flex", alignItems: "center", gap: 8,
-                                    background: "var(--surface-2, #253347)",
-                                    border: "1px solid var(--border)",
-                                    borderRadius: 10, padding: "6px 12px 6px 8px",
-                                    cursor: "pointer", color: "var(--text)"
-                                }}>
-                                    <div style={{
-                                        width: 28, height: 28, borderRadius: "50%",
-                                        background: "var(--purple)", display: "flex",
-                                        alignItems: "center", justifyContent: "center",
-                                        fontSize: 11, fontWeight: 800, color: "white", flexShrink: 0
-                                    }}>{iniciais}</div>
-                                    <span style={{ fontSize: 13, fontWeight: 600, maxWidth: 90,
-                                        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                <button onClick={() => setDropdownAberto(o => !o)} className="topbar-avatar-btn">
+                                    <div className="topbar-avatar">{iniciais}</div>
+                                    <span style={{ fontSize: 13, fontWeight: 600, maxWidth: 90, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                                     {usuario?.nome?.split(" ")[0]}
                                 </span>
                                     <span style={{ fontSize: 10, color: "var(--text-dim)",
@@ -136,12 +122,7 @@ export default function Navbar() {
                                 </button>
 
                                 {dropdownAberto && (
-                                    <div style={{
-                                        position: "absolute", top: "calc(100% + 8px)", right: 0,
-                                        background: "var(--surface)", border: "1px solid var(--border)",
-                                        borderRadius: 14, minWidth: 210, zIndex: 999,
-                                        boxShadow: "0 8px 32px rgba(0,0,0,0.4)", overflow: "hidden"
-                                    }}>
+                                    <div className="topbar-dropdown">
                                         <div style={{ padding: "14px 16px", borderBottom: "1px solid var(--border)" }}>
                                             <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text)" }}>{usuario?.nome}</div>
                                             <div style={{ fontSize: 11, color: "var(--text-dim)", marginTop: 2 }}>{usuario?.email}</div>
@@ -168,10 +149,10 @@ export default function Navbar() {
                                             <button onClick={handleLogout} style={{
                                                 width: "100%", padding: "10px 8px", borderRadius: 8,
                                                 background: "transparent", border: "none",
-                                                color: "#F87171", fontWeight: 600, fontSize: 14,
+                                                color: "var(--text-muted)", fontWeight: 600, fontSize: 14,
                                                 cursor: "pointer", display: "flex", alignItems: "center", gap: 8
                                             }}
-                                                    onMouseEnter={e => e.currentTarget.style.background = "rgba(239,68,68,0.08)"}
+                                                    onMouseEnter={e => e.currentTarget.style.background = "rgba(17,17,17,0.06)"}
                                                     onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
                                                 <span>🚪</span> Sair da conta
                                             </button>
@@ -181,8 +162,7 @@ export default function Navbar() {
                             </div>
                         ) : (
                             <div className="topbar-user">
-                                <Link to="/planos" className="topbar-admin-link"
-                                      style={{ borderColor: "rgba(34,197,94,0.3)", color: "#4ADE80" }}>
+                                <Link to="/planos" className="topbar-admin-link topbar-admin-link--planos">
                                     Planos
                                 </Link>
                                 <Link to="/login" className="topbar-cta">Entrar</Link>

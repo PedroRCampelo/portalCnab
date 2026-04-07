@@ -92,9 +92,9 @@ export default function PlanosPage() {
     const tagBeta = (
         <div style={{
             display: "inline-flex", alignItems: "center", gap: 5,
-            background: "rgba(251,191,36,0.1)", border: "1px solid rgba(251,191,36,0.25)",
+            background: "rgba(212,160,23,0.1)", border: "1px solid rgba(212,160,23,0.25)",
             borderRadius: 20, padding: "3px 10px", marginBottom: 12,
-            fontSize: 11, fontWeight: 700, color: "#FCD34D"
+            fontSize: 11, fontWeight: 700, color: "#6c5310"
         }}>🎯 Preço beta</div>
     );
 
@@ -108,7 +108,7 @@ export default function PlanosPage() {
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                     <div style={{
                         padding: "12px 16px", borderRadius: 10,
-                        background: "rgba(245,158,11,0.06)", border: "1px solid rgba(245,158,11,0.2)",
+                        background: "rgba(212,160,23,0.06)", border: "1px solid rgba(212,160,23,0.2)",
                         fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6
                     }}>
                         ✅ Assinatura cancelada. Você mantém acesso até{" "}
@@ -129,7 +129,7 @@ export default function PlanosPage() {
         }
 
         if (erroCancelamento) {
-            return <div style={{ fontSize: 12, color: "#F87171", textAlign: "center" }}>{erroCancelamento}</div>;
+            return <div style={{ fontSize: 12, color: "var(--warning)", textAlign: "center" }}>{erroCancelamento}</div>;
         }
 
         return (
@@ -138,8 +138,8 @@ export default function PlanosPage() {
                 disabled={cancelando}
                 style={{
                     width: "100%", padding: "9px", borderRadius: 10,
-                    background: "transparent", border: "1px solid rgba(239,68,68,0.3)",
-                    color: "#F87171", fontWeight: 600, fontSize: 13, cursor: "pointer",
+                    background: "transparent", border: "1px solid rgba(17,17,17,0.24)",
+                    color: "var(--text-muted)", fontWeight: 600, fontSize: 13, cursor: "pointer",
                     opacity: cancelando ? 0.6 : 1
                 }}>
                 {cancelando ? "Cancelando..." : "Cancelar assinatura"}
@@ -163,7 +163,7 @@ export default function PlanosPage() {
                     }}>
                         <div style={{
                             width: 56, height: 56, borderRadius: "50%",
-                            background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)",
+                            background: "rgba(17,17,17,0.06)", border: "1px solid rgba(17,17,17,0.18)",
                             display: "flex", alignItems: "center", justifyContent: "center",
                             margin: "0 0 20px", fontSize: 26
                         }}>⚠️</div>
@@ -186,8 +186,8 @@ export default function PlanosPage() {
                             }}>Manter assinatura</button>
                             <button onClick={confirmarCancelamento} style={{
                                 flex: 1, padding: "12px", borderRadius: 10,
-                                background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)",
-                                color: "#F87171", fontWeight: 600, fontSize: 14, cursor: "pointer"
+                                background: "rgba(212,160,23,0.08)", border: "1px solid rgba(212,160,23,0.25)",
+                                color: "var(--warning)", fontWeight: 600, fontSize: 14, cursor: "pointer"
                             }}>Confirmar cancelamento</button>
                         </div>
                     </div>
@@ -219,7 +219,7 @@ export default function PlanosPage() {
                             ))}
                         </ul>
                         {autenticado && !temPro ? (
-                            <div style={{ background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 10, padding: "10px 16px", textAlign: "center", fontSize: 13, fontWeight: 600, color: "var(--success)" }}>
+                            <div style={{ background: "rgba(17,17,17,0.06)", border: "1px solid rgba(17,17,17,0.2)", borderRadius: 10, padding: "10px 16px", textAlign: "center", fontSize: 13, fontWeight: 600, color: "var(--text)" }}>
                                 Seu plano atual
                             </div>
                         ) : !autenticado ? (
@@ -230,11 +230,11 @@ export default function PlanosPage() {
                     </div>
 
                     {/* Pro */}
-                    <div style={{ background: "var(--surface)", border: "2px solid rgba(245,158,11,0.3)", borderRadius: 16, padding: "28px 24px 32px", position: "relative" }}>
+                    <div style={{ background: "var(--surface)", border: "2px solid rgba(212,160,23,0.3)", borderRadius: 16, padding: "28px 24px 32px", position: "relative" }}>
                         <div style={{ position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)", background: "var(--grad)", borderRadius: 20, padding: "4px 16px", fontSize: 11, fontWeight: 700, color: "#1a1a1a", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
                             RECOMENDADO
                         </div>
-                        <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#D97706", marginBottom: 12 }}>Pro</div>
+                        <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#6c5310", marginBottom: 12 }}>Pro</div>
                         {tagBeta}
                         <div style={{ fontSize: 34, fontWeight: 800, color: "var(--text)", marginBottom: 4 }}>R$ 18,90</div>
                         <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 4 }}>por mês, cancele quando quiser</div>
@@ -242,13 +242,13 @@ export default function PlanosPage() {
                         <ul style={{ listStyle: "none", padding: 0, margin: "0 0 28px", display: "flex", flexDirection: "column", gap: 10 }}>
                             {["Arquivos Excel e PDF ilimitados", "Todos os bancos e layouts", "Histórico completo de remessas", "Suporte prioritário"].map(i => (
                                 <li key={i} style={{ display: "flex", gap: 10, fontSize: 13, color: "var(--text-muted)" }}>
-                                    <span style={{ color: "#F59E0B", fontWeight: 700 }}>✓</span>{i}
+                                    <span style={{ color: "#6c5310", fontWeight: 700 }}>✓</span>{i}
                                 </li>
                             ))}
                         </ul>
                         {temPro && !temWhalletPlus ? (
                             <div>
-                                <div style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)", borderRadius: 10, padding: "10px 16px", textAlign: "center", fontSize: 13, fontWeight: 600, color: "#D97706", marginBottom: 10 }}>
+                                <div style={{ background: "rgba(212,160,23,0.08)", border: "1px solid rgba(212,160,23,0.2)", borderRadius: 10, padding: "10px 16px", textAlign: "center", fontSize: 13, fontWeight: 600, color: "#6c5310", marginBottom: 10 }}>
                                     Seu plano atual ✓
                                 </div>
                                 <BotaoCancelamento/>
@@ -261,11 +261,11 @@ export default function PlanosPage() {
                     </div>
 
                     {/* Whallet+ */}
-                    <div style={{ background: "var(--surface)", border: "2px solid rgba(245,158,11,0.4)", borderRadius: 16, padding: "28px 24px 32px", position: "relative" }}>
-                        <div style={{ position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)", background: "linear-gradient(135deg,#F59E0B,#FCD34D)", borderRadius: 20, padding: "4px 16px", fontSize: 11, fontWeight: 700, color: "#1a1a1a", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
+                    <div style={{ background: "var(--surface)", border: "2px solid rgba(212,160,23,0.4)", borderRadius: 16, padding: "28px 24px 32px", position: "relative" }}>
+                        <div style={{ position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)", background: "var(--grad)", borderRadius: 20, padding: "4px 16px", fontSize: 11, fontWeight: 700, color: "#1a1a1a", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
                             WHALLET+
                         </div>
-                        <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#D97706", marginBottom: 12 }}>Gestão Financeira</div>
+                        <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#6c5310", marginBottom: 12 }}>Gestão Financeira</div>
                         {tagBeta}
                         <div style={{ fontSize: 34, fontWeight: 800, color: "var(--text)", marginBottom: 4 }}>R$ 39,90</div>
                         <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 4 }}>por mês, cancele quando quiser</div>
@@ -273,19 +273,19 @@ export default function PlanosPage() {
                         <ul style={{ listStyle: "none", padding: 0, margin: "0 0 28px", display: "flex", flexDirection: "column", gap: 10 }}>
                             {["Tudo do plano Pro", "Títulos a pagar (Contas a pagar)", "Importação via Excel", "Relatórios financeiros", "Alertas de vencimento por e-mail", "Geração CNAB pelos títulos"].map(i => (
                                 <li key={i} style={{ display: "flex", gap: 10, fontSize: 13, color: "var(--text-muted)" }}>
-                                    <span style={{ color: "#F59E0B", fontWeight: 700 }}>✓</span>{i}
+                                    <span style={{ color: "#6c5310", fontWeight: 700 }}>✓</span>{i}
                                 </li>
                             ))}
                         </ul>
                         {temWhalletPlus ? (
                             <div>
-                                <div style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)", borderRadius: 10, padding: "10px 16px", textAlign: "center", fontSize: 13, fontWeight: 600, color: "#D97706", marginBottom: 10 }}>
+                                <div style={{ background: "rgba(212,160,23,0.08)", border: "1px solid rgba(212,160,23,0.2)", borderRadius: 10, padding: "10px 16px", textAlign: "center", fontSize: 13, fontWeight: 600, color: "#6c5310", marginBottom: 10 }}>
                                     Seu plano atual ✓
                                 </div>
                                 <BotaoCancelamento/>
                             </div>
                         ) : (
-                            <button onClick={handleUpgradePlus} disabled={carregandoPlus} style={{ width: "100%", padding: "13px", fontSize: 15, fontWeight: 700, borderRadius: 10, background: "linear-gradient(135deg,#F59E0B,#FCD34D)", border: "none", color: "#1a1a1a", cursor: "pointer", opacity: carregandoPlus ? 0.6 : 1 }}>
+                            <button onClick={handleUpgradePlus} disabled={carregandoPlus} style={{ width: "100%", padding: "13px", fontSize: 15, fontWeight: 700, borderRadius: 10, background: "var(--grad)", border: "1px solid rgba(212,160,23,0.45)", color: "#1a1a1a", cursor: "pointer", opacity: carregandoPlus ? 0.6 : 1 }}>
                                 {carregandoPlus ? "Redirecionando..." : autenticado ? "Assinar Whallet+" : "Começar agora"}
                             </button>
                         )}
@@ -356,7 +356,7 @@ export default function PlanosPage() {
                 <div style={{ marginTop: 20, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 16, padding: "24px 28px", textAlign: "center" }}>
                     <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>Precisa de ajuda?</div>
                     <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 14 }}>Dúvidas sobre planos, pagamentos ou suporte técnico — fale com a gente.</p>
-                    <a href="mailto:usewhallet@gmail.com" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 24px", borderRadius: 10, background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)", color: "#D97706", fontWeight: 600, fontSize: 14, textDecoration: "none" }}>
+                    <a href="mailto:usewhallet@gmail.com" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 24px", borderRadius: 10, background: "rgba(212,160,23,0.08)", border: "1px solid rgba(212,160,23,0.2)", color: "#6c5310", fontWeight: 600, fontSize: 14, textDecoration: "none" }}>
                         ✉️ usewhallet@gmail.com
                     </a>
                 </div>
