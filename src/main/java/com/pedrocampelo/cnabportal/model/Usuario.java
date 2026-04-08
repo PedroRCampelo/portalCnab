@@ -61,6 +61,13 @@ public class Usuario implements UserDetails {
     @Column(name = "token_expiracao")
     private LocalDateTime tokenExpiracao;
 
+    // Redefinição de senha
+    @Column(name = "token_redefinicao", length = 255)
+    private String tokenRedefinicao;
+
+    @Column(name = "token_redefinicao_expiracao")
+    private LocalDateTime tokenRedefinicaoExpiracao;
+
     // Controle de uso mensal
     @Column(name = "usos_mes_atual", nullable = false)
     @Builder.Default

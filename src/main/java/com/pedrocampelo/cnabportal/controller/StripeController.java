@@ -1,7 +1,7 @@
 package com.pedrocampelo.cnabportal.controller;
 
 import com.pedrocampelo.cnabportal.model.Usuario;
-import com.pedrocampelo.cnabportal.service.StripeService;
+import com.pedrocampelo.cnabportal.service.stripesv.StripeService;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
 import lombok.RequiredArgsConstructor;

@@ -10,7 +10,7 @@ import com.pedrocampelo.cnabportal.model.Usuario;
 import com.pedrocampelo.cnabportal.model.Usuario.PerfilUsuario;
 import com.pedrocampelo.cnabportal.repository.EmpresaRepository;
 import com.pedrocampelo.cnabportal.repository.UsuarioRepository;
-import com.pedrocampelo.cnabportal.service.EmailService;
+import com.pedrocampelo.cnabportal.service.resendsv.EmailService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -223,10 +223,65 @@ public class AuthController {
                 .body(new ErroResponse("Usuário criado com sucesso"));
     }
 
+    // ── Esqueci minha senha ───────────────────────────────────────────────────
+
+    @PostMapping("/esqueci-senha")
+    public ResponseEntity<?> esqueciSenha(@RequestBody EmailRequest request) {
+        // Resposta genérica — nunca revela se o email existe
+        String respostaGenerica = "Se o email estiver cadastrado, você receberá um link para redefinir sua senha.";
+
+        var usuario = usuarioRepository.findByEmailAndAtivoTrue(request.email()).orElse(null);
+        if (usuario == null) {
+            return ResponseEntity.ok(new ErroResponse(respostaGenerica));
+        }
+
+        String token = UUID.randomUUID().toString();
+        usuario.setTokenRedefinicao(token);
+        usuario.setTokenRedefinicaoExpiracao(LocalDateTime.now().plusHours(1));
+        usuarioRepository.save(usuario);
+
+        emailService.enviarEmailRedefinicaoSenha(usuario.getEmail(), usuario.getNome(), token);
+
+        log.info("Redefinição de senha solicitada: {}", usuario.getEmail());
+        return ResponseEntity.ok(new ErroResponse(respostaGenerica));
+    }
+
+    // ── Redefinir senha ───────────────────────────────────────────────────────
+
+    @PostMapping("/redefinir-senha")
+    public ResponseEntity<?> redefinirSenha(@RequestBody RedefinirSenhaRequest request) {
+        if (request.token() == null || request.token().isBlank()) {
+            return ResponseEntity.badRequest().body(new ErroResponse("Token inválido."));
+        }
+        if (request.novaSenha() == null || request.novaSenha().length() < 6) {
+            return ResponseEntity.badRequest().body(new ErroResponse("A senha deve ter pelo menos 6 caracteres."));
+        }
+
+        var usuario = usuarioRepository.findByTokenRedefinicao(request.token()).orElse(null);
+
+        if (usuario == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ErroResponse("Link inválido ou já utilizado."));
+        }
+        if (usuario.getTokenRedefinicaoExpiracao().isBefore(LocalDateTime.now())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ErroResponse("Link expirado. Solicite um novo."));
+        }
+
+        usuario.setSenhaHash(passwordEncoder.encode(request.novaSenha()));
+        usuario.setTokenRedefinicao(null);
+        usuario.setTokenRedefinicaoExpiracao(null);
+        usuarioRepository.save(usuario);
+
+        log.info("Senha redefinida: {}", usuario.getEmail());
+        return ResponseEntity.ok(new ErroResponse("Senha redefinida com sucesso! Você já pode fazer login."));
+    }
+
     // ── DTOs internos ─────────────────────────────────────────────────────────
 
     record ErroResponse(String mensagem) {}
     record EmailRequest(String email) {}
+    record RedefinirSenhaRequest(String token, String novaSenha) {}
 
     // Extrai o IP real do cliente — considera proxies reversos (Render, Cloudflare)
     private String obterIp(HttpServletRequest request) {

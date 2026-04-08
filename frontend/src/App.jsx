@@ -12,6 +12,8 @@ import PdfPage                   from "./pages/PdfPage.jsx";
 import LoginPage                 from "./pages/LoginPage.jsx";
 import CadastroPage              from "./pages/CadastroPage.jsx";
 import VerificarEmailPage        from "./pages/VerificarEmailPage.jsx";
+import EsqueciSenhaPage          from "./pages/EsqueciSenhaPage.jsx";
+import RedefinirSenhaPage        from "./pages/RedefinirSenhaPage.jsx";
 import AdminUsuariosPage         from "./pages/AdminUsuariosPage.jsx";
 import HistoricoPage             from "./pages/HistoricoPage.jsx";
 import UpgradePage               from "./pages/UpgradePage.jsx";
@@ -38,7 +40,9 @@ function AppShell() {
                 <Route path="/"                element={<HomePage/>}/>
                 <Route path="/login"           element={<LoginPage/>}/>
                 <Route path="/cadastro"        element={<CadastroPage/>}/>
-                <Route path="/verificar-email" element={<VerificarEmailPage/>}/>
+                <Route path="/verificar-email"  element={<VerificarEmailPage/>}/>
+                <Route path="/esqueci-senha"    element={<EsqueciSenhaPage/>}/>
+                <Route path="/redefinir-senha"  element={<RedefinirSenhaPage/>}/>
 
                 <Route path="/excel"     element={<ExcelPage/>}/>
                 <Route path="/pdf"       element={<PdfPage/>}/>

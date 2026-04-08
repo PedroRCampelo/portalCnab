@@ -18,6 +18,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
     Optional<Usuario> findByEmailAndAtivoTrue(String email);
     Optional<Usuario> findByStripeSubscriptionId(String stripeSubscriptionId);
     Optional<Usuario> findByTokenVerificacao(String token);
+    Optional<Usuario> findByTokenRedefinicao(String token);
     boolean existsByEmail(String email);
 
     @Modifying

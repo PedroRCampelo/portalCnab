@@ -248,8 +248,48 @@ a     { color: inherit; text-decoration: none; }
 
 /* Visual editorial */
 .hero-visual {
-  position:relative; height:520px;
-  display:flex; align-items:center; justify-content:center;
+  position: relative;
+  min-height: 520px; /* evita corte */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible; /* importante */
+}
+
+.hero-output-scene {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.hero-sheet {
+  position: absolute;
+  width: 100%;
+  max-width: 340px;
+  transition: all 0.6s ease;
+}
+
+/* Excel começa na frente */
+.hero-sheet--excel {
+  transform: translateX(-40px) rotate(-2deg);
+  z-index: 2;
+}
+
+/* PDF atrás */
+.hero-sheet--pdf {
+  transform: translateX(40px) rotate(2deg);
+  z-index: 1;
+}
+
+/* Quando animar */
+.hero-showcase.is-ready .hero-sheet--excel {
+  transform: translateX(20px) rotate(2deg);
+  z-index: 1;
+}
+
+.hero-showcase.is-ready .hero-sheet--pdf {
+  transform: translateX(-20px) rotate(-2deg);
+  z-index: 2;
 }
 
 .hero-showcase {
@@ -260,6 +300,8 @@ a     { color: inherit; text-decoration: none; }
   border-radius: 24px;
   padding: 22px;
   box-shadow: 0 22px 44px rgba(17,17,17,0.14);
+  position: relative;
+  overflow: visible; /* ESSENCIAL */
 }
 
 .hero-showcase-head {
@@ -332,6 +374,23 @@ a     { color: inherit; text-decoration: none; }
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  position: relative;
+  z-index: 5; /* garante que fique acima */
+}
+
+@keyframes floatCards {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+  100% { transform: translateY(0px); }
+}
+
+.hero-output-scene {
+  animation: floatCards 6s ease-in-out infinite;
+}
+
+.hero-sheet {
+  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+  backdrop-filter: blur(6px);
 }
 
 .hero-showcase-tag {
@@ -1655,4 +1714,662 @@ a     { color: inherit; text-decoration: none; }
   );
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
+}
+
+/* ── Preview PDF + Excel ───────────────────────── */
+
+.preview-stack {
+  position: relative;
+  height: 260px;
+}
+
+.preview-pdf {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 260px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+  z-index: 2;
+}
+
+.pdf-header {
+  font-weight: 800;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.pdf-kpis {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.pdf-kpis div {
+  flex: 1;
+  background: var(--surface-2);
+  border-radius: 8px;
+  padding: 6px;
+  font-size: 10px;
+}
+
+.pdf-kpis strong {
+  display: block;
+  font-size: 12px;
+}
+
+.pdf-chart {
+  height: 40px;
+  background: linear-gradient(90deg, #ddd, #bbb);
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
+.pdf-table .row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  margin-bottom: 4px;
+}
+
+/* Excel */
+
+.preview-excel {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 260px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 10px;
+  transform: rotate(3deg);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.10);
+}
+
+.excel-header {
+  font-size: 10px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.excel-row {
+  font-size: 10px;
+  padding: 4px;
+  border-radius: 6px;
+  margin-bottom: 4px;
+}
+
+.excel-row.ok {
+  background: rgba(0,0,0,0.05);
+}
+
+.excel-row.warn {
+  background: rgba(212,160,23,0.15);
+}
+
+/* ── Hero premium: mockup ultra realista PDF + Excel ───────────────────── */
+
+.hero-showcase--premium {
+  position: relative;
+  overflow: hidden;
+  padding: 22px 22px 18px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.96), rgba(255,255,255,0.92)),
+    radial-gradient(circle at top right, rgba(212,160,23,0.10), transparent 38%);
+  box-shadow:
+    0 24px 60px rgba(17,17,17,0.12),
+    0 1px 0 rgba(255,255,255,0.7) inset;
+}
+
+.hero-output-scene {
+  position: relative;
+  height: 430px;
+  margin-top: 6px;
+}
+
+.hero-glow {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(50px);
+  pointer-events: none;
+}
+
+.hero-glow--1 {
+  width: 180px;
+  height: 180px;
+  top: 26px;
+  right: 10px;
+  background: rgba(212,160,23,0.14);
+}
+
+.hero-glow--2 {
+  width: 150px;
+  height: 150px;
+  bottom: 24px;
+  left: 24px;
+  background: rgba(17,17,17,0.06);
+}
+
+.hero-sheet {
+  position: absolute;
+  border-radius: 20px;
+  background: #ffffff;
+  border: 1px solid rgba(17,17,17,0.10);
+  box-shadow:
+    0 30px 50px rgba(17,17,17,0.16),
+    0 8px 18px rgba(17,17,17,0.08),
+    0 1px 0 rgba(255,255,255,0.85) inset;
+}
+
+.hero-sheet--excel {
+  width: 292px;
+  right: 0;
+  bottom: 16px;
+  padding: 12px;
+  transform: rotate(5deg);
+  z-index: 1;
+  opacity: 0.98;
+}
+
+.hero-sheet--pdf {
+  width: 320px;
+  left: 8px;
+  top: 8px;
+  padding: 14px;
+  z-index: 2;
+}
+
+.sheet-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(17,17,17,0.08);
+  margin-bottom: 10px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(17,17,17,0.18);
+}
+
+.sheet-title {
+  margin-left: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.excel-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.excel-tab {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(17,17,17,0.05);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.excel-tab--active {
+  background: rgba(212,160,23,0.16);
+  color: #6c5310;
+  border: 1px solid rgba(212,160,23,0.24);
+}
+
+.excel-grid {
+  border: 1px solid rgba(17,17,17,0.08);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.excel-grid-head,
+.excel-grid-row {
+  display: grid;
+  grid-template-columns: .8fr .8fr .9fr 1.2fr 1.2fr;
+  gap: 8px;
+  align-items: center;
+}
+
+.excel-grid-head {
+  background: #f6f4ef;
+  color: var(--text-muted);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  padding: 8px 10px;
+}
+
+.excel-grid-row {
+  padding: 9px 10px;
+  font-size: 10px;
+  color: #222;
+  border-top: 1px solid rgba(17,17,17,0.06);
+}
+
+.excel-grid-row strong {
+  font-size: 10px;
+}
+
+.excel-grid-row--muted {
+  background: rgba(212,160,23,0.06);
+}
+
+.pdf-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.pdf-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.pdf-brand-mark {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--gold);
+  box-shadow: 0 0 10px rgba(212,160,23,0.45);
+}
+
+.pdf-page-pill {
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  background: rgba(17,17,17,0.06);
+  color: #111;
+}
+
+.pdf-title-block {
+  margin-bottom: 14px;
+}
+
+.pdf-title-block .pdf-overline {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  color: #6c5310;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.pdf-title-block h3 {
+  margin: 0 0 4px;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 24px;
+  line-height: 1.05;
+  color: #111;
+}
+
+.pdf-title-block p {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.pdf-kpi-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.pdf-kpi {
+  padding: 10px 12px;
+  border: 1px solid rgba(17,17,17,0.08);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fff, #fbfaf7);
+}
+
+.pdf-kpi span {
+  display: block;
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.pdf-kpi strong {
+  font-size: 16px;
+  line-height: 1.1;
+  color: #111;
+}
+
+.pdf-chart-card {
+  border: 1px solid rgba(17,17,17,0.08);
+  border-radius: 16px;
+  padding: 12px;
+  margin-bottom: 12px;
+  background: #fcfbf8;
+}
+
+.pdf-chart-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.pdf-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pdf-bar-row {
+  display: grid;
+  grid-template-columns: 42px 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.pdf-bar-row label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #111;
+}
+
+.pdf-bar-row strong {
+  font-size: 10px;
+  color: #111;
+}
+
+.pdf-bar-track {
+  position: relative;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(17,17,17,0.08);
+  overflow: hidden;
+}
+
+.pdf-bar-fill {
+  height: 100%;
+  border-radius: inherit;
+}
+
+.pdf-bar-fill--a {
+  width: 50%;
+  background: linear-gradient(90deg, rgba(212,160,23,0.55), rgba(212,160,23,0.9));
+}
+
+.pdf-bar-fill--j {
+  width: 86%;
+  background: linear-gradient(90deg, rgba(17,17,17,0.45), rgba(17,17,17,0.82));
+}
+
+.pdf-alert-card {
+  border: 1px solid rgba(212,160,23,0.24);
+  background: rgba(212,160,23,0.08);
+  border-radius: 16px;
+  padding: 11px 12px;
+}
+
+.pdf-alert-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+
+.pdf-alert-badge {
+  padding: 4px 7px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  background: rgba(212,160,23,0.18);
+  color: #6c5310;
+}
+
+.pdf-alert-head strong {
+  font-size: 11px;
+  color: #111;
+}
+
+.pdf-alert-card p {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.pdf-footer-line {
+  margin-top: 10px;
+  font-size: 9px;
+  color: var(--text-dim);
+  text-align: right;
+}
+
+@media (max-width: 1024px) {
+  .hero-output-scene {
+    height: 400px;
+  }
+
+  .hero-sheet--pdf {
+    width: 300px;
+  }
+
+  .hero-sheet--excel {
+    width: 270px;
+  }
+}
+
+/* ── Animação de transformação CNAB -> PDF + Excel ───────────────────── */
+
+.hero-output-scene {
+  position: relative;
+  height: 430px;
+  margin-top: 6px;
+  perspective: 1200px;
+}
+
+.hero-source-file {
+  position: absolute;
+  left: 82px;
+  top: 104px;
+  width: 220px;
+  padding: 16px 16px 14px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #ffffff, #faf8f3);
+  border: 1px solid rgba(17,17,17,0.10);
+  box-shadow:
+    0 20px 40px rgba(17,17,17,0.12),
+    0 1px 0 rgba(255,255,255,0.8) inset;
+  z-index: 3;
+  transform: translateY(0) scale(1);
+  opacity: 1;
+  transition:
+    opacity .7s ease,
+    transform .8s cubic-bezier(.2,.8,.2,1),
+    filter .7s ease;
+}
+
+.hero-source-file__label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #6c5310;
+  margin-bottom: 6px;
+}
+
+.hero-source-file__name {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 24px;
+  line-height: 1.05;
+  color: #111;
+  margin-bottom: 12px;
+}
+
+.hero-source-file__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hero-source-file__rows span {
+  display: block;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(17,17,17,0.08);
+}
+
+.hero-source-file__rows span:nth-child(1) { width: 90%; }
+.hero-source-file__rows span:nth-child(2) { width: 82%; }
+.hero-source-file__rows span:nth-child(3) { width: 94%; }
+.hero-source-file__rows span:nth-child(4) { width: 65%; }
+
+.hero-transform-line {
+  position: absolute;
+  left: 168px;
+  top: 248px;
+  display: flex;
+  gap: 8px;
+  z-index: 2;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity .5s ease .25s, transform .5s ease .25s;
+}
+
+.hero-transform-line__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--gold);
+  box-shadow: 0 0 12px rgba(212,160,23,0.45);
+  animation: heroPulse 1.3s infinite ease-in-out;
+}
+
+.hero-transform-line__dot:nth-child(2) { animation-delay: .18s; }
+.hero-transform-line__dot:nth-child(3) { animation-delay: .36s; }
+
+@keyframes heroPulse {
+  0%, 100% {
+    transform: scale(.75);
+    opacity: .4;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+}
+
+/* estado inicial */
+.hero-sheet--pdf,
+.hero-sheet--excel {
+  opacity: 0;
+  filter: blur(8px);
+  will-change: transform, opacity, filter;
+}
+
+/* excel entra depois e fica no fundo */
+.hero-sheet--excel {
+  transform: translate(42px, 26px) rotate(9deg) scale(.94);
+  transition:
+    opacity .8s ease .65s,
+    transform 1s cubic-bezier(.2,.8,.2,1) .65s,
+    filter .8s ease .65s,
+    box-shadow .25s ease;
+}
+
+/* pdf entra primeiro plano */
+.hero-sheet--pdf {
+  transform: translate(-18px, 28px) scale(.95);
+  transition:
+    opacity .85s ease .45s,
+    transform 1s cubic-bezier(.2,.8,.2,1) .45s,
+    filter .85s ease .45s,
+    box-shadow .25s ease;
+}
+
+/* ativou */
+.hero-showcase--premium.is-ready .hero-source-file {
+  opacity: 0;
+  filter: blur(10px);
+  transform: translateY(-18px) scale(.92);
+}
+
+.hero-showcase--premium.is-ready .hero-transform-line {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.hero-showcase--premium.is-ready .hero-sheet--pdf {
+  opacity: 1;
+  filter: blur(0);
+  transform: translate(0, 0) scale(1);
+}
+
+.hero-showcase--premium.is-ready .hero-sheet--excel {
+  opacity: 1;
+  filter: blur(0);
+  transform: translate(0, 0) rotate(5deg) scale(1);
+}
+
+/* hover premium */
+.hero-showcase--premium:hover .hero-sheet--pdf {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow:
+    0 36px 54px rgba(17,17,17,0.18),
+    0 10px 20px rgba(17,17,17,0.10),
+    0 1px 0 rgba(255,255,255,0.85) inset;
+}
+
+.hero-showcase--premium:hover .hero-sheet--excel {
+  transform: translateY(-1px) rotate(4deg) scale(1.01);
+  box-shadow:
+    0 26px 42px rgba(17,17,17,0.15),
+    0 8px 18px rgba(17,17,17,0.08),
+    0 1px 0 rgba(255,255,255,0.85) inset;
+}
+
+/* acessibilidade */
+@media (prefers-reduced-motion: reduce) {
+  .hero-source-file,
+  .hero-transform-line,
+  .hero-sheet--pdf,
+  .hero-sheet--excel,
+  .hero-transform-line__dot {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .hero-showcase--premium .hero-source-file {
+    display: none;
+  }
+
+  .hero-showcase--premium .hero-transform-line {
+    opacity: 0;
+  }
+
+  .hero-showcase--premium .hero-sheet--pdf,
+  .hero-showcase--premium .hero-sheet--excel {
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
 }

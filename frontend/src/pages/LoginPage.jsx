@@ -54,6 +54,11 @@ export default function LoginPage() {
                                value={senha} onChange={(e) => setSenha(e.target.value)}
                                placeholder="••••••••"
                                autoComplete="current-password" required disabled={carregando}/>
+                        <div style={{ textAlign: "right", marginTop: 4 }}>
+                            <Link to="/esqueci-senha" style={{ fontSize: 12, color: "var(--gold)", fontWeight: 600, textDecoration: "none" }}>
+                                Esqueci minha senha
+                            </Link>
+                        </div>
                     </div>
 
                     {erro && <div className="auth-box-erro">{erro}</div>}
