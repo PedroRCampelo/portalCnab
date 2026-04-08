@@ -2,7 +2,7 @@ package com.pedrocampelo.cnabportal.controller;
 
 import com.pedrocampelo.cnabportal.model.Titulo;
 import com.pedrocampelo.cnabportal.model.Usuario;
-import com.pedrocampelo.cnabportal.service.TituloService;
+import com.pedrocampelo.cnabportal.service.gestaosv.TituloService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

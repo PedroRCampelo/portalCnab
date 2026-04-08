@@ -58,6 +58,8 @@ public class SecurityConfig {
                                 "/api/auth/cadastro",
                                 "/api/auth/verificar",
                                 "/api/auth/reenviar-verificacao",
+                                "/api/auth/esqueci-senha",
+                                "/api/auth/redefinir-senha",
                                 "/api/stripe/webhook"
                         ).permitAll()
                         // Endpoints de geração — aceitam anônimos (limite de 2) e autenticados

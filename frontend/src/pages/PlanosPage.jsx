@@ -17,16 +17,16 @@ function fmtValor(centavos, moeda) {
 }
 
 export default function PlanosPage() {
-    const { autenticado, usuario } = useAuth();
-    const [carregando,      setCarregando]      = useState(false);
-    const [carregandoPlus,  setCarregandoPlus]  = useState(false);
-    const [cancelando,      setCancelando]      = useState(false);
-    const [cancelamentoInfo, setCancelamentoInfo] = useState(null); // { expiresAt }
-    const [erroCancelamento, setErroCancelamento] = useState("");
-    const [modalAberto,     setModalAberto]     = useState(false);
-    const [pagamentos,      setPagamentos]      = useState([]);
-    const [carregandoPag,   setCarregandoPag]   = useState(false);
-    const [statusAssinatura, setStatusAssinatura] = useState(null);
+    const { autenticado, usuario, atualizarUsuario } = useAuth();
+    const [carregando,       setCarregando]       = useState(false);
+    const [carregandoPlus,   setCarregandoPlus]   = useState(false);
+    const [cancelando,       setCancelando]        = useState(false);
+    const [cancelamentoInfo, setCancelamentoInfo]  = useState(null);
+    const [erroCancelamento, setErroCancelamento]  = useState("");
+    const [modalAberto,      setModalAberto]       = useState(false);
+    const [pagamentos,       setPagamentos]        = useState([]);
+    const [carregandoPag,    setCarregandoPag]     = useState(false);
+    const [statusAssinatura, setStatusAssinatura]  = useState(null);
     const navigate = useNavigate();
 
     const isAdmin        = usuario?.perfil === "ADMIN";
@@ -34,11 +34,24 @@ export default function PlanosPage() {
     const temPro         = isAdmin || usuario?.planoId === PLANO_PRO || temWhalletPlus;
     const temPlano       = temPro || temWhalletPlus;
 
-    const assinaturaCancelando =
-        String(statusAssinatura?.status || "").toUpperCase() === "CANCELANDO";
-    
-    const expiresAt            = statusAssinatura?.expiresAt ?? cancelamentoInfo?.expiresAt;
+    // Usa statusAssinatura (API) como fonte principal, com fallback no usuario do AuthContext
+    // Isso garante que o estado correto aparece imediatamente no F5 enquanto a API carrega
+    const statusFinal = statusAssinatura?.status ?? usuario?.assinaturaStatus ?? "";
+    const assinaturaCancelando = String(statusFinal).toUpperCase() === "CANCELANDO";
+    const expiresAt = statusAssinatura?.expiresAt
+        ?? cancelamentoInfo?.expiresAt
+        ?? (usuario?.assinaturaExpiraEm
+            ? new Date(usuario.assinaturaExpiraEm).getTime() / 1000
+            : null);
 
+    // Atualiza dados do usuário no AuthContext ao entrar na página
+    useEffect(() => {
+        if (autenticado && !isAdmin) {
+            atualizarUsuario();
+        }
+    }, [autenticado, isAdmin]);
+
+    // Busca status da assinatura (fonte do banco via API)
     useEffect(() => {
         if (autenticado && !isAdmin) {
             api.get("/api/stripe/status-assinatura")
@@ -47,6 +60,7 @@ export default function PlanosPage() {
         }
     }, [autenticado, isAdmin]);
 
+    // Histórico de pagamentos
     useEffect(() => {
         if (autenticado && temPlano) {
             setCarregandoPag(true);
@@ -72,7 +86,10 @@ export default function PlanosPage() {
         try {
             const { data } = await api.post("/api/stripe/checkout/whallet-plus");
             window.location.href = data.url;
-        } catch { setCarregandoPlus(false); }
+        } catch (err) {
+            setCarregandoPlus(false);
+            alert(err.response?.data?.mensagem ?? "Erro ao iniciar upgrade.");
+        }
     }
 
     async function confirmarCancelamento() {
@@ -81,9 +98,11 @@ export default function PlanosPage() {
         setErroCancelamento("");
         try {
             const { data } = await api.post("/api/stripe/cancelar");
-            // Atualiza o status local imediatamente para refletir o banco
-            setStatusAssinatura({ status: "cancelando", expiresAt: data.expiresAt });
+            // Atualiza estado local imediatamente
+            setStatusAssinatura({ status: "CANCELANDO", expiresAt: data.expiresAt });
             setCancelamentoInfo({ expiresAt: data.expiresAt });
+            // Persiste no AuthContext/sessionStorage para sobreviver ao F5
+            await atualizarUsuario();
         } catch (err) {
             setErroCancelamento(err.response?.data?.mensagem ?? "Erro ao cancelar. Entre em contato.");
         } finally { setCancelando(false); }
@@ -98,9 +117,7 @@ export default function PlanosPage() {
         }}>🎯 Preço beta</div>
     );
 
-    // Botão de cancelamento — usa statusAssinatura para persistir após F5
     function BotaoCancelamento() {
-        // Cancelando = status do Stripe OU acabou de cancelar nesta sessão
         const mostraCancelando = assinaturaCancelando || cancelamentoInfo;
 
         if (mostraCancelando) {
@@ -133,15 +150,13 @@ export default function PlanosPage() {
         }
 
         return (
-            <button
-                onClick={() => setModalAberto(true)}
-                disabled={cancelando}
-                style={{
-                    width: "100%", padding: "9px", borderRadius: 10,
-                    background: "transparent", border: "1px solid rgba(17,17,17,0.24)",
-                    color: "var(--text-muted)", fontWeight: 600, fontSize: 13, cursor: "pointer",
-                    opacity: cancelando ? 0.6 : 1
-                }}>
+            <button onClick={() => setModalAberto(true)} disabled={cancelando}
+                    style={{
+                        width: "100%", padding: "9px", borderRadius: 10,
+                        background: "transparent", border: "1px solid rgba(17,17,17,0.24)",
+                        color: "var(--text-muted)", fontWeight: 600, fontSize: 13, cursor: "pointer",
+                        opacity: cancelando ? 0.6 : 1
+                    }}>
                 {cancelando ? "Cancelando..." : "Cancelar assinatura"}
             </button>
         );
@@ -159,7 +174,6 @@ export default function PlanosPage() {
                     <div style={{
                         background: "var(--surface)", border: "1px solid var(--border)",
                         borderRadius: 20, padding: "36px 32px", maxWidth: 440, width: "100%",
-                        boxShadow: "0 24px 64px rgba(0,0,0,0.2)"
                     }}>
                         <div style={{
                             width: 56, height: 56, borderRadius: "50%",
@@ -186,8 +200,8 @@ export default function PlanosPage() {
                             }}>Manter assinatura</button>
                             <button onClick={confirmarCancelamento} style={{
                                 flex: 1, padding: "12px", borderRadius: 10,
-                                background: "rgba(212,160,23,0.08)", border: "1px solid rgba(212,160,23,0.25)",
-                                color: "var(--warning)", fontWeight: 600, fontSize: 14, cursor: "pointer"
+                                background: "rgba(220,38,38,0.06)", border: "1px solid rgba(220,38,38,0.2)",
+                                color: "#DC2626", fontWeight: 600, fontSize: 14, cursor: "pointer"
                             }}>Confirmar cancelamento</button>
                         </div>
                     </div>
@@ -285,12 +299,20 @@ export default function PlanosPage() {
                                 <BotaoCancelamento/>
                             </div>
                         ) : (
-                            <button onClick={handleUpgradePlus} disabled={carregandoPlus} style={{ width: "100%", padding: "13px", fontSize: 15, fontWeight: 700, borderRadius: 10, background: "var(--grad)", border: "1px solid rgba(212,160,23,0.45)", color: "#1a1a1a", cursor: "pointer", opacity: carregandoPlus ? 0.6 : 1 }}>
-                                {carregandoPlus ? "Redirecionando..." : autenticado ? "Assinar Whallet+" : "Começar agora"}
+                            <button onClick={handleUpgradePlus} disabled={carregandoPlus}
+                                    style={{ width: "100%", padding: "13px", fontSize: 15, fontWeight: 700, borderRadius: 10, background: "var(--grad)", border: "1px solid rgba(212,160,23,0.45)", color: "#1a1a1a", cursor: "pointer", opacity: carregandoPlus ? 0.6 : 1 }}>
+                                {carregandoPlus ? "Aguarde..." : autenticado ? (temPro ? "Fazer upgrade →" : "Assinar Whallet+") : "Começar agora"}
                             </button>
                         )}
                     </div>
                 </div>
+
+                {/* Info upgrade sem dupla cobrança */}
+                {autenticado && temPro && !temWhalletPlus && !assinaturaCancelando && (
+                    <div style={{ marginTop: 12, padding: "10px 16px", borderRadius: 10, background: "rgba(212,160,23,0.04)", border: "1px solid rgba(212,160,23,0.15)", fontSize: 12, color: "var(--text-dim)", textAlign: "center" }}>
+                        💡 Ao fazer upgrade para Whallet+, você recebe crédito proporcional dos dias restantes do plano Pro — sem dupla cobrança.
+                    </div>
+                )}
 
                 {/* Histórico de pagamentos */}
                 {autenticado && temPlano && (
@@ -307,7 +329,7 @@ export default function PlanosPage() {
                                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
                                     <thead>
                                     <tr>
-                                        {["Data", "Descrição", "Valor", "Status"].map(h => (
+                                        {["Data", "Descrição", "Valor", "Status", ""].map(h => (
                                             <th key={h} style={{ textAlign: "left", padding: "8px 12px", color: "var(--text-muted)", fontWeight: 600, borderBottom: "1px solid var(--border)", whiteSpace: "nowrap" }}>{h}</th>
                                         ))}
                                     </tr>
@@ -315,22 +337,21 @@ export default function PlanosPage() {
                                     <tbody>
                                     {pagamentos.map(p => (
                                         <tr key={p.id}>
-                                            <td style={{ padding: "12px 12px", borderBottom: "1px solid var(--border)", color: "var(--text-muted)" }}>
-                                                {fmtData(p.criadoEm)}
+                                            <td style={{ padding: "12px", borderBottom: "1px solid var(--border)", color: "var(--text-muted)" }}>{fmtData(p.criadoEm)}</td>
+                                            <td style={{ padding: "12px", borderBottom: "1px solid var(--border)", color: "var(--text)" }}>{p.descricao}</td>
+                                            <td style={{ padding: "12px", borderBottom: "1px solid var(--border)", color: "var(--text)", fontWeight: 700 }}>{fmtValor(p.valor, p.moeda)}</td>
+                                            <td style={{ padding: "12px", borderBottom: "1px solid var(--border)" }}>
+                                            <span style={{ padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700, background: "rgba(22,163,74,0.08)", border: "1px solid rgba(22,163,74,0.2)", color: "var(--success)" }}>
+                                                Pago
+                                            </span>
                                             </td>
-                                            <td style={{ padding: "12px 12px", borderBottom: "1px solid var(--border)", color: "var(--text)" }}>
-                                                {p.descricao}
-                                            </td>
-                                            <td style={{ padding: "12px 12px", borderBottom: "1px solid var(--border)", color: "var(--text)", fontWeight: 700 }}>
-                                                {fmtValor(p.valor, p.moeda)}
-                                            </td>
-                                            <td style={{ padding: "12px 12px", borderBottom: "1px solid var(--border)" }}>
-                        <span style={{
-                            padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700,
-                            background: "rgba(22,163,74,0.08)", border: "1px solid rgba(22,163,74,0.2)", color: "var(--success)"
-                        }}>
-                          Pago
-                        </span>
+                                            <td style={{ padding: "12px", borderBottom: "1px solid var(--border)" }}>
+                                                {p.pdfUrl && (
+                                                    <a href={p.pdfUrl} target="_blank" rel="noreferrer"
+                                                       style={{ fontSize: 12, color: "var(--text-dim)", textDecoration: "none" }}>
+                                                        📄 PDF
+                                                    </a>
+                                                )}
                                             </td>
                                         </tr>
                                     ))}
@@ -340,17 +361,6 @@ export default function PlanosPage() {
                         )}
                     </div>
                 )}
-
-                {/* Protheus */}
-                <div style={{ marginTop: 20, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 16, padding: "24px 28px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
-                    <div>
-                        <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text)", marginBottom: 4 }}>Integração com Protheus</div>
-                        <div style={{ fontSize: 13, color: "var(--text-muted)" }}>Busca de títulos, geração de remessa e write-back direto no ERP. Valor sob consulta.</div>
-                    </div>
-                    <a href="mailto:usewhallet@gmail.com" style={{ padding: "10px 20px", borderRadius: 10, border: "1px solid var(--border)", color: "var(--text-muted)", fontWeight: 600, fontSize: 13, textDecoration: "none", whiteSpace: "nowrap", flexShrink: 0 }}>
-                        Falar com vendas
-                    </a>
-                </div>
 
                 {/* Contato */}
                 <div style={{ marginTop: 20, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 16, padding: "24px 28px", textAlign: "center" }}>

@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useCallback } from "react";
+import api from "../services/api.js";
 
 // Contexto de autenticacao — disponivel em toda a aplicacao
 const AuthContext = createContext(null);
@@ -26,11 +27,27 @@ export function AuthProvider({ children }) {
         sessionStorage.removeItem("auth");
     }, []);
 
+    // Atualiza apenas campos específicos do usuário (planoId, assinatura)
+    // sem precisar fazer logout/login — usado após checkout
+    const atualizarUsuario = useCallback(async () => {
+        try {
+            const { data } = await api.get("/api/usuario/me");
+            setUsuario(prev => {
+                if (!prev) return prev;
+                const atualizado = { ...prev, ...data };
+                sessionStorage.setItem("auth", JSON.stringify(atualizado));
+                return atualizado;
+            });
+        } catch {
+            // Silencioso — falha não quebra a sessão
+        }
+    }, []);
+
     const token = usuario?.token ?? null;
     const autenticado = !!token;
 
     return (
-        <AuthContext.Provider value={{ usuario, token, autenticado, login, logout }}>
+        <AuthContext.Provider value={{ usuario, token, autenticado, login, logout, atualizarUsuario }}>
             {children}
         </AuthContext.Provider>
     );

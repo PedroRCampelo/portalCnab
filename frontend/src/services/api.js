@@ -30,7 +30,7 @@ api.interceptors.response.use(
             // Só redireciona para login se:
             // 1. Não estiver já em página de autenticação
             // 2. A requisição veio de uma rota que requer token (não rota pública)
-            const emPaginaAuth = ["/login", "/cadastro", "/verificar-email"]
+            const emPaginaAuth = ["/login", "/cadastro", "/verificar-email", "/redefinir-senha", "/esqueci-senha", "/upgrade/sucesso", "/upgrade/cancelado"]
                 .includes(paginaAtual);
 
             // Rotas que são públicas e podem retornar 401 para anônimos
