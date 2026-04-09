@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import logoWhale from "../assets/logo.png";
+import logoWhale from "../assets/logo.svg";
 import { IcoExcel, IcoPdf, IcoBack } from "./icons.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 
@@ -55,10 +55,11 @@ export default function Navbar() {
 
                     {/* Brand */}
                     <Link to="/" className="brand brand-btn" onClick={fecharMenu}>
+
+                        <span className="brand-wordmark">Whallet</span>
                         <div className="brand-whale-wrap">
                             <img src={logoWhale} alt="" className="brand-whale"/>
                         </div>
-                        <span className="brand-wordmark">Whallet</span>
                     </Link>
 
                     {/* Nav central — só desktop */}

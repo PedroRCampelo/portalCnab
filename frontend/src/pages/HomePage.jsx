@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import logoWhale from "../assets/logo.png";
+import logoWhale from "../assets/logo.svg";
 import { IcoExcel, IcoPdf, IcoArrow } from "../components/icons.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 
