@@ -58,7 +58,7 @@ export default function Navbar() {
 
                         <span className="brand-wordmark">Whallet</span>
                         <div className="brand-whale-wrap">
-                            <img src={logoWhale} alt="" className="brand-whale"/>
+                            {/*<img src={logoWhale} alt="" className="brand-whale"/>*/}
                         </div>
                     </Link>
 
