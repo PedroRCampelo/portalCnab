@@ -22,6 +22,7 @@ import PlanosPage                from "./pages/PlanosPage.jsx";
 import TitulosPage               from "./pages/TitulosPage.jsx";
 import TiposGastoPage            from "./pages/TiposGastoPage.jsx";
 import GestaFinanceiraPage       from "./pages/GestaoFinanceiraPage.jsx";
+import RelatoriosTitulosPage     from "./pages/RelatoriosTitulosPage.jsx";
 
 const AUTH_ROUTES = ["/login", "/cadastro", "/verificar-email"];
 
@@ -49,6 +50,7 @@ function AppShell() {
                 <Route path="/historico" element={<ProtectedRoute><HistoricoPage/></ProtectedRoute>}/>
                 <Route path="/titulos"            element={<ProtectedRoute><TitulosPage/></ProtectedRoute>}/>
                 <Route path="/tipos-gasto"        element={<ProtectedRoute><TiposGastoPage/></ProtectedRoute>}/>
+                <Route path="/relatorios-titulos" element={<ProtectedRoute><RelatoriosTitulosPage/></ProtectedRoute>}/>
                 <Route path="/gestao-financeira"  element={<GestaFinanceiraPage/>}/>
                 <Route path="/upgrade"   element={<ProtectedRoute><UpgradePage/></ProtectedRoute>}/>
                 <Route path="/upgrade/sucesso"   element={<ProtectedRoute><UpgradeSucessoPage/></ProtectedRoute>}/>

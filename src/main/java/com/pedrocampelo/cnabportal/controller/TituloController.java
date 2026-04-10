@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -120,8 +121,39 @@ public class TituloController {
         }
     }
 
-    // ── Importação Excel ──────────────────────────────────────────────────────
-    @PostMapping(value = "/importar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    // ── POST /api/titulos/parcelado — lançamento parcelado ───────────────────
+    @PostMapping("/parcelado")
+    public ResponseEntity<?> criarParcelado(
+            @AuthenticationPrincipal Usuario usuario,
+            @RequestBody Map<String, Object> body) {
+        try {
+            // Deserializa o template manualmente para evitar complexidade de @Valid
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            mapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+            Titulo template = mapper.convertValue(body.get("titulo"), Titulo.class);
+            int qtd         = Integer.parseInt(String.valueOf(body.get("qtdParcelas")));
+            int intervalo   = Integer.parseInt(String.valueOf(body.get("intervaloDias")));
+
+            List<Titulo> criados = tituloService.criarParcelado(
+                    new TituloService.ParceladoRequest(template, qtd, intervalo), usuario);
+
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(Map.of("criados", criados.size(), "mensagem",
+                            criados.size() + " parcelas criadas com sucesso."));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("mensagem", e.getMessage()));
+        } catch (Exception e) {
+            log.error("Erro ao criar parcelado: {}", e.getMessage());
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("mensagem", "Erro ao criar parcelas."));
+        }
+    }
+
+    // ── GET /api/titulos/relatorio — relatório completo ───────────────────────
+    @GetMapping("/relatorio")
+    public ResponseEntity<Map<String, Object>> relatorio(@AuthenticationPrincipal Usuario usuario) {
+        return ResponseEntity.ok(tituloService.relatorioCompleto(usuario.getId()));
+    }
     public ResponseEntity<?> importar(
             @AuthenticationPrincipal Usuario usuario,
             @RequestPart("arquivo") MultipartFile arquivo) {

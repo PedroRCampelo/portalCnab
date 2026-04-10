@@ -126,6 +126,69 @@ public class Titulo {
     @Column(name = "linha_digitavel", length = 100)
     private String linhaDigitavel;
 
+    // ── Dados bancários do favorecido — Segmento A (TED/DOC/Crédito) ─────────
+
+    @Column(name = "favorecido_banco_code", length = 3)
+    private String favorecidoBancoCode;      // ex: "341" = Itaú
+
+    @Column(name = "favorecido_agencia", length = 5)
+    private String favorecidoAgencia;
+
+    @Column(name = "favorecido_agencia_dv", length = 1)
+    private String favorecidoAgenciaDv;
+
+    @Column(name = "favorecido_conta", length = 12)
+    private String favorecidoConta;
+
+    @Column(name = "favorecido_conta_dv", length = 1)
+    private String favorecidoContaDv;
+
+    @Column(name = "favorecido_tipo_conta", length = 2)
+    private String favorecidoTipoConta;      // CC | CP | PP
+
+    @Column(name = "favorecido_tipo_inscricao", length = 1)
+    private String favorecidoTipoInscricao; // 1=CPF 2=CNPJ
+
+    @Column(name = "finalidade_ted", length = 5)
+    private String finalidadeTed;            // ex: "00001" = crédito em conta
+
+    @Column(name = "finalidade_doc", length = 2)
+    private String finalidadeDoc;
+
+    @Column(name = "aviso", length = 1)
+    @Builder.Default
+    private String aviso = "0";              // 0=não avisar 2=avisar favorecido
+
+    // ── PIX ───────────────────────────────────────────────────────────────────
+
+    @Column(name = "tipo_chave_pix", length = 10)
+    private String tipoChavePix;             // CPF | CNPJ | EMAIL | TELEFONE | EVP
+
+    @Column(name = "chave_pix", length = 99)
+    private String chavePix;
+
+    // ── Endereço do favorecido — Segmento B (alguns bancos) ──────────────────
+
+    @Column(name = "favorecido_logradouro", length = 40)
+    private String favorecidoLogradouro;
+
+    @Column(name = "favorecido_cidade", length = 15)
+    private String favorecidoCidade;
+
+    @Column(name = "favorecido_estado", length = 2)
+    private String favorecidoEstado;
+
+    @Column(name = "favorecido_cep", length = 8)
+    private String favorecidoCep;
+
+    // ── Controle CNAB ─────────────────────────────────────────────────────────
+
+    @Column(name = "seu_numero", length = 20)
+    private String seuNumero;               // referência do pagador no lote
+
+    @Column(name = "nosso_numero", length = 20)
+    private String nossoNumero;             // retorno do banco
+
     // ── Auditoria ─────────────────────────────────────────────────────────────
 
     @CreationTimestamp
