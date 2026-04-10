@@ -34,6 +34,9 @@ public class TituloService {
     // ── Listagem com filtros ───────────────────────────────────────────────────
 
     public Page<Titulo> listar(UUID usuarioId, String status, String busca, int pagina, int tamanho) {
+        // Atualiza vencidos antes de retornar — garante consistência sem esperar o scheduler
+        tituloRepository.atualizarVencidos();
+
         String statusFiltro = (status == null || status.isBlank()) ? null : status.toUpperCase();
         String buscaFiltro  = (busca  == null || busca.isBlank())  ? null : busca.trim();
         return tituloRepository.findByUsuarioIdComFiltros(
@@ -172,6 +175,116 @@ public class TituloService {
         }
 
         tituloRepository.delete(titulo);
+    }
+
+
+    // ── Lançamento parcelado ──────────────────────────────────────────────────
+    // Cria N títulos com mesmo número, parcelas sequenciais (001, 002...)
+    // e vencimentos calculados conforme intervalo em dias
+
+    public record ParceladoRequest(
+            Titulo templateTitulo,
+            int    qtdParcelas,
+            int    intervaloDias  // 30=mensal, 15=quinzenal, 7=semanal, customizado
+    ) {}
+
+    public List<Titulo> criarParcelado(ParceladoRequest req, Usuario usuario) {
+        if (req.qtdParcelas() < 2 || req.qtdParcelas() > 360) {
+            throw new IllegalArgumentException("Número de parcelas deve ser entre 2 e 360.");
+        }
+        if (req.intervaloDias() < 1 || req.intervaloDias() > 365) {
+            throw new IllegalArgumentException("Intervalo deve ser entre 1 e 365 dias.");
+        }
+
+        validar(req.templateTitulo());
+
+        Empresa empresa = empresaRepository.findById(UUID.fromString(empresaPadraoId))
+                .orElseThrow(() -> new IllegalStateException("Empresa padrão não encontrada"));
+
+        List<Titulo> criados = new ArrayList<>();
+        LocalDate vencimentoBase = req.templateTitulo().getVencimento();
+
+        for (int i = 0; i < req.qtdParcelas(); i++) {
+            String numeroParcela = String.format("%03d", i + 1);
+            LocalDate vencimento = vencimentoBase.plusDays((long) req.intervaloDias() * i);
+
+            Titulo t = Titulo.builder()
+                    .usuario(usuario)
+                    .empresa(empresa)
+                    .prefixo(req.templateTitulo().getPrefixo() != null ? req.templateTitulo().getPrefixo() : "AP")
+                    .numero(req.templateTitulo().getNumero())
+                    .parcela(numeroParcela)
+                    .tipo(req.templateTitulo().getTipo())
+                    .tipoGastoId(req.templateTitulo().getTipoGastoId())
+                    .fornecedorNome(req.templateTitulo().getFornecedorNome())
+                    .fornecedorDocumento(req.templateTitulo().getFornecedorDocumento())
+                    .emissao(req.templateTitulo().getEmissao() != null ? req.templateTitulo().getEmissao() : LocalDate.now())
+                    .vencimento(vencimento)
+                    .valor(req.templateTitulo().getValor())
+                    .saldo(req.templateTitulo().getValor())
+                    .desconto(req.templateTitulo().getDesconto() != null ? req.templateTitulo().getDesconto() : BigDecimal.ZERO)
+                    .juros(BigDecimal.ZERO)
+                    .multa(BigDecimal.ZERO)
+                    .observacao(req.templateTitulo().getObservacao())
+                    .build();
+
+            t.atualizarStatus();
+            criados.add(tituloRepository.save(t));
+        }
+
+        log.info("Lançamento parcelado: {} parcelas criadas — número {} — usuário {}",
+                criados.size(), req.templateTitulo().getNumero(), usuario.getEmail());
+
+        return criados;
+    }
+
+    // ── Relatórios ────────────────────────────────────────────────────────────
+
+    public Map<String, Object> relatorioCompleto(UUID usuarioId) {
+        // Fluxo de caixa: próximos 12 meses
+        LocalDate hoje = LocalDate.now();
+        LocalDate fim  = hoje.withDayOfMonth(1).plusMonths(12).minusDays(1);
+        List<Object[]> fluxo = tituloRepository.fluxoCaixaMensal(usuarioId, hoje, fim);
+
+        // Por tipo de gasto
+        List<Object[]> porTipo = tituloRepository.porTipoGasto(usuarioId);
+
+        // Top fornecedores
+        List<Object[]> fornecedores = tituloRepository.topFornecedores(usuarioId);
+
+        // Aging de vencidos
+        List<Object[]> aging = tituloRepository.aging(usuarioId);
+
+        return Map.of(
+                "fluxoCaixa",   mapearFluxo(fluxo),
+                "porTipoGasto", mapearCategoria(porTipo),
+                "fornecedores", mapearCategoria(fornecedores),
+                "aging",        mapearCategoria(aging)
+        );
+    }
+
+    private List<Map<String, Object>> mapearFluxo(List<Object[]> rows) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Object[] row : rows) {
+            Map<String, Object> m = new java.util.LinkedHashMap<>();
+            m.put("mes",       row[0]);
+            m.put("total",     row[1]);
+            m.put("quantidade", row[2]);
+            result.add(m);
+        }
+        return result;
+    }
+
+    private List<Map<String, Object>> mapearCategoria(List<Object[]> rows) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Object[] row : rows) {
+            Map<String, Object> m = new java.util.LinkedHashMap<>();
+            m.put("nome",      row[0]);
+            m.put("total",     row[1]);
+            m.put("quantidade", row[2]);
+            result.add(m);
+        }
+        return result;
     }
 
     // ── Importação Excel ──────────────────────────────────────────────────────

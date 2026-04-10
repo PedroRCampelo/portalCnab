@@ -23,6 +23,17 @@ const TITULO_VAZIO = {
     desconto: "", juros: "", multa: "",
     observacao: "", status: "PENDENTE",
     codigoBarras: "", linhaDigitavel: "",
+    // CNAB — dados bancários do favorecido (Seg A)
+    favorecidoBancoCode: "", favorecidoAgencia: "", favorecidoAgenciaDv: "",
+    favorecidoConta: "", favorecidoContaDv: "",
+    favorecidoTipoConta: "CC", favorecidoTipoInscricao: "2",
+    finalidadeTed: "", finalidadeDoc: "", aviso: "0",
+    // CNAB — PIX
+    tipoChavePix: "", chavePix: "",
+    // CNAB — endereço favorecido
+    favorecidoLogradouro: "", favorecidoCidade: "", favorecidoEstado: "", favorecidoCep: "",
+    // CNAB — controle
+    seuNumero: "", nossoNumero: "",
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -206,6 +217,13 @@ export default function TitulosPage() {
     const [baixando,     setBaixando]     = useState(false);
     const [erroBaixa,    setErroBaixa]    = useState("");
 
+    const [abaModal,     setAbaModal]     = useState("geral"); // "geral" | "cnab"
+    const [modalParcelado, setModalParcelado] = useState(false);
+    const [formParcelado,  setFormParcelado]  = useState({
+        qtdParcelas: "2", intervaloDias: "30", vencimento1: hoje(),
+    });
+    const [salvandoParcelado, setSalvandoParcelado] = useState(false);
+    const [erroParcelado,     setErroParcelado]     = useState("");
     const [importando,   setImportando]   = useState(false);
     const [msgImport,    setMsgImport]    = useState("");
     const inputFileRef = useRef();
@@ -243,7 +261,7 @@ export default function TitulosPage() {
     function setField(key) { return val => setForm(f => ({ ...f, [key]: key === "fornecedorDocumento" ? mascaraDoc(val) : val })); }
 
     function abrirNovo() {
-        setEditando(null); setForm(TITULO_VAZIO); setErro(""); setModalAberto(true);
+        setEditando(null); setForm(TITULO_VAZIO); setErro(""); setAbaModal("geral"); setModalAberto(true);
     }
 
     function abrirEditar(t) {
@@ -261,8 +279,64 @@ export default function TitulosPage() {
             multa:    t.multa    ? mascaraMoeda(String(Math.round(t.multa    * 100))) : "",
             observacao: t.observacao ?? "", status: t.status ?? "PENDENTE",
             codigoBarras: t.codigoBarras ?? "", linhaDigitavel: t.linhaDigitavel ?? "",
+            // CNAB
+            favorecidoBancoCode: t.favorecidoBancoCode ?? "",
+            favorecidoAgencia: t.favorecidoAgencia ?? "",
+            favorecidoAgenciaDv: t.favorecidoAgenciaDv ?? "",
+            favorecidoConta: t.favorecidoConta ?? "",
+            favorecidoContaDv: t.favorecidoContaDv ?? "",
+            favorecidoTipoConta: t.favorecidoTipoConta ?? "CC",
+            favorecidoTipoInscricao: t.favorecidoTipoInscricao ?? "2",
+            finalidadeTed: t.finalidadeTed ?? "",
+            finalidadeDoc: t.finalidadeDoc ?? "",
+            aviso: t.aviso ?? "0",
+            tipoChavePix: t.tipoChavePix ?? "",
+            chavePix: t.chavePix ?? "",
+            favorecidoLogradouro: t.favorecidoLogradouro ?? "",
+            favorecidoCidade: t.favorecidoCidade ?? "",
+            favorecidoEstado: t.favorecidoEstado ?? "",
+            favorecidoCep: t.favorecidoCep ?? "",
+            seuNumero: t.seuNumero ?? "",
+            nossoNumero: t.nossoNumero ?? "",
         });
-        setErro(""); setModalAberto(true);
+        setErro(""); setAbaModal("geral"); setModalAberto(true);
+    }
+
+    async function salvarParcelado() {
+        setErroParcelado("");
+        const qtd      = parseInt(formParcelado.qtdParcelas);
+        const intervalo = parseInt(formParcelado.intervaloDias);
+        if (!form.numero || !form.fornecedorNome || !form.valor) {
+            setErroParcelado("Preencha Número, Fornecedor e Valor antes de parcelar."); return;
+        }
+        if (qtd < 2 || qtd > 360) { setErroParcelado("Número de parcelas deve ser entre 2 e 360."); return; }
+        if (intervalo < 1)         { setErroParcelado("Intervalo deve ser de pelo menos 1 dia."); return; }
+
+        setSalvandoParcelado(true);
+        try {
+            const payload = {
+                titulo: {
+                    ...form,
+                    tipoGastoId: form.tipoGastoId || null,
+                    valor:    parseMoeda(form.valor),
+                    saldo:    parseMoeda(form.valor),
+                    desconto: parseMoeda(form.desconto),
+                    juros:    parseMoeda(form.juros),
+                    multa:    parseMoeda(form.multa),
+                    vencimento: formParcelado.vencimento1,
+                },
+                qtdParcelas:  qtd,
+                intervaloDias: intervalo,
+            };
+            const { data } = await api.post("/api/titulos/parcelado", payload);
+            setModalParcelado(false);
+            setModalAberto(false);
+            carregarTitulos();
+            carregarResumo();
+            alert(`✅ ${data.mensagem}`);
+        } catch (err) {
+            setErroParcelado(err.response?.data?.mensagem ?? "Erro ao criar parcelas.");
+        } finally { setSalvandoParcelado(false); }
     }
 
     function abrirBaixa(t) {
@@ -355,6 +429,14 @@ export default function TitulosPage() {
                 </div>
                 <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
                     <input type="file" ref={inputFileRef} accept=".xlsx" style={{ display: "none" }} onChange={importarExcel}/>
+                    <Link to="/relatorios-titulos" style={{
+                        padding: "9px 14px", borderRadius: 10, background: "transparent",
+                        border: "1px solid var(--border)", color: "var(--text-muted)",
+                        fontWeight: 600, fontSize: 13, textDecoration: "none",
+                        display: "inline-flex", alignItems: "center", gap: 6
+                    }}>
+                        📊 Relatórios
+                    </Link>
                     <Link to="/tipos-gasto" style={{
                         padding: "9px 14px", borderRadius: 10, background: "transparent",
                         border: "1px solid var(--border)", color: "var(--text-muted)",
@@ -503,57 +585,250 @@ export default function TitulosPage() {
 
             {/* ── Modal: Cadastro / Edição ── */}
             {modalAberto && (
-                <Modal largura={640}>
+                <Modal largura={680}>
                     <h2 style={{ color: "var(--text)", fontSize: 18, fontWeight: 800, margin: "0 0 4px" }}>
                         {editando ? "Editar título" : "Novo título"}
                     </h2>
-                    <p style={{ fontSize: 12, color: "var(--text-dim)", margin: "0 0 20px" }}>
+                    <p style={{ fontSize: 12, color: "var(--text-dim)", margin: "0 0 12px" }}>
                         Campos marcados com <span style={{ color: "var(--warning)" }}>*</span> são obrigatórios
                     </p>
 
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0 12px" }}>
-                        <CampoInput label="Prefixo"   value={form.prefixo}  onChange={setField("prefixo")}  maxLength={10}/>
-                        <CampoInput label="Número *"  value={form.numero}   onChange={setField("numero")}   maxLength={20} obrigatorio/>
-                        <CampoInput label="Parcela"   value={form.parcela}  onChange={setField("parcela")}  maxLength={3}/>
+                    {/* Abas */}
+                    <div style={{ display: "flex", gap: 2, marginBottom: 20, borderBottom: "1px solid var(--border)" }}>
+                        {[{ id: "geral", label: "📋 Geral" }, { id: "cnab", label: "🏦 CNAB / Remessa" }].map(aba => (
+                            <button key={aba.id} onClick={() => setAbaModal(aba.id)}
+                                    style={{
+                                        padding: "8px 16px", border: "none", cursor: "pointer",
+                                        background: "transparent", fontSize: 13, fontWeight: 600,
+                                        color: abaModal === aba.id ? "var(--text)" : "var(--text-dim)",
+                                        borderBottom: abaModal === aba.id ? "2px solid var(--gold, #F59E0B)" : "2px solid transparent",
+                                        marginBottom: -1,
+                                    }}>
+                                {aba.label}
+                            </button>
+                        ))}
                     </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0 12px" }}>
-                        <CampoInput label="Tipo pagamento" value={form.tipo}   onChange={setField("tipo")}   select options={TIPOS}/>
-                        <CampoInput label="Status"         value={form.status} onChange={setField("status")} select options={STATUS_OPS}/>
-                        <CampoInput label="Tipo de gasto"  value={form.tipoGastoId} onChange={setField("tipoGastoId")} select options={tipoGastoOpts}/>
-                    </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 12px" }}>
-                        <CampoInput label="Nome do fornecedor *" value={form.fornecedorNome}      onChange={setField("fornecedorNome")}      maxLength={150} obrigatorio/>
-                        <CampoInput label="CNPJ / CPF"           value={form.fornecedorDocumento} onChange={v => setForm(f => ({ ...f, fornecedorDocumento: mascaraDoc(v) }))} maxLength={20}/>
-                    </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 12px" }}>
-                        <CampoInput label="Emissão"     value={form.emissao}    onChange={setField("emissao")}    tipo="date"/>
-                        <CampoInput label="Vencimento *" value={form.vencimento} onChange={setField("vencimento")} tipo="date" obrigatorio/>
-                    </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "0 12px" }}>
-                        <CampoInput label="Valor (R$) *" value={form.valor}    onChange={setField("valor")}    moeda obrigatorio/>
-                        <CampoInput label="Desconto"     value={form.desconto} onChange={setField("desconto")} moeda/>
-                        <CampoInput label="Juros"        value={form.juros}    onChange={setField("juros")}    moeda/>
-                        <CampoInput label="Multa"        value={form.multa}    onChange={setField("multa")}    moeda/>
-                    </div>
-                    <CampoInput label="Código de barras" value={form.codigoBarras}   onChange={setField("codigoBarras")}   maxLength={50}/>
-                    <CampoInput label="Linha digitável"  value={form.linhaDigitavel} onChange={setField("linhaDigitavel")} maxLength={100}/>
-                    <CampoInput label="Observação"       value={form.observacao}     onChange={setField("observacao")}     maxLength={500}/>
+
+                    {/* Aba Geral */}
+                    {abaModal === "geral" && (<>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0 12px" }}>
+                            <CampoInput label="Prefixo"   value={form.prefixo}  onChange={setField("prefixo")}  maxLength={10}/>
+                            <CampoInput label="Número *"  value={form.numero}   onChange={setField("numero")}   maxLength={20} obrigatorio/>
+                            <CampoInput label="Parcela"   value={form.parcela}  onChange={setField("parcela")}  maxLength={3}/>
+                        </div>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0 12px" }}>
+                            <CampoInput label="Tipo pagamento" value={form.tipo}        onChange={setField("tipo")}        select options={TIPOS}/>
+                            <CampoInput label="Status"         value={form.status}      onChange={setField("status")}      select options={STATUS_OPS}/>
+                            <CampoInput label="Tipo de gasto"  value={form.tipoGastoId} onChange={setField("tipoGastoId")} select options={tipoGastoOpts}/>
+                        </div>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 12px" }}>
+                            <CampoInput label="Nome do fornecedor *" value={form.fornecedorNome}      onChange={setField("fornecedorNome")}      maxLength={150} obrigatorio/>
+                            <CampoInput label="CNPJ / CPF"           value={form.fornecedorDocumento} onChange={v => setForm(f => ({ ...f, fornecedorDocumento: mascaraDoc(v) }))} maxLength={20}/>
+                        </div>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 12px" }}>
+                            <CampoInput label="Emissão"      value={form.emissao}    onChange={setField("emissao")}    tipo="date"/>
+                            <CampoInput label="Vencimento *" value={form.vencimento} onChange={setField("vencimento")} tipo="date" obrigatorio/>
+                        </div>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "0 12px" }}>
+                            <CampoInput label="Valor (R$) *" value={form.valor}    onChange={setField("valor")}    moeda obrigatorio/>
+                            <CampoInput label="Desconto"     value={form.desconto} onChange={setField("desconto")} moeda/>
+                            <CampoInput label="Juros"        value={form.juros}    onChange={setField("juros")}    moeda/>
+                            <CampoInput label="Multa"        value={form.multa}    onChange={setField("multa")}    moeda/>
+                        </div>
+                        <CampoInput label="Observação" value={form.observacao} onChange={setField("observacao")} maxLength={500}/>
+                    </>)}
+
+                    {/* Aba CNAB */}
+                    {abaModal === "cnab" && (
+                        <div style={{ maxHeight: "60vh", overflowY: "auto", paddingRight: 4 }}>
+                            <p style={{ fontSize: 12, color: "var(--text-dim)", margin: "0 0 16px", padding: "8px 12px", background: "var(--surface)", borderRadius: 8, border: "1px solid var(--border)" }}>
+                                Preencha os dados para gerar remessa CNAB deste título. Preencha apenas o grupo correspondente ao tipo de pagamento.
+                            </p>
+
+                            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-dim)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>🔑 Boleto (Segmento J)</div>
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 12px" }}>
+                                <CampoInput label="Código de barras" value={form.codigoBarras}   onChange={setField("codigoBarras")}   maxLength={50}/>
+                                <CampoInput label="Linha digitável"  value={form.linhaDigitavel} onChange={setField("linhaDigitavel")} maxLength={100}/>
+                            </div>
+
+                            <hr style={{ border: "none", borderTop: "1px solid var(--border)", margin: "8px 0 16px" }}/>
+                            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-dim)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>🏦 TED / DOC / Crédito em conta (Segmento A)</div>
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0 12px" }}>
+                                <CampoInput label="Banco favorecido" value={form.favorecidoBancoCode} onChange={setField("favorecidoBancoCode")} maxLength={3} placeholder="341"/>
+                                <CampoInput label="Tipo de conta" value={form.favorecidoTipoConta} onChange={setField("favorecidoTipoConta")} select
+                                            options={[{ value: "CC", label: "Conta Corrente" }, { value: "CP", label: "Poupança" }, { value: "PP", label: "Pgto" }]}/>
+                                <CampoInput label="Tipo inscrição" value={form.favorecidoTipoInscricao} onChange={setField("favorecidoTipoInscricao")} select
+                                            options={[{ value: "1", label: "CPF" }, { value: "2", label: "CNPJ" }]}/>
+                            </div>
+                            <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 3fr 1fr", gap: "0 12px" }}>
+                                <CampoInput label="Agência"  value={form.favorecidoAgencia}   onChange={setField("favorecidoAgencia")}   maxLength={5}/>
+                                <CampoInput label="DV ag."   value={form.favorecidoAgenciaDv} onChange={setField("favorecidoAgenciaDv")} maxLength={1}/>
+                                <CampoInput label="Conta"    value={form.favorecidoConta}     onChange={setField("favorecidoConta")}     maxLength={12}/>
+                                <CampoInput label="DV conta" value={form.favorecidoContaDv}   onChange={setField("favorecidoContaDv")}   maxLength={1}/>
+                            </div>
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0 12px" }}>
+                                <CampoInput label="Finalidade TED" value={form.finalidadeTed} onChange={setField("finalidadeTed")} maxLength={5} placeholder="00001"/>
+                                <CampoInput label="Finalidade DOC" value={form.finalidadeDoc} onChange={setField("finalidadeDoc")} maxLength={2}/>
+                                <CampoInput label="Aviso" value={form.aviso} onChange={setField("aviso")} select
+                                            options={[{ value: "0", label: "Não avisar" }, { value: "2", label: "Avisar favorecido" }]}/>
+                            </div>
+
+                            <hr style={{ border: "none", borderTop: "1px solid var(--border)", margin: "8px 0 16px" }}/>
+                            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-dim)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>⚡ PIX</div>
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "0 12px" }}>
+                                <CampoInput label="Tipo de chave" value={form.tipoChavePix} onChange={setField("tipoChavePix")} select
+                                            options={[
+                                                { value: "", label: "— Selecione —" },
+                                                { value: "CPF", label: "CPF" }, { value: "CNPJ", label: "CNPJ" },
+                                                { value: "EMAIL", label: "E-mail" }, { value: "TELEFONE", label: "Telefone" },
+                                                { value: "EVP", label: "Chave aleatória (EVP)" },
+                                            ]}/>
+                                <CampoInput label="Chave PIX" value={form.chavePix} onChange={setField("chavePix")} maxLength={99}/>
+                            </div>
+
+                            <hr style={{ border: "none", borderTop: "1px solid var(--border)", margin: "8px 0 16px" }}/>
+                            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-dim)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>📍 Endereço do favorecido (Segmento B)</div>
+                            <CampoInput label="Logradouro" value={form.favorecidoLogradouro} onChange={setField("favorecidoLogradouro")} maxLength={40}/>
+                            <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: "0 12px" }}>
+                                <CampoInput label="Cidade" value={form.favorecidoCidade} onChange={setField("favorecidoCidade")} maxLength={15}/>
+                                <CampoInput label="UF"     value={form.favorecidoEstado} onChange={setField("favorecidoEstado")} maxLength={2}/>
+                                <CampoInput label="CEP"    value={form.favorecidoCep}    onChange={setField("favorecidoCep")}    maxLength={8}/>
+                            </div>
+
+                            <hr style={{ border: "none", borderTop: "1px solid var(--border)", margin: "8px 0 16px" }}/>
+                            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-dim)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>🔢 Controle / Referência</div>
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 12px" }}>
+                                <CampoInput label="Seu número"              value={form.seuNumero}   onChange={setField("seuNumero")}   maxLength={20}/>
+                                <CampoInput label="Nosso número (retorno)"  value={form.nossoNumero} onChange={setField("nossoNumero")} maxLength={20}/>
+                            </div>
+                        </div>
+                    )}
 
                     {erro && (
-                        <div style={{ padding: "10px 14px", borderRadius: 8, marginBottom: 12,
+                        <div style={{ padding: "10px 14px", borderRadius: 8, margin: "8px 0",
                             background: "rgba(212,160,23,0.08)", border: "1px solid rgba(212,160,23,0.3)",
                             color: "var(--warning)", fontSize: 13 }}>{erro}</div>
                     )}
-                    <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
+                    <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
                         <button onClick={() => setModalAberto(false)}
                                 style={{ flex: 1, padding: "12px", borderRadius: 10, background: "transparent",
                                     border: "1px solid var(--border)", color: "var(--text-muted)", fontWeight: 600, cursor: "pointer" }}>
                             Cancelar
                         </button>
+                        {!editando && (
+                            <button onClick={() => { setErroParcelado(""); setModalParcelado(true); }}
+                                    style={{ flex: 1, padding: "12px", borderRadius: 10,
+                                        background: "transparent", border: "1px solid var(--border)",
+                                        color: "var(--text-muted)", fontWeight: 600, cursor: "pointer" }}>
+                                📅 Parcelar
+                            </button>
+                        )}
                         <button onClick={salvar} disabled={salvando}
                                 style={{ flex: 2, padding: "12px", borderRadius: 10, background: "var(--purple)",
                                     border: "none", color: "white", fontWeight: 700, cursor: "pointer", opacity: salvando ? 0.6 : 1 }}>
                             {salvando ? "Salvando..." : editando ? "Salvar alterações" : "Cadastrar título"}
+                        </button>
+                    </div>
+                </Modal>
+            )}
+
+            {/* ── Modal: Parcelamento ── */}
+            {modalParcelado && (
+                <Modal largura={440}>
+                    <h3 style={{ color: "var(--text)", fontSize: 17, fontWeight: 800, margin: "0 0 6px" }}>
+                        📅 Lançamento parcelado
+                    </h3>
+                    <p style={{ fontSize: 13, color: "var(--text-dim)", margin: "0 0 20px", lineHeight: 1.6 }}>
+                        Serão criados <strong style={{ color: "var(--text)" }}>{formParcelado.qtdParcelas}</strong> títulos
+                        com o número <strong style={{ color: "var(--text)" }}>{form.numero || "—"}</strong>,
+                        parcelas 001 a {String(parseInt(formParcelado.qtdParcelas) || 2).padStart(3, "0")},
+                        valor de <strong style={{ color: "var(--text)" }}>{form.valor || "0,00"}</strong> cada.
+                    </p>
+
+                    <CampoInput label="Vencimento da 1ª parcela *"
+                                value={formParcelado.vencimento1}
+                                onChange={v => setFormParcelado(f => ({ ...f, vencimento1: v }))}
+                                tipo="date" obrigatorio/>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 12px" }}>
+                        <CampoInput label="Número de parcelas *"
+                                    value={formParcelado.qtdParcelas}
+                                    onChange={v => setFormParcelado(f => ({ ...f, qtdParcelas: v.replace(/\D/g, "") }))}
+                                    placeholder="Ex: 12" obrigatorio/>
+                        <div style={{ marginBottom: 12 }}>
+                            <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-dim)", marginBottom: 4, display: "block" }}>
+                                Intervalo entre parcelas *
+                            </label>
+                            <select
+                                value={formParcelado.intervaloDias}
+                                onChange={e => setFormParcelado(f => ({ ...f, intervaloDias: e.target.value }))}
+                                style={{ width: "100%", padding: "8px 12px", borderRadius: 8, background: "var(--bg)",
+                                    border: "1px solid var(--border)", color: "var(--text)", fontSize: 14 }}>
+                                <option value="7">Semanal (7 dias)</option>
+                                <option value="15">Quinzenal (15 dias)</option>
+                                <option value="30">Mensal (30 dias)</option>
+                                <option value="60">Bimestral (60 dias)</option>
+                                <option value="90">Trimestral (90 dias)</option>
+                                <option value="customizado">Personalizado</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {formParcelado.intervaloDias === "customizado" && (
+                        <CampoInput label="Dias entre parcelas *"
+                                    value={formParcelado.diasCustomizados ?? ""}
+                                    onChange={v => setFormParcelado(f => ({ ...f, diasCustomizados: v.replace(/\D/g, "") }))}
+                                    placeholder="Ex: 45" obrigatorio/>
+                    )}
+
+                    {/* Preview de datas */}
+                    {formParcelado.vencimento1 && formParcelado.qtdParcelas >= 2 && (() => {
+                        const intervalo = formParcelado.intervaloDias === "customizado"
+                            ? parseInt(formParcelado.diasCustomizados || 0)
+                            : parseInt(formParcelado.intervaloDias);
+                        const qtd = Math.min(parseInt(formParcelado.qtdParcelas) || 0, 4);
+                        const datas = [];
+                        for (let i = 0; i < qtd; i++) {
+                            const d = new Date(formParcelado.vencimento1 + "T00:00:00");
+                            d.setDate(d.getDate() + intervalo * i);
+                            datas.push(`${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`);
+                        }
+                        const total = parseInt(formParcelado.qtdParcelas) || 0;
+                        return intervalo > 0 ? (
+                            <div style={{ marginBottom: 16, padding: "10px 14px", borderRadius: 8,
+                                background: "var(--surface)", border: "1px solid var(--border)", fontSize: 12, color: "var(--text-dim)" }}>
+                                <div style={{ fontWeight: 600, color: "var(--text)", marginBottom: 4 }}>Preview das datas:</div>
+                                {datas.map((d, i) => (
+                                    <div key={i}>{String(i+1).padStart(3,"0")} → {d}</div>
+                                ))}
+                                {total > 4 && <div style={{ marginTop: 2 }}>... e mais {total - 4} parcela{total - 4 > 1 ? "s" : ""}</div>}
+                            </div>
+                        ) : null;
+                    })()}
+
+                    {erroParcelado && (
+                        <div style={{ padding: "10px 14px", borderRadius: 8, marginBottom: 12,
+                            background: "rgba(220,38,38,0.06)", border: "1px solid rgba(220,38,38,0.2)",
+                            color: "#DC2626", fontSize: 13 }}>{erroParcelado}</div>
+                    )}
+
+                    <div style={{ display: "flex", gap: 10 }}>
+                        <button onClick={() => setModalParcelado(false)}
+                                style={{ flex: 1, padding: "12px", borderRadius: 10, background: "transparent",
+                                    border: "1px solid var(--border)", color: "var(--text-muted)", fontWeight: 600, cursor: "pointer" }}>
+                            Cancelar
+                        </button>
+                        <button onClick={() => {
+                            const intervalo = formParcelado.intervaloDias === "customizado"
+                                ? parseInt(formParcelado.diasCustomizados || 0)
+                                : parseInt(formParcelado.intervaloDias);
+                            setFormParcelado(f => ({ ...f, intervaloDias: String(intervalo) }));
+                            salvarParcelado();
+                        }} disabled={salvandoParcelado}
+                                style={{ flex: 2, padding: "12px", borderRadius: 10, background: "var(--purple)",
+                                    border: "none", color: "white", fontWeight: 700, cursor: "pointer",
+                                    opacity: salvandoParcelado ? 0.6 : 1 }}>
+                            {salvandoParcelado ? "Criando parcelas..." : `Criar ${formParcelado.qtdParcelas || 0} parcelas`}
                         </button>
                     </div>
                 </Modal>
