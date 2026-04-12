@@ -52,20 +52,27 @@ export default function GestaFinanceiraPage() {
             titulo: "Contas a pagar",
             desc: "Cadastre títulos manualmente ou importe via Excel. Controle vencimentos, saldos e status em tempo real.",
             badge: "Disponível",
-            badgeColor: "var(--cyan-dark)",
+            badgeColor: "var(--text-muted)",
         },
         {
             icon: "📊",
             titulo: "Relatórios financeiros",
             desc: "Visão consolidada por período, fornecedor e status. Exporte para Excel ou PDF com um clique.",
-            badge: "Em breve",
+            badge: "Disponível",
             badgeColor: "var(--text-muted)",
         },
         {
             icon: "🔔",
             titulo: "Alertas de vencimento",
             desc: "Receba e-mails automáticos dias antes do vencimento. Configure a antecedência conforme sua necessidade.",
-            badge: "Em breve",
+            badge: "Disponível",
+            badgeColor: "var(--text-muted)",
+        },
+        {
+            icon: "📥",
+            titulo: "Importação via Excel",
+            desc: "Compatível com exportações do Protheus (SE2/E2) e planilhas customizadas. Importe centenas de títulos.",
+            badge: "Disponível",
             badgeColor: "var(--text-muted)",
         },
         {
@@ -76,18 +83,11 @@ export default function GestaFinanceiraPage() {
             badgeColor: "var(--text-muted)",
         },
         {
-            icon: "📥",
-            titulo: "Importação via Excel",
-            desc: "Compatível com exportações do Protheus (SE2/E2) e planilhas customizadas. Importe centenas de títulos.",
-            badge: "Disponível",
-            badgeColor: "var(--cyan-dark)",
-        },
-        {
             icon: "🔄",
             titulo: "Integração Protheus",
             desc: "Busque títulos diretamente do ERP, gere remessas e faça write-back de baixas automaticamente.",
             badge: "Sob consulta",
-            badgeColor: "var(--text-dim)",
+            badgeColor: "var(--text-muted)",
         },
     ];
 

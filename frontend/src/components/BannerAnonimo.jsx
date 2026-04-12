@@ -68,7 +68,7 @@ export default function BannerAnonimo({ onLimiteBloqueado }) {
             }}>
                 <div style={{ fontSize: 13, color: "var(--text-muted)" }}>
                     <span style={{display:"inline-flex",alignItems:"center",gap:8}}><LuCircleCheck size={16}/><strong style={{ color: "var(--text)" }}>2 conversões gratuitas</strong> disponíveis sem login.</span>{" "}
-                    <Link to="/cadastro" style={{ color: "var(--warning)", fontWeight: 600 }}>
+                    <Link to="/cadastro" style={{ color: "#22D3EE", fontWeight: 600 }}>
                         Crie uma conta
                     </Link>{" "}
                     para 8/mês.
