@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
-import logoWhale from "../assets/logo.png";
+import logoWhale from "../assets/logo.svg";
 import { LuWalletCards, LuBuilding2, LuBellRing, LuFileText, LuSparkles, LuCircleCheck, LuSheet, LuTrendingUp, LuShieldCheck } from "react-icons/lu";
 import { IcoArrow } from "../components/icons.jsx";
 import { useAuth } from "../context/AuthContext.jsx";

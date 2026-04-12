@@ -126,7 +126,7 @@ export default function CadastroPage() {
                 </form>
 
                 <p className="auth-box-footer">
-                    Ja tem conta?{" "}
+                    Já tem conta?{" "}
                     <Link to="/login" className="auth-box-link">Fazer login</Link>
                 </p>
             </div>
