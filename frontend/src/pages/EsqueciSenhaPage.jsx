@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../services/api.js";
+import { LuMailCheck, LuArrowLeft } from "react-icons/lu";
 
 export default function EsqueciSenhaPage() {
     const [email,      setEmail]      = useState("");
@@ -38,7 +39,7 @@ export default function EsqueciSenhaPage() {
                             border: "1px solid rgba(22,163,74,0.2)",
                             display: "flex", alignItems: "center", justifyContent: "center",
                             fontSize: 26, margin: "0 0 20px"
-                        }}>✉️</div>
+                        }}><LuMailCheck size={24}/></div>
                         <h1 className="auth-box-title">Email enviado</h1>
                         <p style={{ fontSize: 14, color: "var(--text-muted)", lineHeight: 1.7, margin: "0 0 28px" }}>
                             Se o endereço <strong style={{ color: "var(--text)" }}>{email}</strong> estiver
@@ -53,7 +54,7 @@ export default function EsqueciSenhaPage() {
                             </button>.
                         </p>
                         <Link to="/login" className="auth-box-link" style={{ display: "block", textAlign: "center" }}>
-                            ← Voltar para o login
+                            <span style={{display:"inline-flex",alignItems:"center",gap:6}}><LuArrowLeft size={14}/> Voltar para o login</span>
                         </Link>
                     </>
                 ) : (

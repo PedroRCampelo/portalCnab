@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
+import { LuPartyPopper, LuArrowRight, LuCircleSlash } from "react-icons/lu";
 
 const PLANO_PRO          = "10000000-0000-0000-0000-000000000002";
 const PLANO_WHALLET_PLUS = "10000000-0000-0000-0000-000000000003";
@@ -43,7 +44,7 @@ export function UpgradeSucessoPage() {
             <div className="auth-box" style={{ textAlign: "center", maxWidth: 440 }}>
                 {planoAtivado ? (
                     <>
-                        <div style={{ fontSize: 56, marginBottom: 16 }}>🎉</div>
+                        <div style={{ marginBottom: 16, display:"flex", justifyContent:"center" }}><LuPartyPopper size={52} color="var(--cyan)"/></div>
                         <h1 className="auth-box-title">
                             Bem-vindo ao {nomePlano}!
                         </h1>
@@ -54,7 +55,7 @@ export function UpgradeSucessoPage() {
                             to={planoAtual === PLANO_WHALLET_PLUS ? "/titulos" : "/excel"}
                             className="auth-box-btn"
                             style={{ display: "block", textDecoration: "none", textAlign: "center" }}>
-                            Começar a usar →
+                            <span style={{display:"inline-flex",alignItems:"center",gap:8}}>Começar a usar <LuArrowRight size={16}/></span>
                         </Link>
                     </>
                 ) : (
@@ -97,7 +98,7 @@ export function UpgradeCanceladoPage() {
     return (
         <div className="auth-wrap">
             <div className="auth-box" style={{ textAlign: "center", maxWidth: 440 }}>
-                <div style={{ fontSize: 56, marginBottom: 16 }}>↩️</div>
+                <div style={{ marginBottom: 16, display:"flex", justifyContent:"center" }}><LuCircleSlash size={52} color="var(--text-dim)"/></div>
                 <h1 className="auth-box-title">Pagamento cancelado</h1>
                 <p className="auth-box-sub" style={{ marginBottom: 24 }}>
                     Nenhuma cobrança foi realizada. Você pode tentar novamente quando quiser.

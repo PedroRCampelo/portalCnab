@@ -53,12 +53,12 @@ export default function ProtheusForm() {
             <span className="cnab-option-title">CNAB 400</span>
             <span className="cnab-option-subtitle">Layout clássico</span>
           </button>
-          <button type="button"
-            className={`cnab-option ${cnabType==="240"?"active":""}`}
-            onClick={() => setCnabType("240")}>
-            <span className="cnab-option-title">CNAB 240*</span>
-            <span className="cnab-option-subtitle">Em construção</span>
-          </button>
+          {/*<button type="button"*/}
+          {/*  className={`cnab-option ${cnabType==="240"?"active":""}`}*/}
+          {/*  onClick={() => setCnabType("240")}>*/}
+          {/*  <span className="cnab-option-title">CNAB 240*</span>*/}
+          {/*  <span className="cnab-option-subtitle">Em construção</span>*/}
+          {/*</button>*/}
         </div>
       </div>
 

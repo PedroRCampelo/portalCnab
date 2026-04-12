@@ -52,42 +52,42 @@ export default function GestaFinanceiraPage() {
             titulo: "Contas a pagar",
             desc: "Cadastre títulos manualmente ou importe via Excel. Controle vencimentos, saldos e status em tempo real.",
             badge: "Disponível",
-            badgeColor: "#6c5310",
+            badgeColor: "var(--cyan-dark)",
         },
         {
             icon: "📊",
             titulo: "Relatórios financeiros",
             desc: "Visão consolidada por período, fornecedor e status. Exporte para Excel ou PDF com um clique.",
             badge: "Em breve",
-            badgeColor: "#4D4A42",
+            badgeColor: "var(--text-muted)",
         },
         {
             icon: "🔔",
             titulo: "Alertas de vencimento",
             desc: "Receba e-mails automáticos dias antes do vencimento. Configure a antecedência conforme sua necessidade.",
             badge: "Em breve",
-            badgeColor: "#4D4A42",
+            badgeColor: "var(--text-muted)",
         },
         {
             icon: "🏦",
             titulo: "Remessa CNAB integrada",
             desc: "Gere arquivos de remessa bancária diretamente dos títulos cadastrados — sem redigitar dados.",
             badge: "Em breve",
-            badgeColor: "#4D4A42",
+            badgeColor: "var(--text-muted)",
         },
         {
             icon: "📥",
             titulo: "Importação via Excel",
             desc: "Compatível com exportações do Protheus (SE2/E2) e planilhas customizadas. Importe centenas de títulos.",
             badge: "Disponível",
-            badgeColor: "#6c5310",
+            badgeColor: "var(--cyan-dark)",
         },
         {
             icon: "🔄",
             titulo: "Integração Protheus",
             desc: "Busque títulos diretamente do ERP, gere remessas e faça write-back de baixas automaticamente.",
             badge: "Sob consulta",
-            badgeColor: "#7B766A",
+            badgeColor: "var(--text-dim)",
         },
     ];
 
@@ -101,13 +101,13 @@ export default function GestaFinanceiraPage() {
         {
             nome: "Pro",
             preco: "R$ 18,90/mês",
-            cor: "#4D4A42",
+            cor: "var(--text-muted)",
             items: ["Ilimitado", "Excel e PDF", "Todos", "—", "—", "—"],
         },
         {
             nome: "Whallet+",
             preco: "R$ 39,90/mês",
-            cor: "#6c5310",
+            cor: "var(--cyan-dark)",
             items: ["Ilimitado", "Excel e PDF", "Todos", "✓", "✓", "✓"],
         },
     ];
@@ -203,14 +203,14 @@ export default function GestaFinanceiraPage() {
                             display: "inline-flex",
                             alignItems: "center",
                             gap: 8,
-                            background: "rgba(212,160,23,0.10)",
-                            border: "1px solid rgba(212,160,23,0.28)",
+                            background: "rgba(6,182,212,0.08)",
+                            border: "1px solid rgba(6,182,212,0.25)",
                             borderRadius: 20,
                             padding: "6px 18px",
                             marginBottom: 24,
                             fontSize: 12,
                             fontWeight: 700,
-                            color: "#6c5310",
+                            color: "var(--cyan-dark)",
                             letterSpacing: "0.06em",
                         }}
                     >
@@ -229,7 +229,7 @@ export default function GestaFinanceiraPage() {
                     >
                         Controle financeiro integrado
                         <br />
-                        <span style={{ color: "#6c5310" }}>ao seu workflow bancário</span>
+                        <span style={{ color: "var(--cyan-dark)" }}>ao seu workflow bancário</span>
                     </h1>
 
                     <p
@@ -271,8 +271,8 @@ export default function GestaFinanceiraPage() {
                                 padding: "14px 32px",
                                 borderRadius: 12,
                                 background: "var(--grad)",
-                                border: "1px solid rgba(212,160,23,0.45)",
-                                color: "#1a1a1a",
+                                border: "1px solid rgba(6,182,212,0.4)",
+                                color: "#083344",
                                 fontWeight: 800,
                                 fontSize: 16,
                                 cursor: "pointer",
@@ -316,12 +316,12 @@ export default function GestaFinanceiraPage() {
                             alignItems: "center",
                             gap: 6,
                             marginTop: 16,
-                            background: "rgba(212,160,23,0.08)",
-                            border: "1px solid rgba(212,160,23,0.2)",
+                            background: "rgba(6,182,212,0.07)",
+                            border: "1px solid rgba(6,182,212,0.18)",
                             borderRadius: 20,
                             padding: "4px 14px",
                             fontSize: 12,
-                            color: "#6c5310",
+                            color: "var(--cyan-dark)",
                             fontWeight: 600,
                         }}
                     >
@@ -332,8 +332,8 @@ export default function GestaFinanceiraPage() {
                 <section
                     style={{
                         marginBottom: 64,
-                        background: "linear-gradient(180deg, rgba(212,160,23,0.06), rgba(212,160,23,0.01))",
-                        border: "1px solid rgba(212,160,23,0.16)",
+                        background: "linear-gradient(180deg, rgba(6,182,212,0.05), rgba(6,182,212,0.01))",
+                        border: "1px solid rgba(6,182,212,0.13)",
                         borderRadius: 24,
                         padding: "28px 20px 20px",
                         overflow: "hidden",
@@ -347,9 +347,9 @@ export default function GestaFinanceiraPage() {
                                 gap: 8,
                                 padding: "6px 12px",
                                 borderRadius: 999,
-                                background: "rgba(212,160,23,0.08)",
-                                border: "1px solid rgba(212,160,23,0.16)",
-                                color: "#6c5310",
+                                background: "rgba(6,182,212,0.07)",
+                                border: "1px solid rgba(6,182,212,0.13)",
+                                color: "var(--cyan-dark)",
                                 fontWeight: 700,
                                 fontSize: 12,
                                 marginBottom: 14,
@@ -407,9 +407,9 @@ export default function GestaFinanceiraPage() {
                                         borderRadius: 14,
                                         padding: "12px 16px",
                                         border: active
-                                            ? "1px solid rgba(212,160,23,0.45)"
+                                            ? "1px solid rgba(6,182,212,0.4)"
                                             : "1px solid var(--border)",
-                                        background: active ? "rgba(212,160,23,0.10)" : "var(--surface)",
+                                        background: active ? "rgba(6,182,212,0.08)" : "var(--surface)",
                                         color: "var(--text)",
                                         cursor: "pointer",
                                         textAlign: "left",
@@ -421,7 +421,7 @@ export default function GestaFinanceiraPage() {
                                         style={{
                                             fontSize: 11,
                                             fontWeight: 800,
-                                            color: active ? "#6c5310" : "var(--text-dim)",
+                                            color: active ? "var(--cyan-dark)" : "var(--text-dim)",
                                             letterSpacing: "0.05em",
                                             marginBottom: 6,
                                         }}
@@ -468,9 +468,9 @@ export default function GestaFinanceiraPage() {
                                     gap: 8,
                                     borderRadius: 999,
                                     padding: "6px 12px",
-                                    background: "rgba(212,160,23,0.09)",
-                                    border: "1px solid rgba(212,160,23,0.14)",
-                                    color: "#6c5310",
+                                    background: "rgba(6,182,212,0.07)",
+                                    border: "1px solid rgba(6,182,212,0.12)",
+                                    color: "var(--cyan-dark)",
                                     fontWeight: 700,
                                     fontSize: 12,
                                     marginBottom: 16,
@@ -534,7 +534,7 @@ export default function GestaFinanceiraPage() {
                                             border: "1px solid var(--border)",
                                         }}
                                     >
-                                        <span style={{ color: "#6c5310", fontWeight: 900 }}>✓</span>
+                                        <span style={{ color: "var(--cyan-dark)", fontWeight: 900 }}>✓</span>
                                         <span
                                             style={{
                                                 fontSize: 13,
@@ -560,9 +560,9 @@ export default function GestaFinanceiraPage() {
                                     style={{
                                         padding: "12px 16px",
                                         borderRadius: 12,
-                                        border: "1px solid rgba(212,160,23,0.35)",
-                                        background: "rgba(212,160,23,0.10)",
-                                        color: "#6c5310",
+                                        border: "1px solid rgba(6,182,212,0.3)",
+                                        background: "rgba(6,182,212,0.08)",
+                                        color: "var(--cyan-dark)",
                                         fontWeight: 800,
                                         cursor: "pointer",
                                     }}
@@ -613,7 +613,7 @@ export default function GestaFinanceiraPage() {
                           width: 10,
                           height: 10,
                           borderRadius: "50%",
-                          background: "#e5c07b",
+                          background: "var(--cyan-light)",
                           display: "inline-block",
                       }}
                   />
@@ -622,7 +622,7 @@ export default function GestaFinanceiraPage() {
                                             width: 10,
                                             height: 10,
                                             borderRadius: "50%",
-                                            background: "#d6d3d1",
+                                            background: "rgba(30,41,59,0.2)",
                                             display: "inline-block",
                                         }}
                                     />
@@ -631,7 +631,7 @@ export default function GestaFinanceiraPage() {
                                             width: 10,
                                             height: 10,
                                             borderRadius: "50%",
-                                            background: "#c4b5fd",
+                                            background: "rgba(6,182,212,0.4)",
                                             display: "inline-block",
                                         }}
                                     />
@@ -696,9 +696,9 @@ export default function GestaFinanceiraPage() {
                                                 borderRadius: 14,
                                                 padding: 10,
                                                 border: active
-                                                    ? "1px solid rgba(212,160,23,0.4)"
+                                                    ? "1px solid rgba(6,182,212,0.35)"
                                                     : "1px solid var(--border)",
-                                                background: active ? "rgba(212,160,23,0.08)" : "var(--surface)",
+                                                background: active ? "rgba(6,182,212,0.07)" : "var(--surface)",
                                                 cursor: "pointer",
                                             }}
                                         >
@@ -707,8 +707,8 @@ export default function GestaFinanceiraPage() {
                                                     width: 38,
                                                     height: 38,
                                                     borderRadius: 12,
-                                                    background: active ? "rgba(212,160,23,0.16)" : "rgba(0,0,0,0.04)",
-                                                    color: active ? "#6c5310" : "var(--text-dim)",
+                                                    background: active ? "rgba(6,182,212,0.13)" : "rgba(0,0,0,0.04)",
+                                                    color: active ? "var(--cyan-dark)" : "var(--text-dim)",
                                                     display: "flex",
                                                     alignItems: "center",
                                                     justifyContent: "center",
@@ -802,8 +802,8 @@ export default function GestaFinanceiraPage() {
                                         width: 42,
                                         height: 42,
                                         borderRadius: 14,
-                                        background: "rgba(212,160,23,0.10)",
-                                        color: "#6c5310",
+                                        background: "rgba(6,182,212,0.08)",
+                                        color: "var(--cyan-dark)",
                                         display: "flex",
                                         alignItems: "center",
                                         justifyContent: "center",
@@ -854,7 +854,7 @@ export default function GestaFinanceiraPage() {
                         <span
                             style={{
                                 background:
-                                    "linear-gradient(135deg, rgb(245, 158, 11), rgb(252, 211, 77))",
+                                    "linear-gradient(135deg, rgb(6, 182, 212), rgb(34, 211, 238))",
                                 WebkitBackgroundClip: "text",
                                 WebkitTextFillColor: "transparent",
                                 display: "inline-block",
@@ -1026,7 +1026,7 @@ export default function GestaFinanceiraPage() {
                                                     fontWeight: 600,
                                                     color:
                                                         p.items[j] === "✓"
-                                                            ? "#6c5310"
+                                                            ? "var(--cyan-dark)"
                                                             : p.items[j] === "—"
                                                                 ? "var(--text-dim)"
                                                                 : "var(--text)",
@@ -1045,8 +1045,8 @@ export default function GestaFinanceiraPage() {
                 <div
                     style={{
                         background:
-                            "linear-gradient(135deg, rgba(17,17,17,0.03), rgba(212,160,23,0.08))",
-                        border: "1px solid rgba(212,160,23,0.2)",
+                            "linear-gradient(135deg, rgba(17,17,17,0.03), rgba(6,182,212,0.07))",
+                        border: "1px solid rgba(6,182,212,0.18)",
                         borderRadius: 20,
                         padding: "40px 32px",
                         textAlign: "center",
@@ -1080,8 +1080,8 @@ export default function GestaFinanceiraPage() {
                             padding: "14px 36px",
                             borderRadius: 12,
                             background: "var(--grad)",
-                            border: "1px solid rgba(212,160,23,0.45)",
-                            color: "#1a1a1a",
+                            border: "1px solid rgba(6,182,212,0.4)",
+                            color: "#083344",
                             fontWeight: 800,
                             fontSize: 16,
                             cursor: "pointer",
@@ -1104,7 +1104,7 @@ export default function GestaFinanceiraPage() {
                             }}
                         >
                             Já tem conta?{" "}
-                            <Link to="/login" style={{ color: "#6c5310" }}>
+                            <Link to="/login" style={{ color: "var(--cyan-dark)" }}>
                                 Entrar
                             </Link>
                         </p>
@@ -1152,7 +1152,7 @@ export default function GestaFinanceiraPage() {
                                 <div
                                     style={{
                                         fontWeight: 900,
-                                        color: "#111",
+                                        color: "var(--text)",
                                         fontSize: 16,
                                         marginBottom: 2,
                                     }}
@@ -1161,7 +1161,7 @@ export default function GestaFinanceiraPage() {
                                 </div>
                                 <div
                                     style={{
-                                        color: "#666",
+                                        color: "var(--text-dim)",
                                         fontSize: 13,
                                     }}
                                 >
@@ -1178,7 +1178,7 @@ export default function GestaFinanceiraPage() {
                                     padding: "10px 14px",
                                     cursor: "pointer",
                                     fontWeight: 700,
-                                    color: "#111",
+                                    color: "var(--text)",
                                 }}
                             >
                                 Fechar
