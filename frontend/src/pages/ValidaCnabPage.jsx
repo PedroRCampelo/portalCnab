@@ -1,0 +1,133 @@
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import BankForm from "../components/BankForm.jsx";
+import ProtheusForm from "../components/ProtheusForm.jsx";
+import BannerAnonimo from "../components/BannerAnonimo.jsx";
+import { IcoExcel, IcoPdf, IcoBack } from "../components/icons.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
+
+export default function ValidaCnabPage() {
+    const [ferramenta, setFerramenta] = useState("excel"); // "excel" | "pdf"
+    const [source, setSource]         = useState("bank");
+    const { autenticado } = useAuth();
+
+    return (
+        <div className="tool-page">
+            <div className="tool-page-header">
+                <Link to="/" className="back-btn">
+                    <IcoBack/> Voltar
+                </Link>
+
+                {/* Seletor de ferramenta */}
+                <div style={{ display: "flex", gap: 8, marginBottom: 24 }}>
+                    <button
+                        onClick={() => setFerramenta("excel")}
+                        style={{
+                            display: "flex", alignItems: "center", gap: 8,
+                            padding: "10px 20px", borderRadius: 10, cursor: "pointer",
+                            fontWeight: 700, fontSize: 14,
+                            background: ferramenta === "excel" ? "var(--grad)" : "var(--surface)",
+                            border: ferramenta === "excel" ? "none" : "1px solid var(--border)",
+                            color: ferramenta === "excel" ? "#1a1a1a" : "var(--text-muted)",
+                        }}>
+                        <IcoExcel/> Exportar Excel
+                    </button>
+                    <button
+                        onClick={() => setFerramenta("pdf")}
+                        style={{
+                            display: "flex", alignItems: "center", gap: 8,
+                            padding: "10px 20px", borderRadius: 10, cursor: "pointer",
+                            fontWeight: 700, fontSize: 14,
+                            background: ferramenta === "pdf" ? "var(--grad)" : "var(--surface)",
+                            border: ferramenta === "pdf" ? "none" : "1px solid var(--border)",
+                            color: ferramenta === "pdf" ? "#1a1a1a" : "var(--text-muted)",
+                        }}>
+                        <IcoPdf/> Relatório PDF
+                    </button>
+                </div>
+
+                <div className="tool-page-title">
+                    {ferramenta === "excel" ? (
+                        <>
+                            <div className="tool-page-icon tool-page-icon--excel"><IcoExcel/></div>
+                            <div>
+                                <h1>Exportar para Excel</h1>
+                                <p>Converta sua remessa CNAB em planilha estruturada</p>
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <div className="tool-page-icon tool-page-icon--pdf"><IcoPdf/></div>
+                            <div>
+                                <h1>Relatório PDF analítico</h1>
+                                <p>Análise completa da remessa com alertas e resumo executivo</p>
+                            </div>
+                        </>
+                    )}
+                </div>
+            </div>
+
+            <BannerAnonimo/>
+
+            {ferramenta === "excel" ? (
+                <div className="tool-page-body">
+                    <div className="tool-page-form">
+                        <div className="source-tabs">
+                            <button
+                                className={`source-tab ${source === "bank" ? "source-tab--active" : ""}`}
+                                onClick={() => setSource("bank")}>
+                                🏦 Layout bancário
+                            </button>
+                            <button
+                                className={`source-tab ${source === "protheus" ? "source-tab--active" : ""}`}
+                                onClick={() => setSource("protheus")}>
+                                🔄 Protheus
+                            </button>
+                        </div>
+                        {source === "bank"
+                            ? <BankForm mode="excel" disabled={false}/>
+                            : <ProtheusForm mode="excel"/>
+                        }
+                    </div>
+                    <div className="tool-page-info">
+                        <InfoCard/>
+                    </div>
+                </div>
+            ) : (
+                <div className="tool-page-body">
+                    <div className="tool-page-form">
+                        <BankForm mode="pdf" disabled={false}/>
+                    </div>
+                    <div className="tool-page-info">
+                        <InfoCard pdf/>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
+function InfoCard({ pdf }) {
+    return (
+        <div className="info-card">
+            <h3>{pdf ? "Sobre o relatório PDF" : "Bancos suportados"}</h3>
+            {pdf ? (
+                <ul className="info-list">
+                    {["Resumo executivo com KPIs", "9 categorias de alertas automáticos",
+                        "Distribuição por segmento", "Top favorecidos e sacados",
+                        "Compatível com CNAB 240 e 400"].map(i => (
+                        <li key={i}><span className="info-check">✓</span>{i}</li>
+                    ))}
+                </ul>
+            ) : (
+                <ul className="info-list">
+                    {["Itaú CNAB 240 e 400", "Bradesco CNAB 240 e 400",
+                        "Banco do Brasil CNAB 240", "Caixa CNAB 240",
+                        "Layout 400 Protheus"].map(i => (
+                        <li key={i}><span className="info-check">✓</span>{i}</li>
+                    ))}
+                </ul>
+            )}
+        </div>
+    );
+}

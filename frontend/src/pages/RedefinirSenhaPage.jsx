@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import api from "../services/api.js";
+import { LuCircleCheckBig, LuArrowLeft } from "react-icons/lu";
 
 export default function RedefinirSenhaPage() {
     const [searchParams]    = useSearchParams();
@@ -57,7 +58,7 @@ export default function RedefinirSenhaPage() {
                             border: "1px solid rgba(22,163,74,0.2)",
                             display: "flex", alignItems: "center", justifyContent: "center",
                             fontSize: 26, margin: "0 0 20px"
-                        }}>✅</div>
+                        }}><LuCircleCheckBig size={24} color="var(--success)"/></div>
                         <h1 className="auth-box-title">Senha redefinida!</h1>
                         <p style={{ fontSize: 14, color: "var(--text-muted)", lineHeight: 1.7, margin: "0 0 24px" }}>
                             Sua senha foi alterada com sucesso. Você será redirecionado para o login em instantes.
@@ -103,7 +104,7 @@ export default function RedefinirSenhaPage() {
                         </form>
 
                         <p className="auth-box-footer">
-                            <Link to="/login" className="auth-box-link">← Voltar para o login</Link>
+                            <Link to="/login" className="auth-box-link"><span style={{display:"inline-flex",alignItems:"center",gap:6}}><LuArrowLeft size={14}/> Voltar para o login</span></Link>
                         </p>
                     </>
                 )}

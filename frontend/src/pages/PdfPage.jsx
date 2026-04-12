@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import BankForm from "../components/BankForm.jsx";
 import BannerAnonimo from "../components/BannerAnonimo.jsx";
+import { LuLightbulb, LuCircleCheck } from "react-icons/lu";
 import { IcoPdf, IcoBack } from "../components/icons.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 
@@ -46,12 +47,12 @@ export default function PdfPage() {
             <div className="info-card">
               <h3>Seções do relatório</h3>
               <ul className="info-list">
-                <li><span className="info-check">✓</span> Capa com logo, empresa e metadados</li>
-                <li><span className="info-check">✓</span> Resumo executivo — valor total, médias, KPIs</li>
-                <li><span className="info-check">✓</span> Distribuição por segmento com proporção</li>
-                <li><span className="info-check">✓</span> Linha do tempo mensal</li>
-                <li><span className="info-check">✓</span> Alertas automáticos por severidade</li>
-                <li><span className="info-check">✓</span> Top favorecidos / sacados</li>
+                <li><span className="info-check"><LuCircleCheck size={12}/></span> Capa com logo, empresa e metadados</li>
+                <li><span className="info-check"><LuCircleCheck size={12}/></span> Resumo executivo — valor total, médias, KPIs</li>
+                <li><span className="info-check"><LuCircleCheck size={12}/></span> Distribuição por segmento com proporção</li>
+                <li><span className="info-check"><LuCircleCheck size={12}/></span> Linha do tempo mensal</li>
+                <li><span className="info-check"><LuCircleCheck size={12}/></span> Alertas automáticos por severidade</li>
+                <li><span className="info-check"><LuCircleCheck size={12}/></span> Top favorecidos / sacados</li>
               </ul>
             </div>
             <div className="info-card info-card--alerts">
@@ -66,7 +67,7 @@ export default function PdfPage() {
               </ul>
             </div>
             <div className="info-tip">
-              <span className="info-tip-icon">💡</span>
+              <span className="info-tip-icon"><LuLightbulb size={16}/></span>
               <span>
               Prefere uma planilha para edição?{" "}
                 <Link to="/excel" className="link-btn">Exportar Excel</Link>.

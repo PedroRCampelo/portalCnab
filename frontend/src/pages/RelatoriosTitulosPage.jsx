@@ -28,7 +28,58 @@ const COR_AGING = { "0-30": "#F59E0B", "31-60": "#F97316", "61-90": "#EF4444", "
 export default function RelatoriosTitulosPage() {
     const [dados,      setDados]      = useState(null);
     const [carregando, setCarregando] = useState(true);
-    const [aba,        setAba]        = useState("fluxo"); // fluxo | tipos | fornecedores | aging
+    const [aba,        setAba]        = useState("fluxo");
+    const [exportando, setExportando] = useState(null); // "excel" | "pdf" | null
+
+    async function exportar(tipo) {
+        setExportando(tipo);
+
+        try {
+            const response = await api.get(`/api/titulos/exportar/${tipo}`, {
+                responseType: "blob"
+            });
+
+            const contentType = response.headers["content-type"] || "";
+            const expectedType =
+                tipo === "pdf"
+                    ? "application/pdf"
+                    : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
+            if (!contentType.includes(expectedType)) {
+                console.error(`Content-Type inesperado ao exportar ${tipo}:`, contentType);
+                alert(`A resposta recebida não é um arquivo ${tipo.toUpperCase()} válido.`);
+                return;
+            }
+
+            const blob = new Blob([response.data], { type: expectedType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+
+            a.href = url;
+            a.download = `titulos_${new Date().toISOString().slice(0, 10)}.${tipo === "excel" ? "xlsx" : "pdf"}`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+
+            URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error(`Erro ao exportar ${tipo}:`, err);
+
+            let mensagem = "Tente novamente.";
+            if (err.response?.data) {
+                try {
+                    const texto = await err.response.data.text();
+                    mensagem = texto || mensagem;
+                } catch {
+                    // ignora
+                }
+            }
+
+            alert(`Erro ao gerar ${tipo.toUpperCase()}. ${mensagem}`);
+        } finally {
+            setExportando(null);
+        }
+    }
 
     useEffect(() => {
         api.get("/api/titulos/relatorio")
@@ -58,12 +109,30 @@ export default function RelatoriosTitulosPage() {
                         Visão consolidada dos seus títulos a pagar
                     </p>
                 </div>
-                <Link to="/titulos" style={{
-                    padding: "8px 16px", borderRadius: 8, border: "1px solid var(--border)",
-                    color: "var(--text-muted)", fontSize: 13, fontWeight: 600, textDecoration: "none",
-                }}>
-                    ← Voltar para Títulos
-                </Link>
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                    <button onClick={() => exportar("excel")} disabled={exportando === "excel"} style={{
+                        padding: "8px 16px", borderRadius: 8, border: "1px solid var(--border)",
+                        background: "transparent", color: "var(--text-muted)", fontSize: 13,
+                        fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 6,
+                        opacity: exportando === "excel" ? 0.6 : 1,
+                    }}>
+                        📥 {exportando === "excel" ? "Gerando..." : "Exportar Excel"}
+                    </button>
+                    <button onClick={() => exportar("pdf")} disabled={exportando === "pdf"} style={{
+                        padding: "8px 16px", borderRadius: 8, border: "1px solid var(--border)",
+                        background: "transparent", color: "var(--text-muted)", fontSize: 13,
+                        fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 6,
+                        opacity: exportando === "pdf" ? 0.6 : 1,
+                    }}>
+                        📄 {exportando === "pdf" ? "Gerando..." : "Exportar PDF"}
+                    </button>
+                    <Link to="/titulos" style={{
+                        padding: "8px 16px", borderRadius: 8, border: "1px solid var(--border)",
+                        color: "var(--text-muted)", fontSize: 13, fontWeight: 600, textDecoration: "none",
+                    }}>
+                        ← Títulos
+                    </Link>
+                </div>
             </div>
 
             {carregando ? (

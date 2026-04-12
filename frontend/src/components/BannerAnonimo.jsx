@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import api from "../services/api.js";
+import { LuLock, LuCircleCheck, LuTriangleAlert } from "react-icons/lu";
 
 export default function BannerAnonimo({ onLimiteBloqueado }) {
     const { autenticado } = useAuth();
@@ -32,7 +33,7 @@ export default function BannerAnonimo({ onLimiteBloqueado }) {
             }}>
                 <div>
                     <div style={{ fontWeight: 700, color: "var(--text)", marginBottom: 4, fontSize: 15 }}>
-                        🔒 Você usou suas 2 conversões gratuitas
+                        <span style={{display:"inline-flex",alignItems:"center",gap:8}}><LuLock size={16}/> Você usou suas 2 conversões gratuitas</span>
                     </div>
                     <div style={{ color: "var(--text-dim)", fontSize: 13 }}>
                         Crie uma conta gratuita e tenha 8 conversões por mês — sem cartão de crédito.
@@ -66,7 +67,7 @@ export default function BannerAnonimo({ onLimiteBloqueado }) {
                 gap: 12, flexWrap: "wrap"
             }}>
                 <div style={{ fontSize: 13, color: "var(--text-muted)" }}>
-                    ✅ <strong style={{ color: "var(--text)" }}>2 conversões gratuitas</strong> disponíveis sem login.{" "}
+                    <span style={{display:"inline-flex",alignItems:"center",gap:8}}><LuCircleCheck size={16}/><strong style={{ color: "var(--text)" }}>2 conversões gratuitas</strong> disponíveis sem login.</span>{" "}
                     <Link to="/cadastro" style={{ color: "var(--warning)", fontWeight: 600 }}>
                         Crie uma conta
                     </Link>{" "}
@@ -86,7 +87,7 @@ export default function BannerAnonimo({ onLimiteBloqueado }) {
                 gap: 12, flexWrap: "wrap"
             }}>
                 <div style={{ fontSize: 13, color: "var(--text-muted)" }}>
-                    ⚠️ Esta é sua <strong style={{ color: "var(--warning)" }}>última conversão gratuita</strong>.{" "}
+                    <span style={{display:"inline-flex",alignItems:"center",gap:8}}><LuTriangleAlert size={16}/> Esta é sua <strong style={{ color: "var(--warning)" }}>última conversão gratuita</strong>.</span>{" "}
                     <Link to="/cadastro" style={{ color: "var(--warning)", fontWeight: 600 }}>
                         Crie uma conta grátis
                     </Link>{" "}

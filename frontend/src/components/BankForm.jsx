@@ -4,7 +4,8 @@ import { useAuth } from "../context/AuthContext.jsx";
 import api from "../services/api.js";
 import CotaBadge from "./CotaBadge.jsx";
 import { BANK_LAYOUTS, banks } from "./banks.jsx";
-import { IcoCheck, IcoChevron, IcoUpload, IcoSpinner, IcoExcel, IcoPdf } from "./icons.jsx";
+import { LuLock, LuCircleCheck, LuCircleX } from "react-icons/lu";
+import { IcoCheck, IcoChevron, IcoUpload, IcoSpinner, IcoExcel, IcoPdf, IcoArrow } from "./icons.jsx";
 
 export default function BankForm({ toolMode, desabilitado = false }) {
   const { autenticado } = useAuth();
@@ -63,7 +64,7 @@ export default function BankForm({ toolMode, desabilitado = false }) {
           background: "rgba(17,17,17,0.05)", border: "1px solid rgba(17,17,17,0.18)",
           borderRadius: 14, padding: "32px 24px", textAlign: "center"
         }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>🔒</div>
+          <div style={{ marginBottom: 12, display:"flex", justifyContent:"center" }}><LuLock size={38} color="var(--text)"/></div>
           <h3 style={{ color: "var(--text)", fontWeight: 700, margin: "0 0 8px" }}>
             Você usou suas 2 conversões gratuitas
           </h3>
@@ -78,7 +79,7 @@ export default function BankForm({ toolMode, desabilitado = false }) {
             <Link to="/cadastro" style={{
               padding: "11px 24px", borderRadius: 10, background: "var(--purple)",
               border: "none", color: "white", fontWeight: 700, fontSize: 14, textDecoration: "none"
-            }}>Criar conta grátis →</Link>
+            }}><span style={{display:"inline-flex",alignItems:"center",gap:8}}>Criar conta grátis <IcoArrow/></span></Link>
           </div>
         </div>
     );
@@ -162,7 +163,7 @@ export default function BankForm({ toolMode, desabilitado = false }) {
 
         {msg && msg !== "LIMITE_ANONIMO" && (
             <div className={`msg ${msg.includes("Erro") || msg.includes("Limite") ? "msg--error" : "msg--success"}`}>
-              {msg.includes("Erro") || msg.includes("Limite") ? "✕ " : "✓ "}{msg}
+              {msg.includes("Erro") || msg.includes("Limite") ? <LuCircleX size={16}/> : <LuCircleCheck size={16}/>}<span>{msg}</span>
             </div>
         )}
       </form>

@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+
 /* ── Base global ─────────────────────────────────────── */
 
 :root {
@@ -10,18 +12,18 @@ html {
 
 body {
   margin: 0;
-  background: #f6f4ef;
+  background: #F5F3EE;
   color: #111111;
 }
 
 /* Scrollbar customizada */
 ::-webkit-scrollbar       { width: 6px; }
-::-webkit-scrollbar-track { background: #e8e5dc; }
-::-webkit-scrollbar-thumb { background: #b9b4a8; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #9d9688; }
+::-webkit-scrollbar-track { background: #E9E4DB; }
+::-webkit-scrollbar-thumb { background: #B7B0A5; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #8F877B; }
 
 /* Seleção de texto */
 ::selection {
-  background: #f59e0b;
-  color: #111;
+  background: #111111;
+  color: #FFFFFF;
 }

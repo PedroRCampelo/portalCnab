@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import api from "../services/api.js";
+import { LuFolderOpen } from "react-icons/lu";
 
 export default function HistoricoPage() {
     const [remessas,   setRemessas]   = useState([]);
@@ -42,7 +43,7 @@ export default function HistoricoPage() {
 
                 {!carregando && !erro && remessas.length === 0 && (
                     <div style={{ textAlign: "center", padding: "48px 0" }}>
-                        <div style={{ fontSize: 48, marginBottom: 12 }}>📂</div>
+                        <div style={{ marginBottom: 12, display:"flex", justifyContent:"center" }}><LuFolderOpen size={44} color="var(--text-dim)"/></div>
                         <p style={{ color: "var(--text-dim)", fontSize: 14 }}>
                             Nenhuma remessa gerada ainda.
                         </p>
