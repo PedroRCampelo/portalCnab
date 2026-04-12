@@ -1,40 +1,92 @@
 HELP.md
 
-# Maven / Java
+# =========================
+# Java / Maven / Spring
+# =========================
 target/
 build/
+out/
+*.class
+*.jar
+*.war
+*.ear
+
 !*/src/main/*/target/
 !*/src/test/*/target/
 !*/src/main/*/build/
 !*/src/test/*/build/
 
-# App files
+# Maven wrapper logs / temp
+.mvn/timing.properties
+
+# =========================
+# Node / Frontend
+# =========================
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+coverage/
+frontend/coverage/
+.npm/
+.pnpm-store/
+.parcel-cache/
+.next/
+.nuxt/
+.svelte-kit/
+vite.svg
+*.tsbuildinfo
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# =========================
+# App files / generated files
+# =========================
 files/
 uploads/
 tmp/
 temp/
 logs/
-*.log
+
+# Arquivos gerados localmente
 *.xlsx
 *.xls
 *.csv
 *.pdf
 
-# Env / secrets
+# =========================
+# Environment / secrets
+# =========================
 .env
 .env.*
 !.env.example
+
 application-local.properties
 application-local.yml
 application-*.local.properties
 application-*.local.yml
+
+# Se usar arquivos de config sensíveis fora do padrão
+*.pem
+*.key
+*.p12
+*.jks
+
+# =========================
+# IDEs
+# =========================
 
 ### STS ###
 .apt_generated
 .classpath
 .factorypath
 .project
-.settings
+.settings/
 .springBeans
 .sts4-cache
 
@@ -54,6 +106,8 @@ application-*.local.yml
 ### VS Code ###
 .vscode/
 
+# =========================
 # OS files
+# =========================
 .DS_Store
 Thumbs.db
