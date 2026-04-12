@@ -41,8 +41,8 @@ public interface TituloRepository extends JpaRepository<Titulo, UUID> {
             nativeQuery = true)
     Page<Titulo> findByUsuarioIdComFiltros(
             @Param("usuarioId") UUID usuarioId,
-            @Param("status") String status,
-            @Param("busca") String busca,
+            @Param("status")    String status,
+            @Param("busca")     String busca,
             Pageable pageable
     );
 
@@ -54,6 +54,17 @@ public interface TituloRepository extends JpaRepository<Titulo, UUID> {
 
     boolean existsByUsuarioIdAndNumeroAndParcela(UUID usuarioId, String numero, String parcela);
 
+    // Para relatórios — sem paginação, ordenado por vencimento
+    @Query(value = """
+        SELECT * FROM titulos t
+        WHERE t.usuario_id = :usuarioId
+          AND (CAST(:status AS text) IS NULL OR t.status = CAST(:status AS text))
+        ORDER BY t.vencimento ASC NULLS LAST
+        """, nativeQuery = true)
+    List<Titulo> findParaRelatorio(
+            @Param("usuarioId") UUID usuarioId,
+            @Param("status")    String status);
+
     // Atualiza em massa: PENDENTE → VENCIDO para todos cujo vencimento já passou
     @Modifying
     @Transactional
@@ -63,8 +74,8 @@ public interface TituloRepository extends JpaRepository<Titulo, UUID> {
     // Fluxo de caixa: soma de saldo por mês/ano de vencimento (só em aberto)
     @Query(value = """
         SELECT TO_CHAR(t.vencimento, 'YYYY-MM') AS mes,
-               SUM(t.saldo) AS total,
-               COUNT(*) AS quantidade
+               SUM(t.saldo)                      AS total,
+               COUNT(*)                           AS quantidade
         FROM titulos t
         WHERE t.usuario_id = :usuarioId
           AND t.status != 'PAGO'
@@ -74,15 +85,14 @@ public interface TituloRepository extends JpaRepository<Titulo, UUID> {
         """, nativeQuery = true)
     List<Object[]> fluxoCaixaMensal(
             @Param("usuarioId") UUID usuarioId,
-            @Param("inicio") java.time.LocalDate inicio,
-            @Param("fim") java.time.LocalDate fim
-    );
+            @Param("inicio")    java.time.LocalDate inicio,
+            @Param("fim")       java.time.LocalDate fim);
 
     // Por tipo de gasto: soma de saldo agrupada por tipo_gasto_id
     @Query(value = """
         SELECT COALESCE(tg.nome, 'Sem categoria') AS categoria,
-               SUM(t.saldo) AS total,
-               COUNT(*) AS quantidade
+               SUM(t.saldo)                        AS total,
+               COUNT(*)                            AS quantidade
         FROM titulos t
         LEFT JOIN tipos_gasto tg ON tg.id = t.tipo_gasto_id
         WHERE t.usuario_id = :usuarioId
@@ -95,8 +105,8 @@ public interface TituloRepository extends JpaRepository<Titulo, UUID> {
     // Top fornecedores: soma de saldo por fornecedor
     @Query(value = """
         SELECT t.fornecedor_nome AS fornecedor,
-               SUM(t.saldo) AS total,
-               COUNT(*) AS quantidade
+               SUM(t.saldo)      AS total,
+               COUNT(*)          AS quantidade
         FROM titulos t
         WHERE t.usuario_id = :usuarioId
           AND t.status != 'PAGO'
@@ -110,18 +120,17 @@ public interface TituloRepository extends JpaRepository<Titulo, UUID> {
     @Query(value = """
         SELECT
           CASE
-            WHEN CURRENT_DATE - t.vencimento <= 30 THEN '0-30'
-            WHEN CURRENT_DATE - t.vencimento <= 60 THEN '31-60'
-            WHEN CURRENT_DATE - t.vencimento <= 90 THEN '61-90'
+            WHEN CURRENT_DATE - t.vencimento <= 30  THEN '0-30'
+            WHEN CURRENT_DATE - t.vencimento <= 60  THEN '31-60'
+            WHEN CURRENT_DATE - t.vencimento <= 90  THEN '61-90'
             ELSE '+90'
           END AS faixa,
           SUM(t.saldo) AS total,
-          COUNT(*) AS quantidade
+          COUNT(*)     AS quantidade
         FROM titulos t
         WHERE t.usuario_id = :usuarioId
           AND t.status = 'VENCIDO'
         GROUP BY faixa
         ORDER BY MIN(CURRENT_DATE - t.vencimento)
         """, nativeQuery = true)
-    List<Object[]> aging(@Param("usuarioId") UUID usuarioId);
-}
+    List<Object[]> aging(@Param("usuarioId") UUID usuarioId);}

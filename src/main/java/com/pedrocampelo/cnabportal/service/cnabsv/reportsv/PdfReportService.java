@@ -37,37 +37,37 @@ import java.util.Map;
  * Nova identidade visual:
  * - Fundo branco
  * - Texto preto/cinza escuro
- * - Destaques em amarelo/dourado
+ * - Destaques em ciano/slate
  */
 @Service
 public class PdfReportService {
 
     // ── Nova paleta ─────────────────────────────────────────────────────────
-    private static final DeviceRgb BG_PAGE         = rgb(255, 255, 255); // branco
-    private static final DeviceRgb BG_LIGHT        = rgb(245, 245, 240); // off-white
-    private static final DeviceRgb BG_CARD         = rgb(250, 250, 248); // cards claros
-    private static final DeviceRgb BG_CARD_ALT     = rgb(255, 251, 235); // leve tom dourado
-    private static final DeviceRgb BORDER_LIGHT    = rgb(229, 229, 229);
-    private static final DeviceRgb BORDER_DARK     = rgb(210, 210, 210);
+    private static final DeviceRgb BG_PAGE         = rgb(255, 255, 255); // #FFFFFF
+    private static final DeviceRgb BG_LIGHT        = rgb(248, 250, 252); // #F8FAFC
+    private static final DeviceRgb BG_CARD         = rgb(255, 255, 255); // #FFFFFF
+    private static final DeviceRgb BG_CARD_ALT     = rgb(239, 244, 248); // derivado de EFF4
+    private static final DeviceRgb BORDER_LIGHT    = rgb(203, 213, 225); // #CBD5E1
+    private static final DeviceRgb BORDER_DARK     = rgb(148, 163, 184); // apoio neutro
 
-    private static final DeviceRgb GOLD            = rgb(245, 158, 11);  // #F59E0B
-    private static final DeviceRgb GOLD_SOFT       = rgb(252, 211, 77);  // dourado claro
-    private static final DeviceRgb GOLD_DARK       = rgb(217, 119, 6);
+    private static final DeviceRgb GOLD            = rgb(6, 182, 212);   // #06B6D4
+    private static final DeviceRgb GOLD_SOFT       = rgb(34, 211, 238);  // #22D3EE
+    private static final DeviceRgb GOLD_DARK       = rgb(14, 116, 144);  // apoio do ciano
 
-    private static final DeviceRgb TEXT_MAIN       = rgb(17, 17, 17);    // preto principal
-    private static final DeviceRgb TEXT_SECONDARY  = rgb(55, 55, 55);
-    private static final DeviceRgb TEXT_MUTED      = rgb(120, 120, 120);
-    private static final DeviceRgb TEXT_DIM        = rgb(145, 145, 145);
+    private static final DeviceRgb TEXT_MAIN       = rgb(30, 41, 59);    // #1E293B
+    private static final DeviceRgb TEXT_SECONDARY  = rgb(51, 65, 85);    // #334155
+    private static final DeviceRgb TEXT_MUTED      = rgb(71, 85, 105);   // #475569
+    private static final DeviceRgb TEXT_DIM        = rgb(100, 116, 139); // apoio neutro
 
-    private static final DeviceRgb SUCCESS         = rgb(22, 163, 74);
+    private static final DeviceRgb SUCCESS         = rgb(34, 211, 238);  // #22D3EE
     private static final DeviceRgb ERROR           = rgb(220, 38, 38);
-    private static final DeviceRgb WARNING         = rgb(245, 158, 11);
-    private static final DeviceRgb INFO_COLOR      = rgb(202, 138, 4);
+    private static final DeviceRgb WARNING         = rgb(6, 182, 212);   // #06B6D4
+    private static final DeviceRgb INFO_COLOR      = rgb(51, 65, 85);    // #334155
 
     private static final DeviceRgb ERROR_BG        = rgb(254, 242, 242);
-    private static final DeviceRgb WARN_BG         = rgb(255, 251, 235);
-    private static final DeviceRgb INFO_BG         = rgb(254, 249, 195);
-    private static final DeviceRgb SUCCESS_BG      = rgb(240, 253, 244);
+    private static final DeviceRgb WARN_BG         = rgb(239, 244, 248); // derivado de EFF4
+    private static final DeviceRgb INFO_BG         = rgb(248, 250, 252); // #F8FAFC
+    private static final DeviceRgb SUCCESS_BG      = rgb(236, 254, 255); // ciano muito claro
 
     private static final NumberFormat BRL = NumberFormat.getCurrencyInstance(new Locale("pt","BR"));
     private static final float MARGIN = 40f;

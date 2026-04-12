@@ -2,11 +2,13 @@ package com.pedrocampelo.cnabportal.controller;
 
 import com.pedrocampelo.cnabportal.model.Titulo;
 import com.pedrocampelo.cnabportal.model.Usuario;
+import com.pedrocampelo.cnabportal.service.gestaosv.TituloReportService;
 import com.pedrocampelo.cnabportal.service.gestaosv.TituloService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -32,13 +34,14 @@ import java.util.stream.Collectors;
 public class TituloController {
 
     private final TituloService tituloService;
+    private final TituloReportService tituloReportService;
 
     // ── GET /api/titulos — listagem paginada com filtros ──────────────────────
     @GetMapping
     public ResponseEntity<Page<Titulo>> listar(
             @AuthenticationPrincipal Usuario usuario,
-            @RequestParam(defaultValue = "")  String status,
-            @RequestParam(defaultValue = "")  String busca,
+            @RequestParam(defaultValue = "") String status,
+            @RequestParam(defaultValue = "") String busca,
             @RequestParam(defaultValue = "0") int pagina,
             @RequestParam(defaultValue = "20") int tamanho) {
 
@@ -106,12 +109,16 @@ public class TituloController {
             @RequestBody Map<String, Object> body) {
         try {
             BigDecimal valorPago = new BigDecimal(String.valueOf(body.get("valorPago")));
-            LocalDate dataBaixa  = body.get("dataBaixa") != null
+            LocalDate dataBaixa = body.get("dataBaixa") != null
                     ? LocalDate.parse(String.valueOf(body.get("dataBaixa")))
                     : LocalDate.now();
-            String observacao    = body.get("observacao") != null
-                    ? String.valueOf(body.get("observacao")) : "";
-            return ResponseEntity.ok(tituloService.registrarBaixa(id, valorPago, dataBaixa, observacao, usuario));
+            String observacao = body.get("observacao") != null
+                    ? String.valueOf(body.get("observacao"))
+                    : "";
+
+            return ResponseEntity.ok(
+                    tituloService.registrarBaixa(id, valorPago, dataBaixa, observacao, usuario)
+            );
         } catch (NoSuchElementException e) {
             return ResponseEntity.notFound().build();
         } catch (SecurityException e) {
@@ -121,29 +128,86 @@ public class TituloController {
         }
     }
 
+    // ── GET /api/titulos/exportar/excel ───────────────────────────────────────
+    @GetMapping("/exportar/excel")
+    public ResponseEntity<?> exportarExcel(
+            @AuthenticationPrincipal Usuario usuario,
+            @RequestParam(defaultValue = "") String status) {
+        try {
+            byte[] bytes = tituloReportService.gerarExcel(usuario.getId(), status);
+            String filename = "titulos_" + LocalDate.now() + ".xlsx";
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                    .contentLength(bytes.length)
+                    .body(bytes);
+
+        } catch (Exception e) {
+            log.error("Erro ao gerar Excel de títulos", e);
+            return ResponseEntity.internalServerError()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(Map.of(
+                            "mensagem", "Erro ao gerar Excel.",
+                            "detalhe", e.getMessage() != null ? e.getMessage() : "Erro interno sem detalhe."
+                    ));
+        }
+    }
+
+    // ── GET /api/titulos/exportar/pdf ─────────────────────────────────────────
+    @GetMapping("/exportar/pdf")
+    public ResponseEntity<?> exportarPdf(
+            @AuthenticationPrincipal Usuario usuario,
+            @RequestParam(defaultValue = "") String status) {
+        try {
+            byte[] bytes = tituloReportService.gerarPdf(usuario.getId(), status);
+            String filename = "titulos_" + LocalDate.now() + ".pdf";
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                    .contentLength(bytes.length)
+                    .body(bytes);
+
+        } catch (Exception e) {
+            log.error("Erro ao gerar PDF de títulos", e);
+            return ResponseEntity.internalServerError()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(Map.of(
+                            "mensagem", "Erro ao gerar PDF.",
+                            "detalhe", e.getMessage() != null ? e.getMessage() : "Erro interno sem detalhe."
+                    ));
+        }
+    }
+
     // ── POST /api/titulos/parcelado — lançamento parcelado ───────────────────
     @PostMapping("/parcelado")
     public ResponseEntity<?> criarParcelado(
             @AuthenticationPrincipal Usuario usuario,
             @RequestBody Map<String, Object> body) {
         try {
-            // Deserializa o template manualmente para evitar complexidade de @Valid
             com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
             mapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+
             Titulo template = mapper.convertValue(body.get("titulo"), Titulo.class);
-            int qtd         = Integer.parseInt(String.valueOf(body.get("qtdParcelas")));
-            int intervalo   = Integer.parseInt(String.valueOf(body.get("intervaloDias")));
+            int qtd = Integer.parseInt(String.valueOf(body.get("qtdParcelas")));
+            int intervalo = Integer.parseInt(String.valueOf(body.get("intervaloDias")));
 
             List<Titulo> criados = tituloService.criarParcelado(
-                    new TituloService.ParceladoRequest(template, qtd, intervalo), usuario);
+                    new TituloService.ParceladoRequest(template, qtd, intervalo),
+                    usuario
+            );
 
             return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(Map.of("criados", criados.size(), "mensagem",
-                            criados.size() + " parcelas criadas com sucesso."));
+                    .body(Map.of(
+                            "criados", criados.size(),
+                            "mensagem", criados.size() + " parcelas criadas com sucesso."
+                    ));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("mensagem", e.getMessage()));
         } catch (Exception e) {
-            log.error("Erro ao criar parcelado: {}", e.getMessage());
+            log.error("Erro ao criar parcelado", e);
             return ResponseEntity.internalServerError()
                     .body(Map.of("mensagem", "Erro ao criar parcelas."));
         }
@@ -154,20 +218,27 @@ public class TituloController {
     public ResponseEntity<Map<String, Object>> relatorio(@AuthenticationPrincipal Usuario usuario) {
         return ResponseEntity.ok(tituloService.relatorioCompleto(usuario.getId()));
     }
+
+    // ── POST /api/titulos/importar — importação por Excel ─────────────────────
+    @PostMapping(value = "/importar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> importar(
             @AuthenticationPrincipal Usuario usuario,
             @RequestPart("arquivo") MultipartFile arquivo) {
         try {
-            TituloService.ImportacaoResultado resultado =
-                    tituloService.importarExcel(arquivo, usuario);
+            TituloService.ImportacaoResultado resultado = tituloService.importarExcel(arquivo, usuario);
+
             return ResponseEntity.ok(Map.of(
                     "importados", resultado.importados(),
-                    "erros",      resultado.erros()
+                    "erros", resultado.erros()
             ));
         } catch (IOException e) {
-            log.error("Erro ao processar Excel: {}", e.getMessage());
+            log.error("Erro ao processar Excel de importação", e);
             return ResponseEntity.badRequest()
                     .body(Map.of("mensagem", "Arquivo inválido. Use um .xlsx válido."));
+        } catch (Exception e) {
+            log.error("Erro inesperado ao importar Excel", e);
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("mensagem", "Erro interno ao importar arquivo."));
         }
     }
 
@@ -177,6 +248,8 @@ public class TituloController {
         String mensagem = ex.getBindingResult().getFieldErrors().stream()
                 .map(FieldError::getDefaultMessage)
                 .collect(Collectors.joining(", "));
-        return ResponseEntity.badRequest().body(Map.of("mensagem", "Verifique os campos: " + mensagem));
+
+        return ResponseEntity.badRequest()
+                .body(Map.of("mensagem", "Verifique os campos: " + mensagem));
     }
 }

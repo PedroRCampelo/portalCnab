@@ -100,6 +100,23 @@ public class Usuario implements UserDetails {
     @Column(name = "telefone", length = 20)
     private String telefone;
 
+    // ── Preferências de alertas de e-mail ─────────────────────────────────────
+
+    @Column(name = "alerta_vencidos", nullable = false)
+    @Builder.Default
+    private Boolean alertaVencidos = false;     // receber e-mail sobre títulos já vencidos
+
+    @Column(name = "alerta_a_vencer", nullable = false)
+    @Builder.Default
+    private Boolean alertaAVencer = false;      // receber e-mail sobre títulos a vencer
+
+    @Column(name = "alerta_dias_antes")
+    @Builder.Default
+    private Integer alertaDiasAntes = 3;        // quantos dias antes do vencimento alertar
+
+    @Column(name = "alerta_ultimo_envio")
+    private LocalDate alertaUltimoEnvio;        // data do último envio (evita duplicatas)
+
     @CreationTimestamp
     @Column(name = "criado_em", nullable = false, updatable = false)
     private LocalDateTime criadoEm;

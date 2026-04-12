@@ -19,6 +19,13 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
     Optional<Usuario> findByStripeSubscriptionId(String stripeSubscriptionId);
     Optional<Usuario> findByTokenVerificacao(String token);
     Optional<Usuario> findByTokenRedefinicao(String token);
+
+    // Busca usuários que querem receber algum tipo de alerta e têm e-mail verificado
+    @org.springframework.data.jpa.repository.Query(
+            "SELECT u FROM Usuario u WHERE u.emailVerificado = true AND u.ativo = true " +
+                    "AND (u.alertaVencidos = true OR u.alertaAVencer = true)"
+    )
+    java.util.List<Usuario> findUsuariosComAlertaAtivo();
     boolean existsByEmail(String email);
 
     @Modifying
