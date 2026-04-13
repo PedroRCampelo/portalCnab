@@ -12,7 +12,7 @@ export default function LoginPage() {
     const { login } = useAuth();
     const navigate  = useNavigate();
     const location  = useLocation();
-    const destino   = location.state?.from?.pathname ?? "/excel";
+    const destino   = location.state?.from?.pathname ?? "/";
 
     async function handleSubmit(e) {
         e.preventDefault();

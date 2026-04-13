@@ -85,7 +85,7 @@ export default function ValidaCnabPage() {
                             </button>
                         </div>
                         {source === "bank"
-                            ? <BankForm mode="excel" disabled={false}/>
+                            ? <BankForm toolMode="excel" desabilitado={false}/>
                             : <ProtheusForm mode="excel"/>
                         }
                     </div>
@@ -96,7 +96,7 @@ export default function ValidaCnabPage() {
             ) : (
                 <div className="tool-page-body">
                     <div className="tool-page-form">
-                        <BankForm mode="pdf" disabled={false}/>
+                        <BankForm toolMode="pdf" desabilitado={false}/>
                     </div>
                     <div className="tool-page-info">
                         <InfoCard pdf/>
