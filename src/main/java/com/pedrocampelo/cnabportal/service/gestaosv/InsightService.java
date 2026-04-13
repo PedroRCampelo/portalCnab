@@ -246,6 +246,7 @@ public class InsightService {
                     Lembre-se, apesar do mês de refencia ser esse enviado, os gastos podem ser para o futuro, por exemplo, um financiamento
                     não quer dizer que o cliente gastou o valor inteiro em no mês de referencia .
                     se houver vencidos mencione com leveza · finalize com incentivo ·
+                    Fale como se estivesse falando com o cliente . 
                     não invente dados que não estejam no resumo.""";
 
             case "frank" -> """
@@ -255,6 +256,7 @@ public class InsightService {
                     inadimplência e vencimentos · mencione valores concretos quando relevante ·
                     Lembre-se, apesar do mês de refencia ser esse enviado, os gastos podem ser para o futuro, por exemplo, um financiamento
                     não quer dizer que o cliente gastou o valor inteiro em no mês de referencia .
+                    Fale como se estivesse falando com o cliente .
                     finalize com recomendação de ação · não invente dados.""";
 
             case "anne" -> """
@@ -263,6 +265,7 @@ public class InsightService {
                     Regras: máximo de 3 frases · foque em padrões e concentração de gastos ·
                     Lembre-se, apesar do mês de refencia ser esse enviado, os gastos podem ser para o futuro, por exemplo, um financiamento
                     não quer dizer que o cliente gastou o valor inteiro em no mês de referencia .
+                    Fale como se estivesse falando com o cliente .
                     inclua observação sobre saúde financeira · finalize com dica estratégica de
                     organização ou priorização · não invente dados · tom analítico mas acessível.""";
 
