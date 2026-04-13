@@ -117,6 +117,44 @@ public class Usuario implements UserDetails {
     @Column(name = "alerta_ultimo_envio")
     private LocalDate alertaUltimoEnvio;        // data do último envio (evita duplicatas)
 
+    // ── Insight de IA ────────────────────────────────────────────────────────
+
+    // ── Cache de insights por bot ─────────────────────────────────────────────
+
+    @Column(name = "insight_aurora_texto", columnDefinition = "TEXT")
+    private String insightAuroraTexto;
+
+    @Column(name = "insight_aurora_gerado_em")
+    private LocalDate insightAuroraGeradoEm;
+
+    @Column(name = "insight_frank_texto", columnDefinition = "TEXT")
+    private String insightFrankTexto;
+
+    @Column(name = "insight_frank_gerado_em")
+    private LocalDate insightFrankGeradoEm;
+
+    @Column(name = "insight_anne_texto", columnDefinition = "TEXT")
+    private String insightAnneTexto;
+
+    @Column(name = "insight_anne_gerado_em")
+    private LocalDate insightAnneGeradoEm;
+
+    // Versão global — incrementa a cada novo insight gerado por qualquer bot
+    @Column(name = "insight_versao")
+    @Builder.Default
+    private Integer insightVersao = 0;
+
+    // Legado — mantido para não quebrar migrações anteriores
+    @Column(name = "insight_texto", columnDefinition = "TEXT")
+    private String insightTexto;
+
+    @Column(name = "insight_gerado_em")
+    private LocalDate insightGeradoEm;
+
+    @Column(name = "insight_bot", length = 10)
+    @Builder.Default
+    private String insightBot = "aurora";
+
     @CreationTimestamp
     @Column(name = "criado_em", nullable = false, updatable = false)
     private LocalDateTime criadoEm;
