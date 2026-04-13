@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, memo } from "react";
 import { Link } from "react-router-dom";
 import api from "../services/api.js";
+import InsightCard from "../components/InsightCard.jsx";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constantes
@@ -485,6 +486,11 @@ export default function TitulosPage() {
                     ))}
                 </div>
             )}
+
+            {/* ── Insight de IA ── */}
+            <div style={{ marginBottom: 24 }}>
+                <InsightCard/>
+            </div>
 
             {/* ── Filtros ── */}
             <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
