@@ -151,7 +151,7 @@ export default function HomePage() {
                         iconBg="rgba(6,182,212,0.1)" iconColor="var(--cyan)"
                         title="Conversor CNAB"
                         desc="Transforme arquivos de remessa e retorno bancário em Excel estruturado ou relatório PDF analítico com alertas automáticos. Sem instalação."
-                        features={["CNAB 240 e 400 — Itaú, Bradesco, BB, Caixa","Excel com abas por segmento (A, J, O, N)","PDF com KPIs, alertas e distribuição","Integração com Protheus SE2/E2"]}
+                        features={["CNAB 240 e 400 — Itaú, Bradesco, BB, Caixa","Excel com abas por segmento (A, J, O, N)","PDF com KPIs, alertas e distribuição","Utilização de layout Protheus"]}
                         cta="Acessar o Conversor"
                         to="/valida-cnab"
                     />
