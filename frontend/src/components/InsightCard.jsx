@@ -108,12 +108,16 @@ export default function InsightCard() {
         }
     }
 
-    const bot         = BOTS[botAtivo];
+    const bot          = BOTS[botAtivo];
     const insightAtual = insights[botAtivo];
-    const jáGeradoHoje = insightAtual && !insightAtual.geradoHoje && insightAtual.insight;
-    const semDados     = insightAtual?.insight?.includes("suficientes")
-        || insightAtual?.insight?.includes("Cadastra")
-        || insightAtual?.insight?.includes("Registre");
+
+    // Só bloqueia o botão se geradoHoje === true (a IA foi chamada hoje)
+    const jáGeradoHoje = insightAtual?.geradoHoje === false && !!insightAtual?.insight
+        && !insightAtual?.insight?.includes("suficientes")
+        && !insightAtual?.insight?.includes("Cadastra")
+        && !insightAtual?.insight?.includes("Registre");
+
+    const semDados = !!insightAtual?.semDados;
 
     return (
         <div style={{
