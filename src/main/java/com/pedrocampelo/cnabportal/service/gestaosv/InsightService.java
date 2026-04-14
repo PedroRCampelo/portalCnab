@@ -57,7 +57,7 @@ public class InsightService {
 
         // Dados insuficientes
         if (resumo.quantidadeLancamentos() < MIN_TITULOS) {
-            return resposta(semDadosMensagem(botKey), false, botKey);
+            return respostaSemDados(semDadosMensagem(botKey), botKey);
         }
 
         // API key não configurada
@@ -234,43 +234,43 @@ public class InsightService {
         }
     }
 
+    private static final String REGRAS_BASE = """
+            Regras obrigatórias para todos os bots:
+            - Responda sempre em português brasileiro
+            - Máximo de 3 frases no total
+            - Não invente dados que não estejam no resumo fornecido
+            - Não faça aconselhamento financeiro complexo
+            - Sem jargões técnicos difíceis de entender
+            - Se houver títulos vencidos, mencione na primeira frase
+            - Se houver vencimentos próximos, alerte sobre eles
+            """;
+
     private String systemPromptParaBot(String bot) {
-        return switch (bot) {
+        String personalidade = switch (bot) {
 
             case "aurora" -> """
                     Você é Aurora, uma assistente financeira divertida, leve e bem-humorada.
-                    Você é muito engraçada mas JAMAIS faça piadas que possam nos comprometer.
-                    Use linguagem descontraída, emojis com moderação e analogias do cotidiano.
-                    Analise o resumo financeiro e gere exatamente 3 frases curtas em português brasileiro.
-                    Regras: máximo de 3 frases · tom leve e encorajador · no máximo 1 emoji por frase·
-                    Lembre-se, apesar do mês de refencia ser esse enviado, os gastos podem ser para o futuro, por exemplo, um financiamento
-                    não quer dizer que o cliente gastou o valor inteiro em no mês de referencia .
-                    se houver vencidos mencione com leveza · finalize com incentivo ·
-                    Fale como se estivesse falando com o cliente . 
-                    não invente dados que não estejam no resumo.""";
+                    Use linguagem descontraída e analogias do cotidiano.
+                    Você é muito engraçada, faça piadas e trocadilhos (caso ache algum bom).
+                    Use no máximo 1 emoji por frase e mantenha tom encorajador, nunca alarmista.
+                    Finalize com uma dica prática ou palavra de incentivo.""";
 
             case "frank" -> """
                     Você é Frank, um consultor financeiro sério, direto e profissional.
-                    Analise o resumo financeiro e gere exatamente 3 frases objetivas em português brasileiro.
-                    Regras: máximo de 3 frases · linguagem formal sem emojis · priorize alertas de
-                    inadimplência e vencimentos · mencione valores concretos quando relevante ·
-                    Lembre-se, apesar do mês de refencia ser esse enviado, os gastos podem ser para o futuro, por exemplo, um financiamento
-                    não quer dizer que o cliente gastou o valor inteiro em no mês de referencia .
-                    Fale como se estivesse falando com o cliente .
-                    finalize com recomendação de ação · não invente dados.""";
+                    Use linguagem formal e precisa, sem emojis.
+                    Mencione valores concretos quando relevante.
+                    Finalize com uma recomendação de ação imediata.""";
 
             case "anne" -> """
-                    Você é Anne, uma analista financeira especializada em padrões de gastos e inteligência financeira.
-                    Analise o resumo financeiro e gere exatamente 3 frases analíticas em português brasileiro.
-                    Regras: máximo de 3 frases · foque em padrões e concentração de gastos ·
-                    Lembre-se, apesar do mês de refencia ser esse enviado, os gastos podem ser para o futuro, por exemplo, um financiamento
-                    não quer dizer que o cliente gastou o valor inteiro em no mês de referencia .
-                    Fale como se estivesse falando com o cliente .
-                    inclua observação sobre saúde financeira · finalize com dica estratégica de
-                    organização ou priorização · não invente dados · tom analítico mas acessível.""";
+                    Você é Anne, uma analista financeira especializada em padrões de gastos.
+                    Foque em padrões, concentração de gastos e tendências identificáveis nos dados.
+                    Inclua uma observação sobre saúde financeira com base nos números.
+                    Finalize com uma dica estratégica de organização ou priorização.""";
 
             default -> systemPromptParaBot("aurora");
         };
+
+        return personalidade + "\n\n" + REGRAS_BASE;
     }
 
     // ── Parser da resposta OpenAI ─────────────────────────────────────────────
@@ -394,6 +394,17 @@ public class InsightService {
         Map<String, Object> r = new LinkedHashMap<>();
         r.put("insight",    texto);
         r.put("geradoHoje", novo);
+        r.put("semDados",   false);
+        r.put("bot",        bot);
+        r.put("geradoEm",   LocalDate.now().toString());
+        return r;
+    }
+
+    private Map<String, Object> respostaSemDados(String texto, String bot) {
+        Map<String, Object> r = new LinkedHashMap<>();
+        r.put("insight",    texto);
+        r.put("geradoHoje", false);
+        r.put("semDados",   true);
         r.put("bot",        bot);
         r.put("geradoEm",   LocalDate.now().toString());
         return r;
