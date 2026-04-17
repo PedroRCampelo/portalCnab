@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import logoWhale from "../assets/logo.svg";
+import elvisImg from "../assets/bots/elvis.png";
 import { LuWalletCards, LuBuilding2, LuBellRing, LuFileText, LuSparkles, LuCircleCheck, LuSheet, LuTrendingUp, LuShieldCheck } from "react-icons/lu";
 import { IcoArrow } from "../components/icons.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
@@ -151,7 +152,7 @@ export default function HomePage() {
                         iconBg="rgba(6,182,212,0.1)" iconColor="var(--cyan)"
                         title="Conversor CNAB"
                         desc="Transforme arquivos de remessa e retorno bancário em Excel estruturado ou relatório PDF analítico com alertas automáticos. Sem instalação."
-                        features={["CNAB 240 e 400 — Itaú, Bradesco, BB, Caixa","Excel com abas por segmento (A, J, O, N)","PDF com KPIs, alertas e distribuição","Utilização de layout Protheus"]}
+                        features={["CNAB 240 e 400 — Itaú, Bradesco, BB, Caixa","Excel com abas por segmento (A, J, O, N)","PDF com KPIs, alertas e distribuição","Layout 400 Protheus"]}
                         cta="Acessar o Conversor"
                         to="/valida-cnab"
                     />
@@ -278,6 +279,57 @@ export default function HomePage() {
                 </div>
             </section>
 
+            {/* ── Elvis — Agente CNAB ── */}
+            <section style={{ maxWidth: 1200, margin: "0 auto", padding: "0 32px 80px" }}>
+                <div style={{
+                    background: "var(--text)", borderRadius: 24, overflow: "hidden",
+                    display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0,
+                }} className="hp-elvis-grid">
+                    {/* Texto */}
+                    <div style={{ padding: "48px 48px 48px 48px" }}>
+                        <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 16, background: "rgba(6,182,212,0.15)", border: "1px solid rgba(6,182,212,0.3)", borderRadius: 999, padding: "4px 14px", fontSize: 11, fontWeight: 700, color: "#22D3EE" }}>
+                            🤖 AGENTE DE IA · CNAB
+                        </div>
+                        <h2 style={{ fontSize: "clamp(22px, 2.5vw, 32px)", fontWeight: 900, color: "#fff", margin: "0 0 14px", letterSpacing: "-0.02em" }}>
+                            Conheça o Elvis,<br/>seu especialista em CNAB
+                        </h2>
+                        <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 15, lineHeight: 1.8, margin: "0 0 28px" }}>
+                            Envie suas dúvidas sobre layouts bancários, segmentos e campos CNAB.
+                            O Elvis analisa sua remessa, identifica erros e responde com base na
+                            documentação oficial dos bancos.
+                        </p>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 28 }}>
+                            {[
+                                "Responde perguntas sobre CNAB 240 e 400",
+                                "Analisa arquivos de remessa em tempo real",
+                                "Identifica erros com base no manual do banco",
+                                "Suporte a Itaú, Bradesco, BB e Caixa",
+                            ].map(f => (
+                                <div key={f} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "rgba(255,255,255,0.7)" }}>
+                                    <span style={{ color: "#22D3EE", fontSize: 12 }}>✓</span> {f}
+                                </div>
+                            ))}
+                        </div>
+                        <Link to="/admin/cnab-chat" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "11px 24px", borderRadius: 10, background: "var(--grad)", color: "#083344", fontWeight: 700, fontSize: 14, textDecoration: "none" }}>
+                            Conversar com o Elvis <IcoArrow/>
+                        </Link>
+                    </div>
+
+                    {/* Elvis visual */}
+                    <div style={{ background: "rgba(255,255,255,0.04)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px 32px", borderLeft: "1px solid rgba(255,255,255,0.06)" }}>
+                        <img src={elvisImg} alt="Elvis" style={{ width: 96, height: 96, borderRadius: "50%", objectFit: "cover", border: "3px solid rgba(6,182,212,0.4)", marginBottom: 16 }}/>
+                        <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", marginBottom: 4 }}>Elvis</div>
+                        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginBottom: 24 }}>Especialista em CNAB</div>
+
+                        {/* Balão de exemplo */}
+                        <div style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "4px 14px 14px 14px", padding: "12px 16px", maxWidth: 260, fontSize: 13, color: "rgba(255,255,255,0.8)", lineHeight: 1.65 }}>
+                            "O segmento J é obrigatório para pagamento de boletos no CNAB 240. Ele deve ser seguido pelo segmento J-52 para QR Codes."
+                        </div>
+                        <div style={{ marginTop: 8, fontSize: 11, color: "rgba(255,255,255,0.25)" }}>GPT-4o · Documentação oficial</div>
+                    </div>
+                </div>
+            </section>
+
             {/* Footer */}
             <footer style={{
                 borderTop: "1px solid rgba(30,41,59,0.1)",
@@ -298,6 +350,7 @@ export default function HomePage() {
         @media (max-width: 900px) {
           .hp-hero-grid     { grid-template-columns: 1fr !important; }
           .hp-hero-visual   { display: none; }
+          .hp-elvis-grid    { grid-template-columns: 1fr !important; }
           .hp-cta-grid      { grid-template-columns: 1fr !important; }
           .hp-cards-grid    { grid-template-columns: 1fr !important; }
           .hp-stats-grid    { grid-template-columns: repeat(2,1fr) !important; }
