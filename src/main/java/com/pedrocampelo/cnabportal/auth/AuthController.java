@@ -67,11 +67,6 @@ public class AuthController {
 
             Usuario usuario = (Usuario) auth.getPrincipal();
 
-            if (!Boolean.TRUE.equals(usuario.getEmailVerificado())) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(new ErroResponse("Confirme seu email antes de acessar. Verifique sua caixa de entrada."));
-            }
-
             rateLimiter.registrarSucesso(ip); // reseta o contador apos sucesso
             usuarioRepository.atualizarUltimoAcesso(usuario.getId(), LocalDateTime.now());
 
@@ -87,6 +82,7 @@ public class AuthController {
                     usuario.getEmpresa() != null ? usuario.getEmpresa().getId() : null,
                     expiraEm,
                     usuario.getPlanoId(),
+                    Boolean.TRUE.equals(usuario.getEmailVerificado()),
                     usuario.getAssinaturaStatus(),
                     usuario.getAssinaturaExpiraEm()
             ));
@@ -165,7 +161,21 @@ public class AuthController {
 
         log.info("Email verificado: {}", usuario.getEmail());
 
-        return ResponseEntity.ok(new ErroResponse("Email confirmado! Você já pode fazer login."));
+        // Retorna JWT para auto-login direto no frontend
+        String jwtToken = jwtService.generateToken(usuario);
+        long   expiraEm = jwtService.extractExpiration(jwtToken).getTime();
+
+        return ResponseEntity.ok(new AuthResponse(
+                jwtToken, "Bearer",
+                usuario.getId(), usuario.getNome(), usuario.getEmail(),
+                usuario.getPerfil(),
+                usuario.getEmpresa() != null ? usuario.getEmpresa().getId() : null,
+                expiraEm,
+                usuario.getPlanoId(),
+                Boolean.TRUE.equals(usuario.getEmailVerificado()),
+                usuario.getAssinaturaStatus(),
+                usuario.getAssinaturaExpiraEm()
+        ));
     }
 
     // ── Reenviar email de confirmacao ─────────────────────────────────────────

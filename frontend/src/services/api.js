@@ -8,13 +8,13 @@ const api = axios.create({
 // Injeta o token JWT em todas as requisições automaticamente
 api.interceptors.request.use((config) => {
     try {
-        const auth = sessionStorage.getItem("auth");
+        const auth = localStorage.getItem("auth");
         if (auth) {
             const { token } = JSON.parse(auth);
             if (token) config.headers.Authorization = `Bearer ${token}`;
         }
     } catch {
-        // sessionStorage indisponível ou dado corrompido — segue sem token
+        // localStorage indisponível ou dado corrompido — segue sem token
     }
     return config;
 });
@@ -27,22 +27,17 @@ api.interceptors.response.use(
             const paginaAtual   = window.location.pathname;
             const requestUrl    = error.config?.url ?? "";
 
-            // Só redireciona para login se:
-            // 1. Não estiver já em página de autenticação
-            // 2. A requisição veio de uma rota que requer token (não rota pública)
             const emPaginaAuth = ["/login", "/cadastro", "/verificar-email", "/redefinir-senha", "/esqueci-senha", "/upgrade/sucesso", "/upgrade/cancelado"]
                 .includes(paginaAtual);
 
-            // Rotas que são públicas e podem retornar 401 para anônimos
             const ehRotaPublica = requestUrl.includes("/api/cnab/anonimo/")
                 || requestUrl.includes("/api/cnab/export-bank")
                 || requestUrl.includes("/api/cnab/report-bank");
 
-            // Só faz logout se estiver autenticado e o token for inválido/expirado
-            const estaAutenticado = !!sessionStorage.getItem("auth");
+            const estaAutenticado = !!localStorage.getItem("auth");
 
             if (!emPaginaAuth && !ehRotaPublica && estaAutenticado) {
-                sessionStorage.removeItem("auth");
+                localStorage.removeItem("auth");
                 window.location.href = "/login?sessao=expirada";
             }
         }

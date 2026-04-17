@@ -14,7 +14,8 @@ public record AuthResponse(
         UUID      empresaId,
         long      expiraEm,
         UUID      planoId,
+        boolean   emailVerificado,
         // Assinatura
-        String    assinaturaStatus,   // SEM_ASSINATURA | ATIVA | CANCELANDO | EXPIRADA
-        LocalDate assinaturaExpiraEm  // preenchido quando CANCELANDO
+        String    assinaturaStatus,
+        LocalDate assinaturaExpiraEm
 ) {}

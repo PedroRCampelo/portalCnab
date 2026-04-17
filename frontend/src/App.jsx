@@ -6,6 +6,7 @@ import ProtectedRoute            from "./components/ProtectedRoute.jsx";
 import AdminRoute                from "./components/AdminRoute.jsx";
 import ScrollToTop               from "./components/ScrollToTop.jsx";
 import Navbar                    from "./components/Navbar.jsx";
+import BannerEmailPendente       from "./components/BannerEmailPendente.jsx";
 import HomePage                  from "./pages/HomePage.jsx";
 import ExcelPage                 from "./pages/ExcelPage.jsx";
 import PdfPage                   from "./pages/PdfPage.jsx";
@@ -15,6 +16,9 @@ import VerificarEmailPage        from "./pages/VerificarEmailPage.jsx";
 import EsqueciSenhaPage          from "./pages/EsqueciSenhaPage.jsx";
 import RedefinirSenhaPage        from "./pages/RedefinirSenhaPage.jsx";
 import AdminUsuariosPage         from "./pages/AdminUsuariosPage.jsx";
+import CnabKnowledgePage         from "./pages/CnabKnowledgePage.jsx";
+import CnabChatPage              from "./pages/CnabChatPage.jsx";
+import AssistenteCnabPage        from "./pages/AssistenteCnabPage.jsx";
 import HistoricoPage             from "./pages/HistoricoPage.jsx";
 import UpgradePage               from "./pages/UpgradePage.jsx";
 import { UpgradeSucessoPage, UpgradeCanceladoPage } from "./pages/UpgradePages.jsx";
@@ -26,7 +30,7 @@ import GestaFinanceiraPage       from "./pages/GestaoFinanceiraPage.jsx";
 import ValidaCnabPage            from "./pages/ValidaCnabPage.jsx";
 import RelatoriosTitulosPage     from "./pages/RelatoriosTitulosPage.jsx";
 
-const AUTH_ROUTES = ["/login", "/cadastro", "/verificar-email"];
+const AUTH_ROUTES = ["/verificar-email", "/cadastro"];
 
 function AppShell() {
     const { pathname } = useLocation();
@@ -37,6 +41,7 @@ function AppShell() {
             <div className="bg-orb bg-orb--2" aria-hidden="true"/>
 
             <Navbar/>
+            <BannerEmailPendente/>
             <ScrollToTop/>
 
             <Routes>
@@ -59,9 +64,12 @@ function AppShell() {
                 <Route path="/upgrade"   element={<ProtectedRoute><UpgradePage/></ProtectedRoute>}/>
                 <Route path="/upgrade/sucesso"   element={<ProtectedRoute><UpgradeSucessoPage/></ProtectedRoute>}/>
                 <Route path="/upgrade/cancelado" element={<ProtectedRoute><UpgradeCanceladoPage/></ProtectedRoute>}/>
+                <Route path="/assistente-cnab"    element={<AssistenteCnabPage/>}/>
                 <Route path="/planos"    element={<PlanosPage/>}/>
 
-                <Route path="/admin/usuarios" element={<AdminRoute><AdminUsuariosPage/></AdminRoute>}/>
+                <Route path="/admin/usuarios"       element={<AdminRoute><AdminUsuariosPage/></AdminRoute>}/>
+                <Route path="/admin/cnab-knowledge" element={<AdminRoute><CnabKnowledgePage/></AdminRoute>}/>
+                <Route path="/admin/cnab-chat"      element={<AdminRoute><CnabChatPage/></AdminRoute>}/>
             </Routes>
         </div>
     );

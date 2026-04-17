@@ -72,7 +72,7 @@ export default function PlanosPage() {
     }, [autenticado, temPlano]);
 
     async function handleUpgradePro() {
-        if (!autenticado) { navigate("/cadastro"); return; }
+        if (!autenticado) { navigate("/cadastro", { state: { plano: "pro" } }); return; }
         setCarregando(true);
         try {
             const { data } = await api.post("/api/stripe/checkout/pro");
@@ -81,7 +81,7 @@ export default function PlanosPage() {
     }
 
     async function handleUpgradePlus() {
-        if (!autenticado) { navigate("/cadastro"); return; }
+        if (!autenticado) { navigate("/cadastro", { state: { plano: "whallet-plus" } }); return; }
         setCarregandoPlus(true);
         try {
             const { data } = await api.post("/api/stripe/checkout/whallet-plus");
@@ -246,9 +246,9 @@ export default function PlanosPage() {
                     {/* Pro */}
                     <div style={{ background: "var(--surface)", border: "2px solid rgba(6,182,212,0.25)", borderRadius: 16, padding: "28px 24px 32px", position: "relative" }}>
                         <div style={{ position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)", background: "var(--grad)", borderRadius: 20, padding: "4px 16px", fontSize: 11, fontWeight: 700, color: "#083344", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
-                            Whallet Pro
+                            RECOMENDADO
                         </div>
-                        <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--cyan-dark)", marginBottom: 12 }}>CNAB</div>
+                        <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--cyan-dark)", marginBottom: 12 }}>Pro</div>
                         {tagBeta}
                         <div style={{ fontSize: 34, fontWeight: 800, color: "var(--text)", marginBottom: 4 }}>R$ 18,90</div>
                         <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 4 }}>por mês, cancele quando quiser</div>

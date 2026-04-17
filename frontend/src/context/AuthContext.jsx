@@ -6,10 +6,9 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
     const [usuario, setUsuario] = useState(() => {
-        // Tenta restaurar sessao do sessionStorage ao recarregar a pagina
-        // sessionStorage e limpo ao fechar o navegador — mais seguro que localStorage
+        // localStorage persiste entre abas e recarregamentos
         try {
-            const salvo = sessionStorage.getItem("auth");
+            const salvo = localStorage.getItem("auth");
             return salvo ? JSON.parse(salvo) : null;
         } catch {
             return null;
@@ -17,14 +16,13 @@ export function AuthProvider({ children }) {
     });
 
     const login = useCallback((dadosAuth) => {
-        // dadosAuth e o objeto retornado pelo POST /api/auth/login
         setUsuario(dadosAuth);
-        sessionStorage.setItem("auth", JSON.stringify(dadosAuth));
+        localStorage.setItem("auth", JSON.stringify(dadosAuth));
     }, []);
 
     const logout = useCallback(() => {
         setUsuario(null);
-        sessionStorage.removeItem("auth");
+        localStorage.removeItem("auth");
     }, []);
 
     // Atualiza apenas campos específicos do usuário (planoId, assinatura)
@@ -35,7 +33,7 @@ export function AuthProvider({ children }) {
             setUsuario(prev => {
                 if (!prev) return prev;
                 const atualizado = { ...prev, ...data };
-                sessionStorage.setItem("auth", JSON.stringify(atualizado));
+                localStorage.setItem("auth", JSON.stringify(atualizado));
                 return atualizado;
             });
         } catch {

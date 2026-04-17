@@ -3,11 +3,12 @@ import { Link } from "react-router-dom";
 import BankForm from "../components/BankForm.jsx";
 import ProtheusForm from "../components/ProtheusForm.jsx";
 import BannerAnonimo from "../components/BannerAnonimo.jsx";
+import ElvisMiniChat from "../components/ElvisMiniChat.jsx";
 import { IcoExcel, IcoPdf, IcoBack } from "../components/icons.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 
 export default function ValidaCnabPage() {
-    const [ferramenta, setFerramenta] = useState("excel"); // "excel" | "pdf"
+    const [ferramenta, setFerramenta] = useState("excel");
     const [source, setSource]         = useState("bank");
     const { autenticado } = useAuth();
 
@@ -28,7 +29,7 @@ export default function ValidaCnabPage() {
                             fontWeight: 700, fontSize: 14,
                             background: ferramenta === "excel" ? "var(--grad)" : "var(--surface)",
                             border: ferramenta === "excel" ? "none" : "1px solid var(--border)",
-                            color: ferramenta === "excel" ? "#1a1a1a" : "var(--text-muted)",
+                            color: ferramenta === "excel" ? "#083344" : "var(--text-muted)",
                         }}>
                         <IcoExcel/> Exportar Excel
                     </button>
@@ -40,7 +41,7 @@ export default function ValidaCnabPage() {
                             fontWeight: 700, fontSize: 14,
                             background: ferramenta === "pdf" ? "var(--grad)" : "var(--surface)",
                             border: ferramenta === "pdf" ? "none" : "1px solid var(--border)",
-                            color: ferramenta === "pdf" ? "#1a1a1a" : "var(--text-muted)",
+                            color: ferramenta === "pdf" ? "#083344" : "var(--text-muted)",
                         }}>
                         <IcoPdf/> Relatório PDF
                     </button>
@@ -69,40 +70,58 @@ export default function ValidaCnabPage() {
 
             <BannerAnonimo/>
 
-            {ferramenta === "excel" ? (
-                <div className="tool-page-body">
-                    <div className="tool-page-form">
-                        <div className="source-tabs">
-                            <button
-                                className={`source-tab ${source === "bank" ? "source-tab--active" : ""}`}
-                                onClick={() => setSource("bank")}>
-                                🏦 Layout bancário
-                            </button>
-                            <button
-                                className={`source-tab ${source === "protheus" ? "source-tab--active" : ""}`}
-                                onClick={() => setSource("protheus")}>
-                                🔄 Protheus
-                            </button>
+            {/* Layout principal com chat do Elvis na lateral */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 24, alignItems: "start" }} className="valida-main-grid">
+
+                {/* Ferramenta CNAB */}
+                <div>
+                    {ferramenta === "excel" ? (
+                        <div className="tool-page-body" style={{ display: "block" }}>
+                            <div className="tool-page-form">
+                                <div className="source-tabs">
+                                    <button
+                                        className={`source-tab ${source === "bank" ? "source-tab--active" : ""}`}
+                                        onClick={() => setSource("bank")}>
+                                        🏦 Layout bancário
+                                    </button>
+                                    <button
+                                        className={`source-tab ${source === "protheus" ? "source-tab--active" : ""}`}
+                                        onClick={() => setSource("protheus")}>
+                                        🔄 Protheus
+                                    </button>
+                                </div>
+                                {source === "bank"
+                                    ? <BankForm toolMode="excel" desabilitado={false}/>
+                                    : <ProtheusForm mode="excel"/>
+                                }
+                            </div>
+                            <div className="tool-page-info" style={{ marginTop: 20 }}>
+                                <InfoCard/>
+                            </div>
                         </div>
-                        {source === "bank"
-                            ? <BankForm toolMode="excel" desabilitado={false}/>
-                            : <ProtheusForm mode="excel"/>
-                        }
-                    </div>
-                    <div className="tool-page-info">
-                        <InfoCard/>
-                    </div>
+                    ) : (
+                        <div className="tool-page-body" style={{ display: "block" }}>
+                            <div className="tool-page-form">
+                                <BankForm toolMode="pdf" desabilitado={false}/>
+                            </div>
+                            <div className="tool-page-info" style={{ marginTop: 20 }}>
+                                <InfoCard pdf/>
+                            </div>
+                        </div>
+                    )}
                 </div>
-            ) : (
-                <div className="tool-page-body">
-                    <div className="tool-page-form">
-                        <BankForm toolMode="pdf" desabilitado={false}/>
-                    </div>
-                    <div className="tool-page-info">
-                        <InfoCard pdf/>
-                    </div>
+
+                {/* Elvis Mini Chat */}
+                <div style={{ position: "sticky", top: 84 }}>
+                    <ElvisMiniChat/>
                 </div>
-            )}
+            </div>
+
+            <style>{`
+                @media (max-width: 900px) {
+                    .valida-main-grid { grid-template-columns: 1fr !important; }
+                }
+            `}</style>
         </div>
     );
 }
