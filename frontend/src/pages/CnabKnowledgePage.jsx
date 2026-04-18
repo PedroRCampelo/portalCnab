@@ -10,13 +10,12 @@ export default function CnabKnowledgePage() {
     const [documentos,     setDocumentos]     = useState([]);
     const [carregandoList, setCarregandoList] = useState(true);
 
-    const [banco,      setBanco]      = useState("");
-    const [tipo,       setTipo]       = useState("");
+    const [descricao,  setDescricao]  = useState("");
     const [sourceType, setSourceType] = useState("manual_tecnico");
     const [arquivo,    setArquivo]    = useState(null);
 
     const [enviando,   setEnviando]   = useState(false);
-    const [progresso,  setProgresso]  = useState(null); // null | "uploading" | "processing" | "done" | "error"
+    const [progresso,  setProgresso]  = useState(null);
     const [mensagem,   setMensagem]   = useState("");
 
     const inputRef = useRef(null);
@@ -37,8 +36,8 @@ export default function CnabKnowledgePage() {
 
     async function handleIngest(e) {
         e.preventDefault();
-        if (!arquivo || !banco || !tipo) {
-            setMensagem("Preencha banco, tipo e selecione um arquivo PDF.");
+        if (!arquivo || !descricao.trim()) {
+            setMensagem("Informe uma descrição e selecione um arquivo PDF.");
             setProgresso("error");
             return;
         }
@@ -49,8 +48,7 @@ export default function CnabKnowledgePage() {
 
         const form = new FormData();
         form.append("arquivo", arquivo);
-        form.append("banco", banco);
-        form.append("tipo", tipo);
+        form.append("descricao", descricao.trim());
         form.append("sourceType", sourceType);
 
         try {
@@ -119,24 +117,18 @@ export default function CnabKnowledgePage() {
                     </div>
                     <form onSubmit={handleIngest} style={{ padding: "22px" }}>
 
-                        <Field label="Banco">
-                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                                {BANCOS.map(b => (
-                                    <ToggleBtn key={b} active={banco === b} onClick={() => setBanco(b)}>
-                                        {b.toUpperCase()}
-                                    </ToggleBtn>
-                                ))}
-                            </div>
-                        </Field>
-
-                        <Field label="Versão CNAB">
-                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                                {TIPOS.map(t => (
-                                    <ToggleBtn key={t} active={tipo === t} onClick={() => setTipo(t)}>
-                                        {t === "cnab240" ? "CNAB 240" : "CNAB 400"}
-                                    </ToggleBtn>
-                                ))}
-                            </div>
+                        <Field label="Descrição do documento">
+                            <input
+                                type="text"
+                                placeholder="Ex: Sicredi 240 pagamento, Bradesco retorno 400, Itaú CNAB 240..."
+                                value={descricao}
+                                onChange={e => setDescricao(e.target.value)}
+                                disabled={enviando}
+                                style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid rgba(30,41,59,0.12)", background: "#fff", color: "var(--text)", fontSize: 13, boxSizing: "border-box", outline: "none" }}
+                            />
+                            <p style={{ fontSize: 11, color: "var(--text-dim)", margin: "4px 0 0", lineHeight: 1.5 }}>
+                                Descreva livremente o banco e layout. Banco e tipo CNAB são inferidos automaticamente.
+                            </p>
                         </Field>
 
                         <Field label="Tipo de documento">
@@ -196,11 +188,11 @@ export default function CnabKnowledgePage() {
                             </div>
                         )}
 
-                        <button type="submit" disabled={enviando || !arquivo || !banco || !tipo} style={{
+                        <button type="submit" disabled={enviando || !arquivo || !descricao.trim()} style={{
                             width: "100%", padding: "11px", borderRadius: 10, border: "none",
-                            background: enviando || !arquivo || !banco || !tipo ? "rgba(30,41,59,0.08)" : "var(--grad)",
-                            color: enviando || !arquivo || !banco || !tipo ? "var(--text-dim)" : "#083344",
-                            fontWeight: 700, fontSize: 14, cursor: enviando || !arquivo || !banco || !tipo ? "not-allowed" : "pointer",
+                            background: enviando || !arquivo || !descricao.trim() ? "rgba(30,41,59,0.08)" : "var(--grad)",
+                            color: enviando || !arquivo || !descricao.trim() ? "var(--text-dim)" : "#083344",
+                            fontWeight: 700, fontSize: 14, cursor: enviando || !arquivo || !descricao.trim() ? "not-allowed" : "pointer",
                             transition: "all 0.15s",
                         }}>
                             {enviando ? "Processando..." : "Ingerir documento"}

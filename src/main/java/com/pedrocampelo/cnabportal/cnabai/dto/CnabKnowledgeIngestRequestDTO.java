@@ -11,11 +11,13 @@ public class CnabKnowledgeIngestRequestDTO {
 
     private MultipartFile arquivo;
 
-    @NotBlank
-    private String banco;
-
-    @NotBlank
-    private String tipo;
+    /**
+     * Descrição livre do documento — ex: "Sicredi 240 pagamento", "Bradesco retorno 400".
+     * Banco e tipo são inferidos automaticamente a partir desta descrição.
+     * Não há obrigatoriedade de nomenclatura específica.
+     */
+    @NotBlank(message = "Informe uma descrição para identificar o documento, ex: 'Itaú 240 pagamento'")
+    private String descricao;
 
     private String sourceType = "PDF_LAYOUT";
 }

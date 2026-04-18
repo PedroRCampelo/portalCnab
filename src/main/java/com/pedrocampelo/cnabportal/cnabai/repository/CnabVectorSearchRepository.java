@@ -54,10 +54,13 @@ public class CnabVectorSearchRepository {
         });
     }
 
+    /**
+     * Busca puramente por similaridade semântica — sem filtro de banco ou tipo.
+     * Os metadados (bank_code, cnab_type, source_name) são retornados para
+     * contexto, mas não restringem os resultados.
+     */
     public List<RetrievedChunkDTO> searchSimilar(
             List<Float> queryEmbedding,
-            String bankCode,
-            String cnabType,
             int limit
     ) {
         String sql = """
@@ -71,8 +74,6 @@ public class CnabVectorSearchRepository {
                 content,
                 1 - (embedding <=> ?::vector) AS similarity
             FROM cnab_knowledge_chunk
-            WHERE (CAST(? AS text) IS NULL OR bank_code = CAST(? AS text))
-              AND (CAST(? AS text) IS NULL OR cnab_type = CAST(? AS text))
             ORDER BY embedding <=> ?::vector
             LIMIT ?
             """;
@@ -92,8 +93,6 @@ public class CnabVectorSearchRepository {
                         .similarity(rs.getDouble("similarity"))
                         .build(),
                 vector,
-                bankCode, bankCode,
-                cnabType, cnabType,
                 vector,
                 limit
         );
