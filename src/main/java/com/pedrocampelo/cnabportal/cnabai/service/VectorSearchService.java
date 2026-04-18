@@ -15,40 +15,20 @@ public class VectorSearchService {
     private final EmbeddingService embeddingService;
     private final CnabVectorSearchRepository vectorSearchRepository;
 
-    @Value("${cnab.ai.top-k:5}")
+    @Value("${cnab.ai.top-k:10}")
     private int topK;
 
+    /**
+     * Busca chunks relevantes por similaridade semântica pura.
+     * banco e tipo são ignorados na busca — servem apenas como contexto
+     * para o prompt da IA, não como filtros de banco de dados.
+     */
     public List<RetrievedChunkDTO> searchRelevantChunks(
             String question,
             String bankCode,
             String cnabType
     ) {
         List<Float> questionEmbedding = embeddingService.generateEmbedding(question);
-        return vectorSearchRepository.searchSimilar(
-                questionEmbedding,
-                normalizeBank(bankCode),
-                normalizeCnabType(cnabType),
-                topK
-        );
-    }
-
-    private String normalizeBank(String value) {
-        if (value == null || value.isBlank()) return null;
-        return switch (value.trim().toLowerCase()) {
-            case "341", "itau", "itaú"           -> "itau";
-            case "237", "bradesco"               -> "bradesco";
-            case "001", "bb", "banco do brasil"  -> "bb";
-            case "104", "caixa", "cef"           -> "caixa";
-            default -> value.trim().toLowerCase();
-        };
-    }
-
-    private String normalizeCnabType(String value) {
-        if (value == null || value.isBlank()) return null;
-        return switch (value.trim().toLowerCase()) {
-            case "240", "cnab240", "cnab 240" -> "cnab240";
-            case "400", "cnab400", "cnab 400" -> "cnab400";
-            default -> value.trim().toLowerCase();
-        };
+        return vectorSearchRepository.searchSimilar(questionEmbedding, topK);
     }
 }
