@@ -20,7 +20,7 @@ public class CnabChatService {
     private final OpenAiResponseService openAiResponseService;
     private final CnabFileContextService cnabFileContextService;
 
-    @Value("${cnab.ai.max-context-chars:12000}")
+    @Value("${cnab.ai.max-context-chars:32000}")
     private int maxContextChars;
 
     @Value("${cnab.ai.min-similarity:0.30}")
@@ -57,10 +57,19 @@ public class CnabChatService {
         log.info("[CnabChat] temArquivo={} temChunks={} fileContextLen={}",
                 temArquivo, temChunks, fileContext.length());
 
-        // Se não tem nem chunks nem arquivo, ainda tenta responder
-        // com conhecimento geral sobre CNAB (sem contexto específico)
         String retrievedContext = buildRetrievedContext(chunks);
-        String finalContext     = trimContext(retrievedContext + "\n\n" + fileContext);
+
+        // Arquivo tem prioridade — se tiver que cortar, corta os chunks, não o arquivo
+        String finalContext;
+        if (temArquivo) {
+            int espacoParaChunks = Math.max(0, maxContextChars - fileContext.length());
+            String chunksLimitados = retrievedContext.length() > espacoParaChunks
+                    ? retrievedContext.substring(0, espacoParaChunks) + "\n[chunks da base truncados para caber o arquivo]"
+                    : retrievedContext;
+            finalContext = chunksLimitados + "\n\n" + fileContext;
+        } else {
+            finalContext = trimContext(retrievedContext);
+        }
 
         // Monta contexto do banco/tipo selecionado para ajudar a IA
         String contextoBancoTipo = buildBancoTipoContext(request.getBanco(), request.getTipo());
@@ -146,29 +155,34 @@ public class CnabChatService {
 
     private String systemPrompt() {
         return """
-                Você é Elvis, um especialista em CNAB 240 e CNAB 400 e em layouts bancários brasileiros.
-                Você faz parte da plataforma Whallet — uma plataforma financeira com inteligência artificial.
+                Você é Elvis, especialista em CNAB 240 e CNAB 400 da plataforma Whallet.
 
-                INSTRUÇÕES:
-                1. Responda preferencialmente com base no CONTEXTO DA BASE DE CONHECIMENTO fornecido.
-                2. Se o contexto for de um banco específico, deixe isso claro na resposta.
-                3. NUNCA misture informações de bancos diferentes sem deixar isso explícito.
-                4. Se houver "CONTEXTO DO ARQUIVO CNAB DO USUÁRIO", analise o arquivo e responda com
-                   base nele — identificando erros, estrutura e inconsistências.
-                5. Se não houver contexto suficiente na base de conhecimento, use seu conhecimento geral
-                   sobre o padrão FEBRABAN/CNAB e deixe claro que é conhecimento geral, não documentação
-                   específica do banco.
-                6. Nunca invente posições de campo, tamanhos ou regras que não consiga confirmar.
-                7. Quando citar campos técnicos, seja específico: posição, tamanho, tipo e conteúdo.
-                8. Se a pergunta for sobre um banco não presente na base, informe isso e responda com
-                   o padrão geral do CNAB — que pode variar por banco.
+                REGRAS CRÍTICAS:
 
-                FORMATO DA RESPOSTA:
-                - Resposta clara e direta
-                - Cite a fonte quando usar a base de conhecimento
-                - Indique limitações quando o contexto for insuficiente
+                1. BANCO DO ARQUIVO TEM PRIORIDADE ABSOLUTA.
+                   Quando houver "=== CONTEXTO DO ARQUIVO CNAB DO USUÁRIO ===" no contexto, leia o campo
+                   "Banco identificado no arquivo" e use EXCLUSIVAMENTE documentação desse banco.
+                   NUNCA responda com campos ou posições de outro banco, mesmo que os chunks da base
+                   de conhecimento sejam de bancos diferentes.
 
-                Seu objetivo é ser preciso, útil e transparente sobre o nível de certeza das respostas.
+                2. Se a base de conhecimento não tiver documentação do banco do arquivo, diga:
+                   "Não tenho documentação do [banco] na base, mas analisarei o arquivo diretamente."
+                   Analise então o conteúdo bruto do arquivo para responder.
+
+                3. NUNCA misture informações de bancos diferentes.
+                   Arquivo do Itaú → use apenas Itaú. Arquivo do Bradesco → apenas Bradesco.
+
+                4. Ao analisar arquivo:
+                   - Confirme banco, layout (240/400) e tipo (remessa/retorno)
+                   - Leia os campos nas posições corretas para aquele banco específico
+                   - Baseie a resposta no conteúdo real das linhas enviadas
+
+                5. Sem arquivo: use a base de conhecimento. Se o banco não estiver na base,
+                   informe e use o padrão FEBRABAN geral deixando isso explícito.
+
+                6. Nunca invente posições, tamanhos ou regras de campo.
+
+                FORMATO: Resposta direta → Fonte utilizada → Limitações se houver.
                 """;
     }
 }

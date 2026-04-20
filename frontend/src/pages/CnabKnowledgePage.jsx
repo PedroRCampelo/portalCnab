@@ -51,20 +51,28 @@ export default function CnabKnowledgePage() {
         form.append("descricao", descricao.trim());
         form.append("sourceType", sourceType);
 
-        try {
-            setProgresso("processing");
-            setMensagem("Processando e gerando embeddings — isso pode levar alguns minutos para PDFs grandes...");
+        // Garante que o estado "uploading" é renderizado antes de continuar
+        await new Promise(resolve => setTimeout(resolve, 50));
 
+        try {
             await api.post("/api/cnab/knowledge/ingest", form, {
                 headers: { "Content-Type": "multipart/form-data" },
-                timeout: 300_000, // 5 minutos — PDFs grandes levam tempo
+                timeout: 300_000,
+                onUploadProgress: (e) => {
+                    if (e.total && e.loaded < e.total) {
+                        setMensagem(`Enviando arquivo... ${Math.round((e.loaded / e.total) * 100)}%`);
+                    } else {
+                        setProgresso("processing");
+                        setMensagem("Arquivo recebido — ingestão iniciada em segundo plano...");
+                    }
+                },
             });
 
             setProgresso("done");
-            setMensagem(`Documento ingerido com sucesso! Os chunks de "${arquivo.name}" já estão disponíveis na base.`);
+            setMensagem(`Ingestão de "${arquivo.name}" iniciada! O processamento ocorre em segundo plano — aguarde alguns minutos e atualize a lista para confirmar.`);
             setArquivo(null);
             if (inputRef.current) inputRef.current.value = "";
-            carregarDocumentos();
+            setTimeout(carregarDocumentos, 5000);
         } catch (err) {
             // Timeout do cliente NÃO significa falha — o backend pode ter concluído
             const isTimeout = err.code === "ECONNABORTED" || err.message?.includes("timeout");

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pedrocampelo.cnabportal.cnabai.repository.CnabVectorSearchRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -30,6 +31,7 @@ public class DocumentIngestionService {
      *                   Usado como source_name e para inferir bank_code/cnab_type como metadado.
      * @param sourceType tipo da fonte, ex: "PDF_LAYOUT"
      */
+    @Async("elvisTaskExecutor")
     public void ingestPdf(
             MultipartFile file,
             String descricao,
@@ -61,7 +63,15 @@ public class DocumentIngestionService {
             metadata.put("sourceType",  sourceType);
             metadata.put("chunkIndex",  i);
 
-            List<Float> embedding = embeddingService.generateEmbedding(chunk);
+            log.info("[Ingestão] processando chunk {}/{} ({} chars)", i + 1, chunks.size(), chunk.length());
+
+            // Trunca chunk se muito grande — limite da OpenAI é ~8191 tokens (~32000 chars)
+            String chunkParaEmbedding = chunk.length() > 30_000 ? chunk.substring(0, 30_000) : chunk;
+
+            List<Float> embedding = embeddingService.generateEmbedding(chunkParaEmbedding);
+
+            // Delay de 1s entre chunks para respeitar rate limit da OpenAI
+            try { Thread.sleep(1_000); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
 
             try {
                 vectorRepository.insertChunkWithEmbedding(

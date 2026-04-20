@@ -60,13 +60,14 @@ public class CnabChatController {
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
     public ResponseEntity<?> ingestKnowledge(@ModelAttribute @Valid CnabKnowledgeIngestRequestDTO request) {
+        // Ingestão assíncrona — retorna imediatamente, processa em background
         documentIngestionService.ingestPdf(
                 request.getArquivo(),
                 request.getDescricao(),
                 request.getSourceType()
         );
-        return ResponseEntity.ok(Map.of(
-                "mensagem", "Documento ingerido com sucesso.",
+        return ResponseEntity.accepted().body(Map.of(
+                "mensagem", "Ingestão iniciada em segundo plano. Acompanhe os logs para confirmar a conclusão.",
                 "descricao", request.getDescricao()
         ));
     }
