@@ -51,25 +51,23 @@ export default function CnabKnowledgePage() {
         form.append("descricao", descricao.trim());
         form.append("sourceType", sourceType);
 
-        // Garante que o estado "uploading" é renderizado antes de continuar
-        await new Promise(resolve => setTimeout(resolve, 50));
+        // Força render do estado "uploading" antes de continuar
+        await new Promise(resolve => setTimeout(resolve, 100));
 
         try {
             await api.post("/api/cnab/knowledge/ingest", form, {
                 headers: { "Content-Type": "multipart/form-data" },
                 timeout: 300_000,
-                onUploadProgress: (e) => {
-                    if (e.total && e.loaded < e.total) {
-                        setMensagem(`Enviando arquivo... ${Math.round((e.loaded / e.total) * 100)}%`);
-                    } else {
-                        setProgresso("processing");
-                        setMensagem("Arquivo recebido — ingestão iniciada em segundo plano...");
-                    }
-                },
             });
 
+            setProgresso("processing");
+            setMensagem("Arquivo recebido — ingestão em segundo plano...");
+
+            // Força render do estado "processing" antes de mostrar "done"
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
             setProgresso("done");
-            setMensagem(`Ingestão de "${arquivo.name}" iniciada! O processamento ocorre em segundo plano — aguarde alguns minutos e atualize a lista para confirmar.`);
+            setMensagem(`Ingestão de "${arquivo.name}" iniciada! Aguarde alguns minutos e atualize a lista para confirmar.`);
             setArquivo(null);
             if (inputRef.current) inputRef.current.value = "";
             setTimeout(carregarDocumentos, 5000);
