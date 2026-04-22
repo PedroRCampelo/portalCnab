@@ -18,7 +18,7 @@ import java.util.Map;
 public class DocumentIngestionService {
 
     private final PdfTextExtractorService pdfTextExtractorService;
-    private final com.pedrocampelo.cnabportal.service.cnabaisv.ChunkingService chunkingService;
+    private final com.pedrocampelo.cnabportal.cnabai.service.ChunkingService chunkingService;
     private final EmbeddingService embeddingService;
     private final CnabVectorSearchRepository vectorRepository;
     private final ObjectMapper objectMapper;
