@@ -1,4 +1,4 @@
-package com.pedrocampelo.cnabportal.service.cnabaisv;
+package com.pedrocampelo.cnabportal.cnabai.service;
 
 import org.springframework.stereotype.Service;
 
@@ -37,7 +37,7 @@ public class ChunkingService {
     private String normalize(String text) {
         return text
                 .replace("\u0000", "")
-                .replaceAll("[\\t\\x0B\\f\\r]+", " ")
+                .replaceAll("[\t\u000B\f\r]+", " ")
                 .replaceAll(" +", " ")
                 .replaceAll("\\n{3,}", "\n\n")
                 .trim();

@@ -338,6 +338,7 @@ function MarkdownRenderer({ content }) {
 
         // Bloco de código
         if (line.startsWith("```")) {
+            const lang = line.slice(3).trim();
             const codeLines = [];
             i++;
             while (i < lines.length && !lines[i].startsWith("```")) {
@@ -349,55 +350,81 @@ function MarkdownRenderer({ content }) {
                     <code style={{ color: "var(--text)", fontFamily: "monospace" }}>{codeLines.join("\n")}</code>
                 </pre>
             );
-            i++;
-            continue;
+            i++; continue;
         }
 
-        // H3
-        if (line.startsWith("### ")) {
-            elements.push(<h3 key={i} style={{ fontSize: 14, fontWeight: 700, color: "var(--text)", margin: "12px 0 4px" }}>{renderInline(line.slice(4))}</h3>);
-            i++; continue;
-        }
-        // H2
-        if (line.startsWith("## ")) {
-            elements.push(<h2 key={i} style={{ fontSize: 15, fontWeight: 700, color: "var(--text)", margin: "14px 0 6px" }}>{renderInline(line.slice(3))}</h2>);
-            i++; continue;
-        }
-        // H1
-        if (line.startsWith("# ")) {
-            elements.push(<h1 key={i} style={{ fontSize: 16, fontWeight: 800, color: "var(--text)", margin: "14px 0 6px" }}>{renderInline(line.slice(2))}</h1>);
-            i++; continue;
-        }
+        // Headings
+        if (line.startsWith("### ")) { elements.push(<h3 key={i} style={{ fontSize: 14, fontWeight: 700, color: "var(--text)", margin: "12px 0 4px" }}>{renderInline(line.slice(4))}</h3>); i++; continue; }
+        if (line.startsWith("## "))  { elements.push(<h2 key={i} style={{ fontSize: 15, fontWeight: 700, color: "var(--text)", margin: "14px 0 6px" }}>{renderInline(line.slice(3))}</h2>); i++; continue; }
+        if (line.startsWith("# "))   { elements.push(<h1 key={i} style={{ fontSize: 16, fontWeight: 800, color: "var(--text)", margin: "14px 0 6px" }}>{renderInline(line.slice(2))}</h1>); i++; continue; }
+
         // Linha horizontal
         if (line.trim() === "---" || line.trim() === "***") {
             elements.push(<hr key={i} style={{ border: "none", borderTop: "1px solid rgba(30,41,59,0.1)", margin: "10px 0" }}/>);
             i++; continue;
         }
-        // Lista não-ordenada
-        if (line.match(/^[-*] /)) {
-            const items = [];
-            while (i < lines.length && lines[i].match(/^[-*] /)) {
-                items.push(<li key={i} style={{ marginBottom: 3 }}>{renderInline(lines[i].slice(2))}</li>);
+
+        // Lista não-ordenada (com suporte a sub-itens indentados)
+        if (line.match(/^(\s*)[-*] /)) {
+            const listItems = [];
+            const startKey = i;
+            while (i < lines.length && lines[i].match(/^(\s*)[-*] /)) {
+                const indent = lines[i].match(/^(\s*)/)[1].length;
+                const text = lines[i].replace(/^\s*[-*] /, "");
+                listItems.push(
+                    <li key={i} style={{ marginBottom: 3, marginLeft: indent > 0 ? 16 : 0 }}>
+                        {renderInline(text)}
+                    </li>
+                );
                 i++;
             }
-            elements.push(<ul key={`ul-${i}`} style={{ margin: "6px 0", paddingLeft: 20, fontSize: 14, lineHeight: 1.7, color: "var(--text)" }}>{items}</ul>);
+            elements.push(<ul key={`ul-${startKey}`} style={{ margin: "4px 0", paddingLeft: 20, fontSize: 14, lineHeight: 1.7, color: "var(--text)" }}>{listItems}</ul>);
             continue;
         }
-        // Lista ordenada
+
+        // Lista ordenada (suporte a numeração real e reinício)
         if (line.match(/^\d+\. /)) {
             const items = [];
-            while (i < lines.length && lines[i].match(/^\d+\. /)) {
-                items.push(<li key={i} style={{ marginBottom: 3 }}>{renderInline(lines[i].replace(/^\d+\. /, ""))}</li>);
+            const startKey = i;
+            let counter = 1;
+            while (i < lines.length && (lines[i].match(/^\d+\. /) || lines[i].match(/^   [-*] /))) {
+                if (lines[i].match(/^\d+\. /)) {
+                    const text = lines[i].replace(/^\d+\. /, "");
+                    items.push(<li key={i} style={{ marginBottom: 4 }}>{renderInline(text)}</li>);
+                } else {
+                    // Sub-item dentro de lista ordenada
+                    const text = lines[i].replace(/^\s*[-*] /, "");
+                    items.push(<li key={i} style={{ marginBottom: 3, listStyle: "disc", marginLeft: 16 }}>{renderInline(text)}</li>);
+                }
                 i++;
             }
-            elements.push(<ol key={`ol-${i}`} style={{ margin: "6px 0", paddingLeft: 20, fontSize: 14, lineHeight: 1.7, color: "var(--text)" }}>{items}</ol>);
+            elements.push(<ol key={`ol-${startKey}`} style={{ margin: "4px 0", paddingLeft: 20, fontSize: 14, lineHeight: 1.7, color: "var(--text)" }}>{items}</ol>);
             continue;
         }
+
         // Linha em branco
-        if (line.trim() === "") {
-            elements.push(<div key={i} style={{ height: 6 }}/>);
+        if (line.trim() === "") { elements.push(<div key={i} style={{ height: 6 }}/>); i++; continue; }
+
+        // "Fonte real usada:" — destaque especial
+        if (line.startsWith("Fonte real usada:") || line.startsWith("Fonte utilizada:")) {
+            elements.push(
+                <div key={i} style={{ marginTop: 12, padding: "8px 12px", borderRadius: 8, background: "rgba(6,182,212,0.06)", border: "1px solid rgba(6,182,212,0.15)", fontSize: 12, color: "var(--text-muted)" }}>
+                    {renderInline(line)}
+                </div>
+            );
             i++; continue;
         }
+
+        // "Limitações:" — destaque em cinza
+        if (line.startsWith("Limitações:")) {
+            elements.push(
+                <div key={i} style={{ marginTop: 6, fontSize: 12, color: "var(--text-dim)", fontStyle: "italic" }}>
+                    {renderInline(line)}
+                </div>
+            );
+            i++; continue;
+        }
+
         // Parágrafo normal
         elements.push(<p key={i} style={{ fontSize: 14, lineHeight: 1.75, margin: "4px 0", color: "var(--text)" }}>{renderInline(line)}</p>);
         i++;

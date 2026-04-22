@@ -18,6 +18,32 @@ public class CnabFileContextService {
 
     private static final int MAX_LINHAS = 80;
 
+    /**
+     * Extrai o banco normalizado do arquivo para uso na priorização de chunks.
+     * Retorna "itau", "bradesco", "bb", "caixa", "sicredi", etc. ou null se não identificado.
+     */
+    public String detectarBancoDoArquivo(MultipartFile arquivo) {
+        if (arquivo == null || arquivo.isEmpty()) return null;
+        try {
+            List<String> linhas = lerLinhas(arquivo);
+            String bancoDetectado = detectarBanco(linhas);
+            if (bancoDetectado == null) return null;
+            // Normaliza para o mesmo formato usado no bank_code do banco de dados
+            String d = bancoDetectado.toLowerCase();
+            if (d.contains("itau") || d.contains("itaú") || d.contains("341")) return "itau";
+            if (d.contains("bradesco") || d.contains("237"))                    return "bradesco";
+            if (d.contains("brasil") || d.contains("001"))                      return "bb";
+            if (d.contains("caixa") || d.contains("104"))                       return "caixa";
+            if (d.contains("sicredi") || d.contains("748"))                     return "sicredi";
+            if (d.contains("sicoob") || d.contains("756"))                      return "sicoob";
+            if (d.contains("santander") || d.contains("033"))                   return "santander";
+            if (d.contains("banrisul") || d.contains("041"))                    return "banrisul";
+            return null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     public String buildFileContext(MultipartFile arquivo, String bancoSelecionado, String tipoSelecionado) {
         if (arquivo == null || arquivo.isEmpty()) return "";
 

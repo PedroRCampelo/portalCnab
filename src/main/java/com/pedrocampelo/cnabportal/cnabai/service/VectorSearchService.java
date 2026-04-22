@@ -28,7 +28,14 @@ public class VectorSearchService {
             String bankCode,
             String cnabType
     ) {
-        List<Float> questionEmbedding = embeddingService.generateEmbedding(question);
+        // Enriquece a query com banco e tipo para melhorar a busca semântica
+        // Ex: "verifique divergências" + "Itaú CNAB 400" → embedding mais direcionado
+        String queryEnriquecida = question;
+        if (bankCode != null && !bankCode.isBlank()) {
+            queryEnriquecida = bankCode + " " + (cnabType != null ? cnabType : "") + " " + question;
+        }
+
+        List<Float> questionEmbedding = embeddingService.generateEmbedding(queryEnriquecida);
         return vectorSearchRepository.searchSimilar(questionEmbedding, topK);
     }
 }

@@ -30,10 +30,24 @@ public class CnabChatService {
         log.info("[CnabChat] pergunta='{}' banco='{}' tipo='{}'",
                 request.getPergunta(), request.getBanco(), request.getTipo());
 
-        // Busca semântica pura — sem filtro de banco/tipo
+        // Determina banco efetivo ANTES da busca para enriquecer o embedding
+        // dropdown > arquivo > null
+        String bancoDropdown = request.getBanco();
+        String bancoArquivo  = null;
+        if ((bancoDropdown == null || bancoDropdown.isBlank())
+                && Boolean.TRUE.equals(request.getUsarArquivoAtualComoContexto())
+                && request.getArquivoCnab() != null && !request.getArquivoCnab().isEmpty()) {
+            bancoArquivo = cnabFileContextService.detectarBancoDoArquivo(request.getArquivoCnab());
+            if (bancoArquivo != null) {
+                log.info("[CnabChat] banco não selecionado no dropdown — detectado no arquivo: {}", bancoArquivo);
+            }
+        }
+        String bancoEfetivo = (bancoDropdown != null && !bancoDropdown.isBlank()) ? bancoDropdown : bancoArquivo;
+
+        // Busca semântica com query enriquecida pelo banco detectado
         List<RetrievedChunkDTO> todosChunks = vectorSearchService.searchRelevantChunks(
                 request.getPergunta(),
-                request.getBanco(),
+                bancoEfetivo,
                 request.getTipo()
         );
 
@@ -48,7 +62,34 @@ public class CnabChatService {
                 .filter(c -> c.getSimilarity() != null && c.getSimilarity() >= minSimilarity)
                 .toList();
 
-        log.info("[CnabChat] chunks após threshold={}", chunks.size());
+        // Se banco foi especificado (dropdown ou arquivo), prioriza chunks desse banco e tipo
+        String bancoNorm = normalizarBanco(bancoEfetivo);
+        String tipoNorm  = normalizarTipo(request.getTipo());
+
+        if (bancoNorm != null) {
+            // Tenta filtrar por banco + tipo
+            List<RetrievedChunkDTO> chunksExatos = chunks.stream()
+                    .filter(c -> bancoNorm.equalsIgnoreCase(c.getBankCode())
+                            && (tipoNorm == null || tipoNorm.equalsIgnoreCase(c.getCnabType())))
+                    .toList();
+
+            // Se não encontrou com tipo exato, tenta só pelo banco
+            List<RetrievedChunkDTO> chunksCorretos = !chunksExatos.isEmpty() ? chunksExatos :
+                    chunks.stream()
+                            .filter(c -> bancoNorm.equalsIgnoreCase(c.getBankCode()))
+                            .toList();
+
+            if (!chunksCorretos.isEmpty()) {
+                chunks = chunksCorretos;
+                log.info("[CnabChat] banco={} tipo={} → usando {} chunks (banco+tipo={}, descartados={})",
+                        bancoNorm, tipoNorm, chunksCorretos.size(),
+                        chunksExatos.size(), todosChunks.size() - chunksCorretos.size());
+            } else {
+                log.info("[CnabChat] banco={} tipo={} → nenhum chunk encontrado, usando busca geral", bancoNorm, tipoNorm);
+            }
+        }
+
+        log.info("[CnabChat] chunks finais={}", chunks.size());
 
         String fileContext = buildOptionalFileContext(request);
         boolean temArquivo = !fileContext.isBlank();
@@ -72,7 +113,7 @@ public class CnabChatService {
         }
 
         // Monta contexto do banco/tipo selecionado para ajudar a IA
-        String contextoBancoTipo = buildBancoTipoContext(request.getBanco(), request.getTipo());
+        String contextoBancoTipo = buildBancoTipoContext(bancoEfetivo, request.getTipo());
 
         String input = """
                 %s
@@ -93,18 +134,27 @@ public class CnabChatService {
     }
 
     private String buildBancoTipoContext(String banco, String tipo) {
-        if ((banco == null || banco.isBlank()) && (tipo == null || tipo.isBlank())) {
-            return "";
-        }
+        boolean temBanco = banco != null && !banco.isBlank();
+        boolean temTipo  = tipo  != null && !tipo.isBlank();
+
         StringBuilder sb = new StringBuilder("CONTEXTO DA SESSÃO:\n");
-        if (banco != null && !banco.isBlank()) {
-            sb.append("- Banco selecionado pelo usuário: ").append(banco).append("\n");
+
+        if (temBanco) {
+            sb.append("- Banco especificado pelo usuário: ").append(banco).append("\n");
+            sb.append("  → Responda usando APENAS documentação do ").append(banco).append(".\n");
+        } else {
+            sb.append("- Banco: NÃO especificado.\n");
+            sb.append("  → Se a pergunta depender de posições/campos específicos de um banco,\n");
+            sb.append("    pergunte ao usuário qual banco ele quer saber.\n");
+            sb.append("    Se for um conceito geral CNAB/FEBRABAN, responda de forma generalista.\n");
         }
-        if (tipo != null && !tipo.isBlank()) {
-            sb.append("- Layout CNAB selecionado: ").append(tipo).append("\n");
+
+        if (temTipo) {
+            sb.append("- Layout CNAB: ").append(tipo).append("\n");
+        } else {
+            sb.append("- Layout CNAB: não especificado (240 ou 400).\n");
         }
-        sb.append("Use estas informações para contextualizar sua resposta, mas não restrinja " +
-                "a análise apenas a esses parâmetros se o contexto fornecido for de outro banco.\n");
+
         return sb.toString();
     }
 
@@ -143,6 +193,30 @@ public class CnabChatService {
         return "";
     }
 
+    private String normalizarTipo(String tipo) {
+        if (tipo == null || tipo.isBlank()) return null;
+        return switch (tipo.trim().toLowerCase()) {
+            case "240", "cnab240", "cnab 240" -> "cnab240";
+            case "400", "cnab400", "cnab 400" -> "cnab400";
+            default -> tipo.trim().toLowerCase();
+        };
+    }
+
+    private String normalizarBanco(String banco) {
+        if (banco == null || banco.isBlank()) return null;
+        return switch (banco.trim().toLowerCase()) {
+            case "itau", "itaú", "341"          -> "itau";
+            case "bradesco", "237"              -> "bradesco";
+            case "bb", "banco do brasil", "001" -> "bb";
+            case "caixa", "cef", "104"          -> "caixa";
+            case "sicredi", "748"               -> "sicredi";
+            case "sicoob", "756"                -> "sicoob";
+            case "santander", "033"             -> "santander";
+            case "banrisul", "041"              -> "banrisul";
+            default -> banco.trim().toLowerCase();
+        };
+    }
+
     private String trimContext(String context) {
         if (context.length() <= maxContextChars) return context;
         return context.substring(0, maxContextChars) +
@@ -155,34 +229,40 @@ public class CnabChatService {
 
     private String systemPrompt() {
         return """
-                Você é Elvis, especialista em CNAB 240 e CNAB 400 da plataforma Whallet.
+                Você é Elvis, o melhor especialista em CNAB do Brasil. Faz parte da plataforma Whallet.
+                Seu objetivo é dar respostas técnicas precisas, completas e práticas sobre layouts CNAB.
 
-                REGRAS CRÍTICAS:
+                REGRAS DE QUALIDADE — NUNCA ABRA MÃO DISSO:
 
-                1. BANCO DO ARQUIVO TEM PRIORIDADE ABSOLUTA.
-                   Quando houver "=== CONTEXTO DO ARQUIVO CNAB DO USUÁRIO ===" no contexto, leia o campo
-                   "Banco identificado no arquivo" e use EXCLUSIVAMENTE documentação desse banco.
-                   NUNCA responda com campos ou posições de outro banco, mesmo que os chunks da base
-                   de conhecimento sejam de bancos diferentes.
+                1. SEMPRE inclua posições de campo quando a pergunta envolver campos, juros, multa,
+                   desconto, datas ou qualquer dado técnico. Se o contexto tiver a tabela de layout
+                   com posições (ex: "127 141 JUROS DE 1 DIA"), CITE as posições.
+                   Nunca responda "configure o campo X" sem dizer onde ele fica.
 
-                2. Se a base de conhecimento não tiver documentação do banco do arquivo, diga:
-                   "Não tenho documentação do [banco] na base, mas analisarei o arquivo diretamente."
-                   Analise então o conteúdo bruto do arquivo para responder.
+                2. VERIFIQUE O LAYOUT: cada [FONTE] indica banco E tipo (cnab240 ou cnab400).
+                   Se o usuário pede CNAB 240 e só há chunks de CNAB 400, informe claramente.
+                   Nunca misture layouts nem bancos diferentes.
 
-                3. NUNCA misture informações de bancos diferentes.
-                   Arquivo do Itaú → use apenas Itaú. Arquivo do Bradesco → apenas Bradesco.
+                3. BANCO ESPECÍFICO: só responda com dados de um banco se ele estiver
+                   identificado no contexto (dropdown, arquivo ou pergunta).
+                   Sem banco: conceitos → responda genericamente.
+                   Posições → pergunte qual banco.
 
-                4. Ao analisar arquivo:
-                   - Confirme banco, layout (240/400) e tipo (remessa/retorno)
-                   - Leia os campos nas posições corretas para aquele banco específico
-                   - Baseie a resposta no conteúdo real das linhas enviadas
+                4. BANCO DO ARQUIVO TEM PRIORIDADE ABSOLUTA.
+                   Leia "Banco identificado no arquivo" e use EXCLUSIVAMENTE esse banco.
 
-                5. Sem arquivo: use a base de conhecimento. Se o banco não estiver na base,
-                   informe e use o padrão FEBRABAN geral deixando isso explícito.
+                5. NUNCA invente posições, tamanhos, segmentos ou regras.
+                   Se não encontrar no contexto, diga explicitamente.
 
-                6. Nunca invente posições, tamanhos ou regras de campo.
+                6. NUNCA invente fontes. Só cite o source_name se houver [FONTE] no contexto.
 
-                FORMATO: Resposta direta → Fonte utilizada → Limitações se houver.
+                FORMATO DE RESPOSTA:
+                - Listas numeradas (1. 2. 3.) para itens principais
+                - Bullets com hífen (  - item) para sub-itens
+                - `código` para valores e posições de campos
+                - Sempre que citar um campo: Nome | Posições | Formato | Observação
+                  Exemplo: JUROS DE 1 DIA | posições 127-141 | 9(13)V9(2) | ver Nota 13
+                - Fonte: [source_name do chunk]
                 """;
     }
 }
