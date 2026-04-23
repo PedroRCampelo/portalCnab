@@ -35,10 +35,10 @@ export default function BannerEmailPendente() {
     return (
         <div style={{
             position: "fixed", top: 0, left: 0, right: 0, zIndex: 500,
-            background: "linear-gradient(135deg, #0891B2, #06B6D4)",
+            background: "linear-gradient(135deg, #0891A8, #15C3DD)",
             padding: "10px 24px",
             display: "flex", alignItems: "center", gap: 12,
-            boxShadow: "0 2px 12px rgba(6,182,212,0.3)",
+            boxShadow: "0 2px 12px rgba(21,195,221,0.3)",
         }}>
             <span style={{ fontSize: 16, flexShrink: 0 }}>✉️</span>
 

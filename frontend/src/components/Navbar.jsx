@@ -107,8 +107,8 @@ function NavbarInner() {
         <>
             <header style={{
                 position: "fixed", top: 0, left: 0, right: 0, zIndex: 200,
-                background: "#FFFFFF", borderBottom: "1px solid rgba(30,41,59,0.1)",
-                boxShadow: "0 1px 3px rgba(30,41,59,0.04)",
+                background: "#FFFFFF", borderBottom: "1px solid rgba(26,43,66,0.1)",
+                boxShadow: "0 1px 3px rgba(26,43,66,0.04)",
             }}>
                 <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 32px", height: 64, display: "flex", alignItems: "center", gap: 0 }}>
 
@@ -143,9 +143,9 @@ function NavbarInner() {
                                     {aberto && (
                                         <div style={{
                                             position: "absolute", top: "calc(100% + 8px)", left: 0,
-                                            background: "#fff", border: "1px solid rgba(30,41,59,0.1)",
+                                            background: "#fff", border: "1px solid rgba(26,43,66,0.1)",
                                             borderRadius: 14, minWidth: 260, zIndex: 999,
-                                            boxShadow: "0 8px 32px rgba(30,41,59,0.12)",
+                                            boxShadow: "0 8px 32px rgba(26,43,66,0.12)",
                                             overflow: "hidden", padding: "8px",
                                         }}
                                              onMouseEnter={() => abrirSubmenu(grupo.label)}
@@ -156,9 +156,9 @@ function NavbarInner() {
                                                     padding: "10px 12px", borderRadius: 10, textDecoration: "none",
                                                     transition: "background 0.1s",
                                                 }}
-                                                      onMouseEnter={e => e.currentTarget.style.background = "rgba(30,41,59,0.04)"}
+                                                      onMouseEnter={e => e.currentTarget.style.background = "rgba(26,43,66,0.04)"}
                                                       onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-                                                    <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(6,182,212,0.08)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--cyan)", flexShrink: 0 }}>
+                                                    <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(21,195,221,0.08)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--cyan)", flexShrink: 0 }}>
                                                         {item.icon}
                                                     </div>
                                                     <div>
@@ -203,19 +203,19 @@ function NavbarInner() {
                                 <button onClick={() => setDropdownAberto(o => !o)} style={{
                                     display: "flex", alignItems: "center", gap: 8,
                                     padding: "6px 12px 6px 6px", borderRadius: 99,
-                                    border: "1px solid rgba(30,41,59,0.12)", background: "transparent", cursor: "pointer",
+                                    border: "1px solid rgba(26,43,66,0.12)", background: "transparent", cursor: "pointer",
                                     transition: "border-color 0.15s, background 0.15s",
                                 }}
-                                        onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(6,182,212,0.4)"; e.currentTarget.style.background = "rgba(6,182,212,0.04)"; }}
-                                        onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(30,41,59,0.12)"; e.currentTarget.style.background = "transparent"; }}>
-                                    <div style={{ width: 28, height: 28, borderRadius: "50%", background: "var(--grad)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800, color: "#083344" }}>{iniciais}</div>
+                                        onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(21,195,221,0.4)"; e.currentTarget.style.background = "rgba(21,195,221,0.04)"; }}
+                                        onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(26,43,66,0.12)"; e.currentTarget.style.background = "transparent"; }}>
+                                    <div style={{ width: 28, height: 28, borderRadius: "50%", background: "var(--grad)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800, color: "#0B1E36" }}>{iniciais}</div>
                                     <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text)", maxWidth: 80, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{usuario?.nome?.split(" ")[0]}</span>
                                     <LuChevronDown size={13} style={{ color: "var(--text-dim)", transform: dropdownAberto ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}/>
                                 </button>
 
                                 {dropdownAberto && (
-                                    <div style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, background: "#fff", border: "1px solid rgba(30,41,59,0.1)", borderRadius: 14, minWidth: 220, zIndex: 999, boxShadow: "0 8px 32px rgba(30,41,59,0.12)", overflow: "hidden" }}>
-                                        <div style={{ padding: "14px 16px", borderBottom: "1px solid rgba(30,41,59,0.07)" }}>
+                                    <div style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, background: "#fff", border: "1px solid rgba(26,43,66,0.1)", borderRadius: 14, minWidth: 220, zIndex: 999, boxShadow: "0 8px 32px rgba(26,43,66,0.12)", overflow: "hidden" }}>
+                                        <div style={{ padding: "14px 16px", borderBottom: "1px solid rgba(26,43,66,0.07)" }}>
                                             <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text)" }}>{usuario?.nome}</div>
                                             <div style={{ fontSize: 11, color: "var(--text-dim)", marginTop: 2 }}>{usuario?.email}</div>
                                         </div>
@@ -229,12 +229,12 @@ function NavbarInner() {
                                             ] : []),
                                         ].map(item => (
                                             <Link key={item.to} to={item.to} onClick={() => setDropdownAberto(false)} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 16px", color: "var(--text-muted)", textDecoration: "none", fontSize: 13.5, fontWeight: 500, transition: "background 0.1s, color 0.1s" }}
-                                                  onMouseEnter={e => { e.currentTarget.style.background = "rgba(30,41,59,0.04)"; e.currentTarget.style.color = "var(--text)"; }}
+                                                  onMouseEnter={e => { e.currentTarget.style.background = "rgba(26,43,66,0.04)"; e.currentTarget.style.color = "var(--text)"; }}
                                                   onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--text-muted)"; }}>
                                                 <span style={{ color: "var(--text-dim)" }}>{item.icon}</span>{item.label}
                                             </Link>
                                         ))}
-                                        <div style={{ borderTop: "1px solid rgba(30,41,59,0.07)", padding: "6px 8px" }}>
+                                        <div style={{ borderTop: "1px solid rgba(26,43,66,0.07)", padding: "6px 8px" }}>
                                             <button onClick={handleLogout} style={{ width: "100%", padding: "9px 8px", borderRadius: 8, background: "transparent", border: "none", color: "var(--text-muted)", fontWeight: 600, fontSize: 13.5, cursor: "pointer", display: "flex", alignItems: "center", gap: 8, transition: "background 0.1s" }}
                                                     onMouseEnter={e => e.currentTarget.style.background = "rgba(220,38,38,0.05)"}
                                                     onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
@@ -249,7 +249,7 @@ function NavbarInner() {
                                 <Link to="/login" style={{ padding: "7px 16px", borderRadius: 8, fontSize: 13.5, fontWeight: 600, color: "var(--text-muted)", textDecoration: "none" }}
                                       onMouseEnter={e => e.currentTarget.style.color = "var(--text)"}
                                       onMouseLeave={e => e.currentTarget.style.color = "var(--text-muted)"}>Entrar</Link>
-                                <Link to="/cadastro" style={{ padding: "7px 18px", borderRadius: 8, background: "var(--grad)", color: "#083344", fontSize: 13.5, fontWeight: 700, textDecoration: "none" }}
+                                <Link to="/cadastro" style={{ padding: "7px 18px", borderRadius: 8, background: "var(--grad)", color: "#0B1E36", fontSize: 13.5, fontWeight: 700, textDecoration: "none" }}
                                       onMouseEnter={e => e.currentTarget.style.opacity = "0.9"}
                                       onMouseLeave={e => e.currentTarget.style.opacity = "1"}>Criar conta</Link>
                             </>
@@ -266,7 +266,7 @@ function NavbarInner() {
             {/* Menu mobile */}
             {menuAberto && (
                 <>
-                    <div style={{ position: "fixed", top: 64, left: 0, right: 0, zIndex: 199, background: "#fff", borderBottom: "1px solid rgba(30,41,59,0.1)", boxShadow: "0 8px 24px rgba(30,41,59,0.08)", animation: "nbSlideDown 0.18s ease", maxHeight: "80vh", overflowY: "auto" }}>
+                    <div style={{ position: "fixed", top: 64, left: 0, right: 0, zIndex: 199, background: "#fff", borderBottom: "1px solid rgba(26,43,66,0.1)", boxShadow: "0 8px 24px rgba(26,43,66,0.08)", animation: "nbSlideDown 0.18s ease", maxHeight: "80vh", overflowY: "auto" }}>
                         <div style={{ padding: "12px 20px 20px" }}>
 
                             {autenticado && MENU.map(grupo => {
@@ -293,7 +293,7 @@ function NavbarInner() {
 
                             <Link to="/planos" onClick={() => setMenuAberto(false)} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 10, fontSize: 14, fontWeight: 500, textDecoration: "none", color: "var(--text-muted)", marginBottom: 12 }}><LuGem size={15}/> Planos</Link>
 
-                            <div style={{ height: 1, background: "rgba(30,41,59,0.07)", margin: "4px 0 12px" }}/>
+                            <div style={{ height: 1, background: "rgba(26,43,66,0.07)", margin: "4px 0 12px" }}/>
 
                             {autenticado ? (
                                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 14px" }}>
@@ -307,13 +307,13 @@ function NavbarInner() {
                                 </div>
                             ) : (
                                 <div style={{ display: "flex", gap: 10 }}>
-                                    <Link to="/login" onClick={() => setMenuAberto(false)} style={{ flex: 1, textAlign: "center", padding: "11px", borderRadius: 10, border: "1px solid rgba(30,41,59,0.12)", fontSize: 14, fontWeight: 600, color: "var(--text)", textDecoration: "none" }}>Entrar</Link>
-                                    <Link to="/cadastro" onClick={() => setMenuAberto(false)} style={{ flex: 1, textAlign: "center", padding: "11px", borderRadius: 10, background: "var(--grad)", fontSize: 14, fontWeight: 700, color: "#083344", textDecoration: "none" }}>Criar conta</Link>
+                                    <Link to="/login" onClick={() => setMenuAberto(false)} style={{ flex: 1, textAlign: "center", padding: "11px", borderRadius: 10, border: "1px solid rgba(26,43,66,0.12)", fontSize: 14, fontWeight: 600, color: "var(--text)", textDecoration: "none" }}>Entrar</Link>
+                                    <Link to="/cadastro" onClick={() => setMenuAberto(false)} style={{ flex: 1, textAlign: "center", padding: "11px", borderRadius: 10, background: "var(--grad)", fontSize: 14, fontWeight: 700, color: "#0B1E36", textDecoration: "none" }}>Criar conta</Link>
                                 </div>
                             )}
                         </div>
                     </div>
-                    <div onClick={() => setMenuAberto(false)} style={{ position: "fixed", inset: 0, top: 64, zIndex: 198, background: "rgba(30,41,59,0.25)" }}/>
+                    <div onClick={() => setMenuAberto(false)} style={{ position: "fixed", inset: 0, top: 64, zIndex: 198, background: "rgba(26,43,66,0.25)" }}/>
                 </>
             )}
 
