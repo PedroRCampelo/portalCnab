@@ -13,19 +13,22 @@ function aplicarMascaraTelefone(valor) {
 
 const PLANOS = [
     {
-        id: "gratuito", emoji: "🚀", nome: "Gratuito", preco: "R$ 0", per: "/mês",
+        id: "gratuito", nome: "Gratuito", preco: "R$ 0", per: "/mês",
+        tag: null,
         items: ["8 conversões/mês", "Excel e PDF", "Todos os bancos"],
-        cta: "Criar conta gratuita", destaque: false,
+        cta: "Criar conta gratuita",
     },
     {
-        id: "pro", emoji: "⚡", nome: "Pro", preco: "R$ 18,90", per: "/mês",
-        items: ["Conversões ilimitadas", "Excel e PDF", "Todos os bancos", "Agente Elvis (IA CNAB)"],
-        cta: "Criar conta Pro", destaque: false,
+        id: "pro", nome: "Pro", preco: "R$ 18,90", per: "/mês",
+        tag: null,
+        items: ["Conversões ilimitadas", "Excel e PDF", "Todos os bancos", "Agente Elvis IA"],
+        cta: "Criar conta Pro",
     },
     {
-        id: "whallet-plus", emoji: "✨", nome: "Whallet+", preco: "R$ 39,90", per: "/mês",
+        id: "whallet-plus", nome: "Whallet+", preco: "R$ 39,90", per: "/mês",
+        tag: "MAIS COMPLETO",
         items: ["Tudo do Pro", "Gestão financeira", "Alertas e-mail", "Insights de IA"],
-        cta: "Criar conta Whallet+", destaque: true,
+        cta: "Criar conta Whallet+",
     },
 ];
 
@@ -38,19 +41,23 @@ export default function CadastroPage() {
     const [erro,       setErro]       = useState("");
     const [carregando, setCarregando] = useState(false);
     const [ok,         setOk]         = useState("");
+    const [showPass,   setShowPass]   = useState(false);
 
-    const atualizar = (c, v) => setForm(p => ({ ...p, [c]: v }));
-    const planoAtual  = PLANOS.find(p => p.id === plano);
+    const atualizar    = (c, v) => setForm(p => ({ ...p, [c]: v }));
+    const planoAtual   = PLANOS.find(p => p.id === plano);
     const precisaPagar = plano !== "gratuito";
 
     async function handleSubmit(e) {
         e.preventDefault();
         setErro("");
-        if (form.senha !== form.confirmarSenha) { setErro("As senhas não coincidem"); return; }
-        if (form.senha.length < 8) { setErro("Mínimo 8 caracteres na senha"); return; }
+        if (form.senha !== form.confirmarSenha) { setErro("As senhas não coincidem."); return; }
+        if (form.senha.length < 8) { setErro("Mínimo 8 caracteres na senha."); return; }
         setCarregando(true);
         try {
-            await api.post("/api/auth/cadastro", { nome: form.nome, email: form.email, senha: form.senha, telefone: form.telefone || null });
+            await api.post("/api/auth/cadastro", {
+                nome: form.nome, email: form.email,
+                senha: form.senha, telefone: form.telefone || null,
+            });
             setOk(form.email);
         } catch (err) {
             setErro(err.response?.data?.mensagem ?? "Erro ao criar conta.");
@@ -58,26 +65,52 @@ export default function CadastroPage() {
         }
     }
 
-    // ── Sucesso ───────────────────────────────────────────────────────────────
+    /* ── Sucesso ─────────────────────────────────────────────────────────── */
     if (ok) return (
-        <div className="cad-fullheight" style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 16, overflow: "hidden" }}>
-            <div style={{ width: "100%", maxWidth: 440, background: "#fff", border: "1px solid var(--border)", borderRadius: 20, padding: "40px 36px", textAlign: "center", boxShadow: "0 4px 24px rgba(26,43,66,0.07)" }}>
-                <div style={{ fontSize: 48, marginBottom: 14 }}>✉️</div>
-                <h2 style={{ fontSize: 20, fontWeight: 800, color: "var(--text)", margin: "0 0 10px" }}>Verifique seu e-mail</h2>
-                <p style={{ fontSize: 14, color: "var(--text-muted)", margin: "0 0 20px", lineHeight: 1.7 }}>
-                    Enviamos um link para <strong>{ok}</strong>. Clique para ativar sua conta.
+        <div className="auth-wrap">
+            <div className="auth-box" style={{ textAlign: "center" }}>
+                <div style={{
+                    width: 56, height: 56, borderRadius: "50%",
+                    background: "rgba(21,195,221,0.1)",
+                    border: "1px solid rgba(21,195,221,0.2)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 24, margin: "0 auto 20px",
+                }}>✉️</div>
+
+                <h2 className="auth-box-title">Verifique seu e-mail</h2>
+                <p style={{ fontSize: 14, color: "var(--text-muted)", margin: "0 0 6px", lineHeight: 1.7 }}>
+                    Enviamos um link de ativação para
                 </p>
+                <p style={{ fontSize: 14, fontWeight: 700, color: "var(--text)", margin: "0 0 20px" }}>{ok}</p>
+
                 {precisaPagar && (
-                    <div style={{ padding: "12px 14px", borderRadius: 10, background: "rgba(21,195,221,0.05)", border: "1px solid rgba(21,195,221,0.2)", fontSize: 13, color: "var(--text-muted)", marginBottom: 20, textAlign: "left" }}>
+                    <div style={{
+                        padding: "12px 14px", borderRadius: 10, marginBottom: 20, textAlign: "left",
+                        background: "rgba(21,195,221,0.05)", border: "1px solid rgba(21,195,221,0.2)",
+                        fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6,
+                    }}>
                         <strong style={{ color: "var(--text)" }}>Plano {planoAtual?.nome}</strong> — após confirmar o e-mail e fazer login, você será direcionado ao pagamento.
                     </div>
                 )}
-                <Link to="/login" state={precisaPagar ? { planoAposLogin: plano } : undefined} className="auth-box-btn" style={{ display: "block", textDecoration: "none", textAlign: "center" }}>
+
+                <Link
+                    to="/login"
+                    state={precisaPagar ? { planoAposLogin: plano } : undefined}
+                    className="auth-box-btn"
+                    style={{ display: "block", textDecoration: "none" }}
+                >
                     Ir para o login →
                 </Link>
+
                 <p style={{ fontSize: 12, color: "var(--text-dim)", marginTop: 14 }}>
                     Não recebeu?{" "}
-                    <button onClick={async () => { await api.post("/api/auth/reenviar-verificacao", { email: ok }); alert("Reenviado!"); }} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "inherit", padding: 0, color: "var(--cyan-dark)", fontWeight: 600 }}>
+                    <button
+                        onClick={async () => {
+                            await api.post("/api/auth/reenviar-verificacao", { email: ok });
+                            alert("Reenviado!");
+                        }}
+                        style={{ background: "none", border: "none", cursor: "pointer", fontSize: "inherit", padding: 0, color: "var(--cyan-dark)", fontWeight: 600 }}
+                    >
                         Reenviar
                     </button>
                 </p>
@@ -85,109 +118,308 @@ export default function CadastroPage() {
         </div>
     );
 
-    // ── Layout 2 colunas ─────────────────────────────────────────────────────
+    /* ── Layout principal ────────────────────────────────────────────────── */
     return (
         <div className="cad-fullheight" style={{ display: "flex", overflow: "hidden" }}>
 
-            {/* Coluna esquerda — planos */}
-            <div className="cad-col-left" style={{
-                width: 380, flexShrink: 0,
-                background: "var(--text)",
+            {/* ── Coluna esquerda: seletor de planos (desktop only) ───────── */}
+            <div className="cad-col-planos" style={{
+                width: 340, flexShrink: 0,
+                background: "var(--navy-deep)",
                 display: "flex", flexDirection: "column",
-                padding: "32px 28px",
+                padding: "36px 24px",
                 overflowY: "auto",
+                position: "relative",
             }}>
-                <h2 style={{ fontSize: 18, fontWeight: 800, color: "#fff", margin: "0 0 4px", letterSpacing: "-0.02em" }}>Escolha seu plano</h2>
-                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", margin: "0 0 20px" }}>Cancele quando quiser.</p>
+                {/* Grade decorativa */}
+                <div style={{
+                    position: "absolute", inset: 0, pointerEvents: "none",
+                    backgroundImage: `
+                        linear-gradient(rgba(21,195,221,0.05) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(21,195,221,0.05) 1px, transparent 1px)
+                    `,
+                    backgroundSize: "36px 36px",
+                }}/>
+                <div style={{
+                    position: "absolute", bottom: -60, left: -60,
+                    width: 260, height: 260, borderRadius: "50%",
+                    background: "radial-gradient(circle, rgba(21,195,221,0.1), transparent 65%)",
+                    pointerEvents: "none",
+                }}/>
 
-                <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
-                    {PLANOS.map(p => {
-                        const ativo = plano === p.id;
-                        return (
-                            <button key={p.id} type="button" onClick={() => setPlano(p.id)} style={{
-                                padding: "14px 16px", borderRadius: 12, cursor: "pointer", textAlign: "left",
-                                border: ativo ? "2px solid var(--cyan)" : "1.5px solid rgba(255,255,255,0.08)",
-                                background: ativo ? "rgba(21,195,221,0.12)" : "rgba(255,255,255,0.03)",
-                                transition: "all 0.15s", position: "relative",
-                            }}>
-                                {p.destaque && (
-                                    <span style={{ position: "absolute", top: -9, right: 12, background: "var(--grad)", color: "#0B1E36", fontSize: 9, fontWeight: 800, padding: "2px 10px", borderRadius: 20 }}>MAIS COMPLETO</span>
-                                )}
-                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                                    <span style={{ fontSize: 13, fontWeight: 700, color: ativo ? "#4CDDE8" : "rgba(255,255,255,0.7)" }}>
-                                        {p.emoji} {p.nome}
-                                    </span>
-                                    <span style={{ fontSize: 15, fontWeight: 900, color: "#fff" }}>{p.preco}<span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginLeft: 2 }}>{p.per}</span></span>
-                                </div>
-                                {p.items.map(i => (
-                                    <div key={i} style={{ fontSize: 11, color: ativo ? "rgba(255,255,255,0.75)" : "rgba(255,255,255,0.35)", display: "flex", gap: 6, marginBottom: 3 }}>
-                                        <span style={{ color: ativo ? "#4CDDE8" : "rgba(255,255,255,0.2)", flexShrink: 0 }}>✓</span>{i}
-                                    </div>
-                                ))}
-                                {ativo && <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid rgba(21,195,221,0.25)", fontSize: 10, color: "#4CDDE8", fontWeight: 700 }}>● Selecionado</div>}
-                            </button>
-                        );
-                    })}
-                </div>
+                <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%" }}>
+                    {/* Logo */}
+                    <div style={{ marginBottom: 32 }}>
+                        <span className="brand-wordmark" style={{ color: "#fff", fontSize: 20 }}>Whallet</span>
+                    </div>
 
-                <p style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", marginTop: 16 }}>Cobrado mensalmente. Cancele sem multa.</p>
-            </div>
-
-            {/* Coluna direita — formulário */}
-            <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px 32px", overflowY: "auto", background: "var(--bg)" }}>
-                <div style={{ width: "100%", maxWidth: 400 }}>
-                    <div style={{ marginBottom: 28 }}>
-                        <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 10, background: "rgba(21,195,221,0.08)", border: "1px solid rgba(21,195,221,0.2)", borderRadius: 999, padding: "3px 12px", fontSize: 12, fontWeight: 700, color: "var(--cyan-dark)" }}>
-                            {planoAtual?.emoji} Plano {planoAtual?.nome}
+                    <div style={{ marginBottom: 20 }}>
+                        <div style={{
+                            fontSize: 10, fontWeight: 600, color: "var(--cyan)",
+                            letterSpacing: "0.1em", textTransform: "uppercase",
+                            marginBottom: 8, display: "flex", alignItems: "center", gap: 8,
+                        }}>
+                            <span style={{ width: 18, height: 1, background: "var(--cyan)", display: "block" }}/>
+                            Escolha seu plano
                         </div>
-                        <h1 style={{ fontSize: 24, fontWeight: 900, color: "var(--text)", margin: "0 0 6px", letterSpacing: "-0.03em" }}>Crie sua conta</h1>
-                        <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>
-                            {precisaPagar ? `${planoAtual?.preco}/mês após confirmação` : "Gratuito, sem cartão"}
+                        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", margin: 0, lineHeight: 1.6 }}>
+                            Cancele quando quiser, sem multa.
                         </p>
                     </div>
 
-                    <form onSubmit={handleSubmit} noValidate style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                    {/* Cards de plano */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
+                        {PLANOS.map(p => {
+                            const ativo = plano === p.id;
+                            return (
+                                <button
+                                    key={p.id} type="button"
+                                    onClick={() => setPlano(p.id)}
+                                    style={{
+                                        padding: "13px 14px", borderRadius: 10,
+                                        cursor: "pointer", textAlign: "left", width: "100%",
+                                        border: ativo ? "1.5px solid rgba(21,195,221,0.5)" : "1.5px solid rgba(255,255,255,0.07)",
+                                        background: ativo ? "rgba(21,195,221,0.08)" : "rgba(255,255,255,0.02)",
+                                        transition: "all 0.15s", position: "relative",
+                                    }}
+                                >
+                                    {p.tag && (
+                                        <span style={{
+                                            position: "absolute", top: -8, right: 10,
+                                            background: "var(--cyan)", color: "var(--navy-deep)",
+                                            fontSize: 8, fontWeight: 700, padding: "2px 8px",
+                                            borderRadius: 20, letterSpacing: "0.06em",
+                                        }}>{p.tag}</span>
+                                    )}
+                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
+                                        <div>
+                                            <div style={{ fontSize: 12, fontWeight: 600, color: ativo ? "#fff" : "rgba(255,255,255,0.5)", marginBottom: 2 }}>
+                                                {p.nome}
+                                            </div>
+                                            <div style={{ fontSize: 16, fontWeight: 600, color: ativo ? "#fff" : "rgba(255,255,255,0.5)", letterSpacing: "-0.02em" }}>
+                                                {p.preco}
+                                                <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontWeight: 400, marginLeft: 2 }}>{p.per}</span>
+                                            </div>
+                                        </div>
+                                        {ativo && (
+                                            <div style={{
+                                                width: 16, height: 16, borderRadius: "50%",
+                                                background: "var(--cyan)", display: "flex",
+                                                alignItems: "center", justifyContent: "center",
+                                                fontSize: 9, color: "var(--navy-deep)", flexShrink: 0,
+                                            }}>✓</div>
+                                        )}
+                                    </div>
+                                    <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                                        {p.items.map(item => (
+                                            <div key={item} style={{
+                                                fontSize: 11, display: "flex", gap: 5, alignItems: "center",
+                                                color: ativo ? "rgba(255,255,255,0.55)" : "rgba(255,255,255,0.22)",
+                                            }}>
+                                                <span style={{ color: ativo ? "var(--cyan-light)" : "rgba(255,255,255,0.18)", fontSize: 9 }}>✓</span>
+                                                {item}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    <p style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", marginTop: 14 }}>
+                        Cobrado mensalmente. Cancele a qualquer momento.
+                    </p>
+                </div>
+            </div>
+
+            {/* ── Coluna direita: formulário ───────────────────────────────── */}
+            <div style={{
+                flex: 1, display: "flex", alignItems: "flex-start",
+                justifyContent: "center", overflowY: "auto",
+                background: "var(--bg)", padding: "32px 24px",
+            }}>
+                <div style={{ width: "100%", maxWidth: 400, paddingTop: 8 }}>
+
+                    {/* Header */}
+                    <div style={{ marginBottom: 24 }}>
+                        {/* Plano selecionado — badge visível em mobile (painel escondido) */}
+                        <div className="cad-plano-mobile" style={{
+                            display: "none", marginBottom: 16,
+                        }}>
+                            <div style={{ fontSize: 12, color: "var(--text-dim)", marginBottom: 8 }}>Escolha o plano:</div>
+                            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                                {PLANOS.map(p => (
+                                    <button
+                                        key={p.id} type="button"
+                                        onClick={() => setPlano(p.id)}
+                                        style={{
+                                            padding: "5px 12px", borderRadius: 999, fontSize: 12,
+                                            fontWeight: 600, cursor: "pointer", border: "1.5px solid",
+                                            borderColor: plano === p.id ? "var(--cyan)" : "var(--border)",
+                                            background: plano === p.id ? "rgba(21,195,221,0.08)" : "transparent",
+                                            color: plano === p.id ? "var(--cyan-dark)" : "var(--text-muted)",
+                                            transition: "all 0.15s",
+                                        }}
+                                    >
+                                        {p.nome} · {p.preco}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div style={{
+                            fontSize: 10, fontWeight: 600, letterSpacing: "0.1em",
+                            textTransform: "uppercase", color: "var(--cyan-dark)",
+                            marginBottom: 10, display: "flex", alignItems: "center", gap: 8,
+                        }}>
+                            <span style={{ width: 18, height: 1, background: "var(--cyan-dark)", display: "block" }}/>
+                            Nova conta
+                        </div>
+                        <h1 className="auth-box-title" style={{ fontSize: 24, margin: "0 0 6px" }}>
+                            Crie sua conta
+                        </h1>
+
+                        {/* Badge plano selecionado */}
+                        <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 8 }}>
+                            <span style={{
+                                padding: "3px 10px", borderRadius: 999, fontSize: 12,
+                                fontWeight: 600, color: "var(--text)",
+                                background: "rgba(30,41,59,0.06)",
+                                border: "1px solid var(--border)",
+                            }}>
+                                {planoAtual?.nome}
+                                <span style={{ color: "var(--text-dim)", fontWeight: 400 }}>
+                                    {" "}· {precisaPagar ? `${planoAtual?.preco}/mês` : "Gratuito"}
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Formulário */}
+                    <form onSubmit={handleSubmit} noValidate style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+
                         <div className="field-group" style={{ margin: 0 }}>
                             <label>Nome completo</label>
-                            <input type="text" placeholder="Seu nome" value={form.nome} onChange={e => atualizar("nome", e.target.value)} required disabled={carregando}/>
+                            <input
+                                type="text" placeholder="Seu nome"
+                                value={form.nome} onChange={e => atualizar("nome", e.target.value)}
+                                required disabled={carregando}
+                            />
                         </div>
+
                         <div className="field-group" style={{ margin: 0 }}>
                             <label>E-mail</label>
-                            <input type="email" placeholder="seu@email.com" value={form.email} onChange={e => atualizar("email", e.target.value)} autoComplete="email" required disabled={carregando}/>
+                            <input
+                                type="email" placeholder="seu@email.com"
+                                value={form.email} onChange={e => atualizar("email", e.target.value)}
+                                autoComplete="email" required disabled={carregando}
+                            />
                         </div>
+
                         <div className="field-group" style={{ margin: 0 }}>
-                            <label>Telefone <span style={{ color: "var(--text-dim)", fontWeight: 400, fontSize: 11 }}>(opcional)</span></label>
-                            <input type="tel" placeholder="(11) 91234-5678" value={form.telefone} onChange={e => atualizar("telefone", aplicarMascaraTelefone(e.target.value))} disabled={carregando} maxLength={16}/>
+                            <label>
+                                Telefone{" "}
+                                <span style={{ color: "var(--text-dim)", fontWeight: 400, fontSize: 11 }}>(opcional)</span>
+                            </label>
+                            <input
+                                type="tel" placeholder="(11) 91234-5678"
+                                value={form.telefone}
+                                onChange={e => atualizar("telefone", aplicarMascaraTelefone(e.target.value))}
+                                disabled={carregando} maxLength={16}
+                            />
                         </div>
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }} className="cad-senha-row">
+
+                        {/* Senhas */}
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }} className="cad-senha-row">
                             <div className="field-group" style={{ margin: 0 }}>
                                 <label>Senha</label>
-                                <input type="password" placeholder="Mín. 8 caracteres" value={form.senha} onChange={e => atualizar("senha", e.target.value)} autoComplete="new-password" required disabled={carregando}/>
+                                <div style={{ position: "relative" }}>
+                                    <input
+                                        type={showPass ? "text" : "password"}
+                                        placeholder="Mín. 8 chars"
+                                        value={form.senha}
+                                        onChange={e => atualizar("senha", e.target.value)}
+                                        autoComplete="new-password" required disabled={carregando}
+                                        style={{ paddingRight: 38 }}
+                                    />
+                                    <button
+                                        type="button" onClick={() => setShowPass(s => !s)}
+                                        style={{
+                                            position: "absolute", right: 10, top: "50%",
+                                            transform: "translateY(-50%)",
+                                            background: "none", border: "none", cursor: "pointer",
+                                            color: "var(--text-dim)", fontSize: 13, padding: 2, lineHeight: 1,
+                                        }}
+                                    >{showPass ? "🙈" : "👁️"}</button>
+                                </div>
                             </div>
                             <div className="field-group" style={{ margin: 0 }}>
                                 <label>Confirmar</label>
-                                <input type="password" placeholder="Repita" value={form.confirmarSenha} onChange={e => atualizar("confirmarSenha", e.target.value)} autoComplete="new-password" required disabled={carregando}/>
+                                <input
+                                    type={showPass ? "text" : "password"}
+                                    placeholder="Repita"
+                                    value={form.confirmarSenha}
+                                    onChange={e => atualizar("confirmarSenha", e.target.value)}
+                                    autoComplete="new-password" required disabled={carregando}
+                                />
                             </div>
                         </div>
 
-                        {erro && <div style={{ padding: "9px 12px", borderRadius: 8, background: "rgba(220,38,38,0.06)", border: "1px solid rgba(220,38,38,0.2)", color: "var(--error)", fontSize: 13 }}>⚠️ {erro}</div>}
+                        {/* Força da senha */}
+                        {form.senha.length > 0 && (
+                            <div>
+                                <div style={{ display: "flex", gap: 4, marginBottom: 4 }}>
+                                    {[1,2,3,4].map(n => {
+                                        const nivel = Math.min(Math.floor(form.senha.length / 2), 4);
+                                        const cor = n <= nivel
+                                            ? n <= 1 ? "#EF4444" : n <= 2 ? "#F59E0B" : n === 3 ? "#06B6D4" : "var(--cyan)"
+                                            : "var(--border)";
+                                        return <div key={n} style={{ flex: 1, height: 3, borderRadius: 2, background: cor, transition: "background 0.3s" }}/>;
+                                    })}
+                                </div>
+                                <div style={{ fontSize: 10, color: "var(--text-dim)" }}>
+                                    {form.senha.length < 4 ? "Fraca" : form.senha.length < 6 ? "Regular" : form.senha.length < 8 ? "Boa" : "Forte"}
+                                </div>
+                            </div>
+                        )}
 
-                        <button type="submit" className="auth-box-btn" disabled={carregando || !form.nome || !form.email || !form.senha || !form.confirmarSenha} style={{ marginTop: 4 }}>
-                            {carregando ? "Criando..." : planoAtual?.cta}
+                        {erro && (
+                            <div style={{
+                                padding: "10px 14px", borderRadius: 8,
+                                background: "rgba(220,38,38,0.05)",
+                                border: "1px solid rgba(220,38,38,0.15)",
+                                color: "var(--error)", fontSize: 13,
+                            }}>{erro}</div>
+                        )}
+
+                        <button
+                            type="submit"
+                            className="auth-box-btn"
+                            disabled={carregando || !form.nome || !form.email || !form.senha || !form.confirmarSenha}
+                            style={{ marginTop: 4 }}
+                        >
+                            {carregando ? "Criando conta..." : planoAtual?.cta}
                         </button>
                     </form>
 
                     <p style={{ marginTop: 16, textAlign: "center", fontSize: 13, color: "var(--text-dim)" }}>
                         Já tem conta?{" "}
-                        <Link to="/login" style={{ color: "var(--cyan-dark)", fontWeight: 600, textDecoration: "none" }}>Fazer login</Link>
+                        <Link to="/login" style={{ color: "var(--cyan-dark)", fontWeight: 600, textDecoration: "none" }}>
+                            Fazer login
+                        </Link>
                     </p>
-
-                    <style>{`
-                        @media (max-width: 820px) { .cad-col-left { display: none !important; } }
-                        @media (max-width: 480px) { .cad-senha-row { grid-template-columns: 1fr !important; } }
-                    `}</style>
                 </div>
             </div>
+
+            <style>{`
+                @media (max-width: 820px) {
+                    .cad-col-planos { display: none !important; }
+                    .cad-plano-mobile { display: block !important; }
+                }
+                @media (max-width: 480px) {
+                    .cad-senha-row { grid-template-columns: 1fr !important; }
+                }
+            `}</style>
         </div>
     );
 }
