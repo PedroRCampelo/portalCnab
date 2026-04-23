@@ -85,8 +85,8 @@ export default function GestaoFinanceiraPage() {
 
     const bots = [
         { key: "aurora", nome: "Aurora", img: auroraImg, cor: "#DB2777", bg: "rgba(219,39,119,0.07)", borda: "rgba(219,39,119,0.2)", desc: "Descontraída e animada", frase: "\"Ei! Você tem 3 títulos vencendo essa semana — bora resolver antes que vire bagunça? 😄\"" },
-        { key: "frank",  nome: "Frank",  img: frankImg,  cor: "#1E293B", bg: "rgba(30,41,59,0.06)",   borda: "rgba(30,41,59,0.18)",   desc: "Sério e direto", frase: "\"Há concentração crítica em Moradia (47% do total em aberto). Recomenda-se priorização imediata.\"" },
-        { key: "anne",   nome: "Anne",   img: anneImg,   cor: "#0891B2", bg: "rgba(8,145,178,0.07)",  borda: "rgba(8,145,178,0.2)",  desc: "Analítica e estratégica", frase: "\"Padrão identificado: 68% dos seus vencimentos se concentram nos dias 10–15. Considere redistribuição.\"" },
+        { key: "frank",  nome: "Frank",  img: frankImg,  cor: "#1A2B42", bg: "rgba(26,43,66,0.06)",   borda: "rgba(26,43,66,0.18)",   desc: "Sério e direto", frase: "\"Há concentração crítica em Moradia (47% do total em aberto). Recomenda-se priorização imediata.\"" },
+        { key: "anne",   nome: "Anne",   img: anneImg,   cor: "#0891A8", bg: "rgba(8,145,178,0.07)",  borda: "rgba(8,145,178,0.2)",  desc: "Analítica e estratégica", frase: "\"Padrão identificado: 68% dos seus vencimentos se concentram nos dias 10–15. Considere redistribuição.\"" },
     ];
 
     const features = [
@@ -115,7 +115,7 @@ export default function GestaoFinanceiraPage() {
                 <div style={{ textAlign: "center", marginBottom: 64 }}>
                     <div style={{
                         display: "inline-flex", alignItems: "center", gap: 6,
-                        background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.2)",
+                        background: "rgba(21,195,221,0.08)", border: "1px solid rgba(21,195,221,0.2)",
                         borderRadius: 999, padding: "6px 18px", marginBottom: 24,
                         fontSize: 11.5, fontWeight: 700, color: "var(--cyan-dark)", letterSpacing: "0.06em",
                     }}>
@@ -141,7 +141,7 @@ export default function GestaoFinanceiraPage() {
                         <button onClick={handleUpgrade} disabled={carregando} style={{
                             padding: "14px 32px", borderRadius: 12,
                             background: "var(--grad)", border: "none",
-                            color: "#083344", fontWeight: 800, fontSize: 16, cursor: "pointer",
+                            color: "#0B1E36", fontWeight: 800, fontSize: 16, cursor: "pointer",
                             opacity: carregando ? 0.7 : 1, transition: "opacity 0.15s",
                         }}>
                             {carregando ? "Redirecionando..." : autenticado ? "Assinar Whallet+ — R$ 39,90/mês" : "Criar conta grátis e assinar"}
@@ -158,7 +158,7 @@ export default function GestaoFinanceiraPage() {
 
                     <div style={{
                         display: "inline-flex", alignItems: "center", gap: 6, marginTop: 16,
-                        background: "rgba(6,182,212,0.06)", border: "1px solid rgba(6,182,212,0.15)",
+                        background: "rgba(21,195,221,0.06)", border: "1px solid rgba(21,195,221,0.15)",
                         borderRadius: 999, padding: "4px 14px",
                         fontSize: 12, color: "var(--cyan-dark)", fontWeight: 600,
                     }}>
@@ -169,15 +169,15 @@ export default function GestaoFinanceiraPage() {
                 {/* ── Demo interativo ───────────────────────────────────────────── */}
                 <section style={{
                     marginBottom: 72,
-                    background: "linear-gradient(180deg, rgba(6,182,212,0.04), rgba(6,182,212,0.01))",
-                    border: "1px solid rgba(6,182,212,0.12)",
+                    background: "linear-gradient(180deg, rgba(21,195,221,0.04), rgba(21,195,221,0.01))",
+                    border: "1px solid rgba(21,195,221,0.12)",
                     borderRadius: 24, padding: "28px 20px 20px", overflow: "hidden",
                 }}>
                     <div style={{ textAlign: "center", marginBottom: 24 }}>
                         <div style={{
                             display: "inline-flex", alignItems: "center", gap: 8,
                             padding: "6px 12px", borderRadius: 999,
-                            background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.15)",
+                            background: "rgba(21,195,221,0.08)", border: "1px solid rgba(21,195,221,0.15)",
                             color: "var(--cyan-dark)", fontWeight: 700, fontSize: 12, marginBottom: 14,
                         }}>✨ DEMO DA ROTINA</div>
                         <h2 style={{ fontSize: "clamp(22px, 4vw, 32px)", fontWeight: 900, color: "var(--text)", margin: "0 0 8px" }}>
@@ -195,8 +195,8 @@ export default function GestaoFinanceiraPage() {
                             return (
                                 <button key={item.id} onClick={() => setDemoAtivo(item.id)} style={{
                                     flex: "0 0 auto", borderRadius: 12, padding: "11px 16px",
-                                    border: active ? "1px solid rgba(6,182,212,0.4)" : "1px solid var(--border)",
-                                    background: active ? "rgba(6,182,212,0.08)" : "var(--surface)",
+                                    border: active ? "1px solid rgba(21,195,221,0.4)" : "1px solid var(--border)",
+                                    background: active ? "rgba(21,195,221,0.08)" : "var(--surface)",
                                     color: "var(--text)", cursor: "pointer", textAlign: "left",
                                     minWidth: 180, transition: "all 0.2s",
                                 }}>
@@ -216,8 +216,8 @@ export default function GestaoFinanceiraPage() {
                         <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 20, padding: 22 }}>
                             <div style={{
                                 display: "inline-flex", alignItems: "center", gap: 8, borderRadius: 999,
-                                padding: "5px 12px", background: "rgba(6,182,212,0.07)",
-                                border: "1px solid rgba(6,182,212,0.15)", color: "var(--cyan-dark)",
+                                padding: "5px 12px", background: "rgba(21,195,221,0.07)",
+                                border: "1px solid rgba(21,195,221,0.15)", color: "var(--cyan-dark)",
                                 fontWeight: 700, fontSize: 11, marginBottom: 14,
                             }}>{demoAtual.badge}</div>
                             <h3 style={{ fontSize: 26, lineHeight: 1.1, margin: "0 0 10px", color: "var(--text)", fontWeight: 900 }}>{demoAtual.titulo}</h3>
@@ -234,7 +234,7 @@ export default function GestaoFinanceiraPage() {
                             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                                 <button onClick={() => setModalAberto(true)} style={{
                                     padding: "10px 14px", borderRadius: 10,
-                                    border: "1px solid rgba(6,182,212,0.3)", background: "rgba(6,182,212,0.08)",
+                                    border: "1px solid rgba(21,195,221,0.3)", background: "rgba(21,195,221,0.08)",
                                     color: "var(--cyan-dark)", fontWeight: 700, cursor: "pointer", fontSize: 13,
                                 }}>Ampliar screenshot</button>
                                 <button onClick={handleUpgrade} disabled={carregando} style={{
@@ -256,7 +256,7 @@ export default function GestaoFinanceiraPage() {
                                 <span style={{ fontSize: 11, color: "var(--text-dim)", fontWeight: 600 }}>Preview</span>
                             </div>
                             <button onClick={() => setModalAberto(true)} style={{ width: "100%", border: "none", background: "transparent", padding: 0, cursor: "zoom-in" }}>
-                                <img src={demoAtual.img} alt={demoAtual.titulo} style={{ width: "100%", display: "block", borderRadius: 14, border: "1px solid rgba(30,41,59,0.07)", boxShadow: "0 8px 32px rgba(30,41,59,0.08)" }}/>
+                                <img src={demoAtual.img} alt={demoAtual.titulo} style={{ width: "100%", display: "block", borderRadius: 14, border: "1px solid rgba(26,43,66,0.07)", boxShadow: "0 8px 32px rgba(26,43,66,0.08)" }}/>
                             </button>
                             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px,1fr))", gap: 8, marginTop: 12 }}>
                                 {demos.map(item => {
@@ -265,13 +265,13 @@ export default function GestaoFinanceiraPage() {
                                         <button key={item.id} onClick={() => setDemoAtivo(item.id)} style={{
                                             display: "flex", alignItems: "center", gap: 8, textAlign: "left",
                                             borderRadius: 12, padding: 9,
-                                            border: active ? "1px solid rgba(6,182,212,0.35)" : "1px solid var(--border)",
-                                            background: active ? "rgba(6,182,212,0.07)" : "var(--surface)",
+                                            border: active ? "1px solid rgba(21,195,221,0.35)" : "1px solid var(--border)",
+                                            background: active ? "rgba(21,195,221,0.07)" : "var(--surface)",
                                             cursor: "pointer",
                                         }}>
                                             <div style={{
                                                 width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-                                                background: active ? "rgba(6,182,212,0.14)" : "rgba(30,41,59,0.04)",
+                                                background: active ? "rgba(21,195,221,0.14)" : "rgba(26,43,66,0.04)",
                                                 color: active ? "var(--cyan)" : "var(--text-dim)",
                                                 display: "flex", alignItems: "center", justifyContent: "center",
                                                 fontWeight: 900, fontSize: 11,
@@ -302,8 +302,8 @@ export default function GestaoFinanceiraPage() {
                                     <span style={{
                                         fontSize: 10, fontWeight: 700, letterSpacing: "0.04em",
                                         padding: "3px 9px", borderRadius: 20,
-                                        background: f.ok ? "rgba(6,182,212,0.08)" : "rgba(30,41,59,0.05)",
-                                        border: f.ok ? "1px solid rgba(6,182,212,0.2)" : "1px solid var(--border)",
+                                        background: f.ok ? "rgba(21,195,221,0.08)" : "rgba(26,43,66,0.05)",
+                                        border: f.ok ? "1px solid rgba(21,195,221,0.2)" : "1px solid var(--border)",
                                         color: f.ok ? "var(--cyan-dark)" : "var(--text-dim)",
                                     }}>{f.badge}</span>
                                 </div>
@@ -324,7 +324,7 @@ export default function GestaoFinanceiraPage() {
                         <div>
                             <div style={{
                                 display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 16,
-                                background: "rgba(6,182,212,0.07)", border: "1px solid rgba(6,182,212,0.18)",
+                                background: "rgba(21,195,221,0.07)", border: "1px solid rgba(21,195,221,0.18)",
                                 borderRadius: 999, padding: "5px 14px",
                                 fontSize: 11, fontWeight: 700, color: "var(--cyan-dark)",
                             }}>🔔 ALERTAS DE VENCIMENTO</div>
@@ -341,7 +341,7 @@ export default function GestaoFinanceiraPage() {
                                     { icon: "🚨", label: "Alerta de títulos vencidos", desc: "Notificação diária dos títulos que já passaram da data" },
                                     { icon: "⚙️", label: "Totalmente configurável",    desc: "Ative, desative e ajuste a antecedência nas preferências" },
                                 ].map(a => (
-                                    <div key={a.label} style={{ display: "flex", gap: 12, padding: "11px 14px", borderRadius: 12, background: "rgba(6,182,212,0.04)", border: "1px solid rgba(6,182,212,0.12)" }}>
+                                    <div key={a.label} style={{ display: "flex", gap: 12, padding: "11px 14px", borderRadius: 12, background: "rgba(21,195,221,0.04)", border: "1px solid rgba(21,195,221,0.12)" }}>
                                         <span style={{ fontSize: 18, flexShrink: 0 }}>{a.icon}</span>
                                         <div>
                                             <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text)", marginBottom: 2 }}>{a.label}</div>
@@ -353,9 +353,9 @@ export default function GestaoFinanceiraPage() {
                         </div>
                         {/* Visual mockup de e-mail */}
                         <div style={{ background: "var(--surface-2)", borderRadius: 18, padding: 20, border: "1px solid var(--border)" }}>
-                            <div style={{ background: "#fff", borderRadius: 14, overflow: "hidden", boxShadow: "0 4px 20px rgba(30,41,59,0.08)" }}>
+                            <div style={{ background: "#fff", borderRadius: 14, overflow: "hidden", boxShadow: "0 4px 20px rgba(26,43,66,0.08)" }}>
                                 <div style={{ background: "var(--text)", padding: "12px 16px", display: "flex", alignItems: "center", gap: 10 }}>
-                                    <div style={{ width: 28, height: 28, borderRadius: 6, background: "var(--grad)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 900, color: "#083344" }}>W</div>
+                                    <div style={{ width: 28, height: 28, borderRadius: 6, background: "var(--grad)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 900, color: "#0B1E36" }}>W</div>
                                     <span style={{ fontSize: 13, fontWeight: 600, color: "#fff" }}>Whallet · Alerta de Vencimento</span>
                                 </div>
                                 <div style={{ padding: "16px" }}>
@@ -364,7 +364,7 @@ export default function GestaoFinanceiraPage() {
                                         { nome: "Energia Elétrica", valor: "R$ 320,00", data: "15/04" },
                                         { nome: "Internet Fibra",   valor: "R$ 180,00", data: "16/04" },
                                     ].map(t => (
-                                        <div key={t.nome} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 0", borderBottom: "1px solid rgba(30,41,59,0.06)" }}>
+                                        <div key={t.nome} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 0", borderBottom: "1px solid rgba(26,43,66,0.06)" }}>
                                             <div>
                                                 <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text)" }}>{t.nome}</div>
                                                 <div style={{ fontSize: 11, color: "var(--text-dim)" }}>Vence {t.data}</div>
@@ -372,7 +372,7 @@ export default function GestaoFinanceiraPage() {
                                             <div style={{ fontSize: 13, fontWeight: 700, color: "var(--cyan)" }}>{t.valor}</div>
                                         </div>
                                     ))}
-                                    <div style={{ marginTop: 14, padding: "10px", borderRadius: 8, background: "var(--grad)", textAlign: "center", fontSize: 12, fontWeight: 700, color: "#083344" }}>
+                                    <div style={{ marginTop: 14, padding: "10px", borderRadius: 8, background: "var(--grad)", textAlign: "center", fontSize: 12, fontWeight: 700, color: "#0B1E36" }}>
                                         Ver títulos no Whallet →
                                     </div>
                                 </div>
@@ -386,7 +386,7 @@ export default function GestaoFinanceiraPage() {
                     <div style={{ textAlign: "center", marginBottom: 36 }}>
                         <div style={{
                             display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 16,
-                            background: "rgba(6,182,212,0.07)", border: "1px solid rgba(6,182,212,0.18)",
+                            background: "rgba(21,195,221,0.07)", border: "1px solid rgba(21,195,221,0.18)",
                             borderRadius: 999, padding: "5px 14px",
                             fontSize: 11, fontWeight: 700, color: "var(--cyan-dark)",
                         }}>✨ INSIGHTS DE INTELIGÊNCIA ARTIFICIAL</div>
@@ -440,7 +440,7 @@ export default function GestaoFinanceiraPage() {
                     }} className="gf-parcela-grid">
                         {/* Visual mockup parcelamento */}
                         <div>
-                            <div style={{ background: "#fff", borderRadius: 16, padding: 18, border: "1px solid var(--border)", boxShadow: "0 4px 20px rgba(30,41,59,0.06)" }}>
+                            <div style={{ background: "#fff", borderRadius: 16, padding: 18, border: "1px solid var(--border)", boxShadow: "0 4px 20px rgba(26,43,66,0.06)" }}>
                                 <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text)", marginBottom: 14, paddingBottom: 10, borderBottom: "1px solid var(--border)" }}>
                                     Aluguel comercial — 3×
                                 </div>
@@ -449,15 +449,15 @@ export default function GestaoFinanceiraPage() {
                                     { parc: "2/3", venc: "15/06/2026", val: "R$ 4.000,00" },
                                     { parc: "3/3", venc: "15/07/2026", val: "R$ 4.000,00" },
                                 ].map(p => (
-                                    <div key={p.parc} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid rgba(30,41,59,0.05)" }}>
+                                    <div key={p.parc} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid rgba(26,43,66,0.05)" }}>
                                         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                            <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 20, background: "rgba(6,182,212,0.08)", color: "var(--cyan-dark)" }}>{p.parc}</span>
+                                            <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 20, background: "rgba(21,195,221,0.08)", color: "var(--cyan-dark)" }}>{p.parc}</span>
                                             <span style={{ fontSize: 12, color: "var(--text-dim)" }}>{p.venc}</span>
                                         </div>
                                         <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text)" }}>{p.val}</span>
                                     </div>
                                 ))}
-                                <div style={{ marginTop: 10, padding: "8px 10px", borderRadius: 8, background: "rgba(6,182,212,0.05)", display: "flex", justifyContent: "space-between" }}>
+                                <div style={{ marginTop: 10, padding: "8px 10px", borderRadius: 8, background: "rgba(21,195,221,0.05)", display: "flex", justifyContent: "space-between" }}>
                                     <span style={{ fontSize: 12, color: "var(--text-dim)" }}>Total parcelado</span>
                                     <span style={{ fontSize: 13, fontWeight: 800, color: "var(--cyan)" }}>R$ 12.000,00</span>
                                 </div>
@@ -466,7 +466,7 @@ export default function GestaoFinanceiraPage() {
                         <div>
                             <div style={{
                                 display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 14,
-                                background: "rgba(6,182,212,0.07)", border: "1px solid rgba(6,182,212,0.18)",
+                                background: "rgba(21,195,221,0.07)", border: "1px solid rgba(21,195,221,0.18)",
                                 borderRadius: 999, padding: "5px 14px",
                                 fontSize: 11, fontWeight: 700, color: "var(--cyan-dark)",
                             }}>🔀 PARCELAMENTO AUTOMÁTICO</div>
@@ -512,7 +512,7 @@ export default function GestaoFinanceiraPage() {
                     </div>
                     <div style={{ marginTop: 14, display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
                         {["Exportação Excel (.xlsx)","Exportação PDF","Filtros por status e período","Ordenação por vencimento"].map(tag => (
-                            <span key={tag} style={{ padding: "5px 14px", borderRadius: 999, background: "rgba(6,182,212,0.07)", border: "1px solid rgba(6,182,212,0.18)", fontSize: 12, fontWeight: 600, color: "var(--cyan-dark)" }}>{tag}</span>
+                            <span key={tag} style={{ padding: "5px 14px", borderRadius: 999, background: "rgba(21,195,221,0.07)", border: "1px solid rgba(21,195,221,0.18)", fontSize: 12, fontWeight: 600, color: "var(--cyan-dark)" }}>{tag}</span>
                         ))}
                     </div>
                 </section>
@@ -545,8 +545,8 @@ export default function GestaoFinanceiraPage() {
 
                 {/* ── CTA final ─────────────────────────────────────────────────── */}
                 <div style={{
-                    background: "linear-gradient(135deg, rgba(6,182,212,0.04), rgba(6,182,212,0.08))",
-                    border: "1px solid rgba(6,182,212,0.18)",
+                    background: "linear-gradient(135deg, rgba(21,195,221,0.04), rgba(21,195,221,0.08))",
+                    border: "1px solid rgba(21,195,221,0.18)",
                     borderRadius: 20, padding: "40px 32px", textAlign: "center",
                 }}>
                     <h2 style={{ fontSize: 22, fontWeight: 800, color: "var(--text)", margin: "0 0 10px" }}>Pronto para começar?</h2>
@@ -556,7 +556,7 @@ export default function GestaoFinanceiraPage() {
                     <button onClick={handleUpgrade} disabled={carregando} style={{
                         padding: "14px 36px", borderRadius: 12,
                         background: "var(--grad)", border: "none",
-                        color: "#083344", fontWeight: 800, fontSize: 16,
+                        color: "#0B1E36", fontWeight: 800, fontSize: 16,
                         cursor: "pointer", opacity: carregando ? 0.7 : 1,
                     }}>
                         {carregando ? "Redirecionando..." : autenticado ? "Assinar agora — R$ 39,90/mês" : "Criar conta e assinar"}
@@ -582,7 +582,7 @@ export default function GestaoFinanceiraPage() {
                         background: "#fff", borderRadius: 20, overflow: "hidden",
                         boxShadow: "0 24px 80px rgba(0,0,0,0.35)",
                     }}>
-                        <div style={{ padding: "14px 16px", borderBottom: "1px solid rgba(30,41,59,0.08)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                        <div style={{ padding: "14px 16px", borderBottom: "1px solid rgba(26,43,66,0.08)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
                             <div>
                                 <div style={{ fontWeight: 900, color: "var(--text)", fontSize: 16, marginBottom: 2 }}>{demoAtual.titulo}</div>
                                 <div style={{ color: "var(--text-dim)", fontSize: 13 }}>{demoAtual.badge}</div>

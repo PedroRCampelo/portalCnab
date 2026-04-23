@@ -61,14 +61,14 @@ export default function CadastroPage() {
     // ── Sucesso ───────────────────────────────────────────────────────────────
     if (ok) return (
         <div className="cad-fullheight" style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 16, overflow: "hidden" }}>
-            <div style={{ width: "100%", maxWidth: 440, background: "#fff", border: "1px solid var(--border)", borderRadius: 20, padding: "40px 36px", textAlign: "center", boxShadow: "0 4px 24px rgba(30,41,59,0.07)" }}>
+            <div style={{ width: "100%", maxWidth: 440, background: "#fff", border: "1px solid var(--border)", borderRadius: 20, padding: "40px 36px", textAlign: "center", boxShadow: "0 4px 24px rgba(26,43,66,0.07)" }}>
                 <div style={{ fontSize: 48, marginBottom: 14 }}>✉️</div>
                 <h2 style={{ fontSize: 20, fontWeight: 800, color: "var(--text)", margin: "0 0 10px" }}>Verifique seu e-mail</h2>
                 <p style={{ fontSize: 14, color: "var(--text-muted)", margin: "0 0 20px", lineHeight: 1.7 }}>
                     Enviamos um link para <strong>{ok}</strong>. Clique para ativar sua conta.
                 </p>
                 {precisaPagar && (
-                    <div style={{ padding: "12px 14px", borderRadius: 10, background: "rgba(6,182,212,0.05)", border: "1px solid rgba(6,182,212,0.2)", fontSize: 13, color: "var(--text-muted)", marginBottom: 20, textAlign: "left" }}>
+                    <div style={{ padding: "12px 14px", borderRadius: 10, background: "rgba(21,195,221,0.05)", border: "1px solid rgba(21,195,221,0.2)", fontSize: 13, color: "var(--text-muted)", marginBottom: 20, textAlign: "left" }}>
                         <strong style={{ color: "var(--text)" }}>Plano {planoAtual?.nome}</strong> — após confirmar o e-mail e fazer login, você será direcionado ao pagamento.
                     </div>
                 )}
@@ -107,24 +107,24 @@ export default function CadastroPage() {
                             <button key={p.id} type="button" onClick={() => setPlano(p.id)} style={{
                                 padding: "14px 16px", borderRadius: 12, cursor: "pointer", textAlign: "left",
                                 border: ativo ? "2px solid var(--cyan)" : "1.5px solid rgba(255,255,255,0.08)",
-                                background: ativo ? "rgba(6,182,212,0.12)" : "rgba(255,255,255,0.03)",
+                                background: ativo ? "rgba(21,195,221,0.12)" : "rgba(255,255,255,0.03)",
                                 transition: "all 0.15s", position: "relative",
                             }}>
                                 {p.destaque && (
-                                    <span style={{ position: "absolute", top: -9, right: 12, background: "var(--grad)", color: "#083344", fontSize: 9, fontWeight: 800, padding: "2px 10px", borderRadius: 20 }}>MAIS COMPLETO</span>
+                                    <span style={{ position: "absolute", top: -9, right: 12, background: "var(--grad)", color: "#0B1E36", fontSize: 9, fontWeight: 800, padding: "2px 10px", borderRadius: 20 }}>MAIS COMPLETO</span>
                                 )}
                                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                                    <span style={{ fontSize: 13, fontWeight: 700, color: ativo ? "#22D3EE" : "rgba(255,255,255,0.7)" }}>
+                                    <span style={{ fontSize: 13, fontWeight: 700, color: ativo ? "#4CDDE8" : "rgba(255,255,255,0.7)" }}>
                                         {p.emoji} {p.nome}
                                     </span>
                                     <span style={{ fontSize: 15, fontWeight: 900, color: "#fff" }}>{p.preco}<span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginLeft: 2 }}>{p.per}</span></span>
                                 </div>
                                 {p.items.map(i => (
                                     <div key={i} style={{ fontSize: 11, color: ativo ? "rgba(255,255,255,0.75)" : "rgba(255,255,255,0.35)", display: "flex", gap: 6, marginBottom: 3 }}>
-                                        <span style={{ color: ativo ? "#22D3EE" : "rgba(255,255,255,0.2)", flexShrink: 0 }}>✓</span>{i}
+                                        <span style={{ color: ativo ? "#4CDDE8" : "rgba(255,255,255,0.2)", flexShrink: 0 }}>✓</span>{i}
                                     </div>
                                 ))}
-                                {ativo && <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid rgba(6,182,212,0.25)", fontSize: 10, color: "#22D3EE", fontWeight: 700 }}>● Selecionado</div>}
+                                {ativo && <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid rgba(21,195,221,0.25)", fontSize: 10, color: "#4CDDE8", fontWeight: 700 }}>● Selecionado</div>}
                             </button>
                         );
                     })}
@@ -137,7 +137,7 @@ export default function CadastroPage() {
             <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px 32px", overflowY: "auto", background: "var(--bg)" }}>
                 <div style={{ width: "100%", maxWidth: 400 }}>
                     <div style={{ marginBottom: 28 }}>
-                        <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 10, background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.2)", borderRadius: 999, padding: "3px 12px", fontSize: 12, fontWeight: 700, color: "var(--cyan-dark)" }}>
+                        <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 10, background: "rgba(21,195,221,0.08)", border: "1px solid rgba(21,195,221,0.2)", borderRadius: 999, padding: "3px 12px", fontSize: 12, fontWeight: 700, color: "var(--cyan-dark)" }}>
                             {planoAtual?.emoji} Plano {planoAtual?.nome}
                         </div>
                         <h1 style={{ fontSize: 24, fontWeight: 900, color: "var(--text)", margin: "0 0 6px", letterSpacing: "-0.03em" }}>Crie sua conta</h1>

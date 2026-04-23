@@ -67,7 +67,7 @@ export default function VerificarEmailPage() {
                 background: "#fff", border: "1px solid var(--border)",
                 borderRadius: 20, padding: "48px 40px", width: "100%",
                 maxWidth: 440, textAlign: "center",
-                boxShadow: "0 4px 24px rgba(30,41,59,0.07)",
+                boxShadow: "0 4px 24px rgba(26,43,66,0.07)",
             }}>
                 {status === "verificando" && (
                     <>
@@ -93,7 +93,7 @@ export default function VerificarEmailPage() {
                         <p style={{ color: "var(--text-dim)", fontSize: 13, margin: 0 }}>
                             Redirecionando automaticamente...
                         </p>
-                        <div style={{ marginTop: 20, height: 4, background: "rgba(30,41,59,0.07)", borderRadius: 4, overflow: "hidden" }}>
+                        <div style={{ marginTop: 20, height: 4, background: "rgba(26,43,66,0.07)", borderRadius: 4, overflow: "hidden" }}>
                             <div style={{ height: "100%", background: "var(--grad)", borderRadius: 4, animation: "verifyProgress 2s linear forwards" }}/>
                         </div>
                         <style>{`@keyframes verifyProgress { from { width: 0%; } to { width: 100%; } }`}</style>
