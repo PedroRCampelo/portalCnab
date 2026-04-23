@@ -7,8 +7,8 @@ import elvisImg from "../assets/bots/elvis.png";
 const BOT = {
     nome:   "Elvis",
     slogan: "Especialista em CNAB · Seu assistente bancário",
-    cor:    "#0891B2",
-    grad:   "linear-gradient(135deg, #06B6D4, #0891B2)",
+    cor:    "#0891A8",
+    grad:   "linear-gradient(135deg, #15C3DD, #0891A8)",
 };
 
 const BANCOS   = ["", "itau", "bradesco", "bb", "caixa"];
@@ -99,7 +99,7 @@ export default function CnabChatPage() {
             {/* ── Header ── */}
             <div style={{ padding: "20px 0 0", flexShrink: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-                    <img src={elvisImg} alt="Elvis" style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(6,182,212,0.25)", flexShrink: 0 }}/>
+                    <img src={elvisImg} alt="Elvis" style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(21,195,221,0.25)", flexShrink: 0 }}/>
                     <div>
                         <h1 style={{ fontSize: 18, fontWeight: 800, color: "var(--text)", margin: 0, letterSpacing: "-0.02em" }}>{BOT.nome}</h1>
                         <p style={{ fontSize: 12, color: "var(--text-dim)", margin: 0 }}>{BOT.slogan}</p>
@@ -124,7 +124,7 @@ export default function CnabChatPage() {
 
                 {/* Aviso de filtro ativo */}
                 {temFiltro && (
-                    <div style={{ marginBottom: 12, padding: "6px 12px", borderRadius: 8, background: "rgba(6,182,212,0.07)", border: "1px solid rgba(6,182,212,0.18)", fontSize: 12, color: "var(--cyan-dark)", display: "flex", alignItems: "center", gap: 6 }}>
+                    <div style={{ marginBottom: 12, padding: "6px 12px", borderRadius: 8, background: "rgba(21,195,221,0.07)", border: "1px solid rgba(21,195,221,0.18)", fontSize: 12, color: "var(--cyan-dark)", display: "flex", alignItems: "center", gap: 6 }}>
                         <LuSparkles size={12}/>
                         Buscando em: {[banco && LABEL_BANCO[banco], tipo && LABEL_TIPO[tipo]].filter(Boolean).join(" · ")}
                         <button onClick={() => { setBanco(""); setTipo(""); }} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "var(--cyan-dark)", fontSize: 11, fontWeight: 600 }}>Limpar</button>
@@ -137,7 +137,7 @@ export default function CnabChatPage() {
                 {mensagens.length === 0 ? (
                     <div style={{ padding: "32px 0" }}>
                         <div style={{ textAlign: "center", marginBottom: 32 }}>
-                            <img src={elvisImg} alt="Elvis" style={{ width: 64, height: 64, borderRadius: "50%", objectFit: "cover", margin: "0 auto 14px", display: "block", border: "2px solid rgba(6,182,212,0.25)" }}/>
+                            <img src={elvisImg} alt="Elvis" style={{ width: 64, height: 64, borderRadius: "50%", objectFit: "cover", margin: "0 auto 14px", display: "block", border: "2px solid rgba(21,195,221,0.25)" }}/>
                             <p style={{ fontSize: 14, color: "var(--text-muted)", maxWidth: 380, margin: "0 auto", lineHeight: 1.7 }}>
                                 Olá! Sou o <strong>Elvis</strong>, especialista em layouts CNAB. Faça uma pergunta sobre CNAB 240 ou 400, segmentos, campos ou regras bancárias.
                             </p>
@@ -146,12 +146,12 @@ export default function CnabChatPage() {
                             {SUGESTOES.map(s => (
                                 <button key={s} onClick={() => enviar(s)} style={{
                                     padding: "12px 14px", borderRadius: 12, cursor: "pointer",
-                                    border: "1px solid rgba(30,41,59,0.1)", background: "#fff",
+                                    border: "1px solid rgba(26,43,66,0.1)", background: "#fff",
                                     color: "var(--text-muted)", fontSize: 13, textAlign: "left", lineHeight: 1.5,
                                     transition: "all 0.15s",
                                 }}
-                                        onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(6,182,212,0.35)"; e.currentTarget.style.color = "var(--text)"; }}
-                                        onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(30,41,59,0.1)"; e.currentTarget.style.color = "var(--text-muted)"; }}
+                                        onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(21,195,221,0.35)"; e.currentTarget.style.color = "var(--text)"; }}
+                                        onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(26,43,66,0.1)"; e.currentTarget.style.color = "var(--text-muted)"; }}
                                 >{s}</button>
                             ))}
                         </div>
@@ -171,7 +171,7 @@ export default function CnabChatPage() {
             <div style={{ flexShrink: 0, paddingBottom: 20 }}>
                 {/* Arquivo selecionado */}
                 {arquivo && (
-                    <div style={{ marginBottom: 8, display: "flex", alignItems: "center", gap: 8, padding: "7px 12px", borderRadius: 8, background: "rgba(6,182,212,0.07)", border: "1px solid rgba(6,182,212,0.2)" }}>
+                    <div style={{ marginBottom: 8, display: "flex", alignItems: "center", gap: 8, padding: "7px 12px", borderRadius: 8, background: "rgba(21,195,221,0.07)", border: "1px solid rgba(21,195,221,0.2)" }}>
                         <LuFileText size={13} style={{ color: "var(--cyan)", flexShrink: 0 }}/>
                         <span style={{ fontSize: 12, color: "var(--text)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{arquivo.name}</span>
                         <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, cursor: "pointer", color: "var(--cyan-dark)" }}>
@@ -184,7 +184,7 @@ export default function CnabChatPage() {
                     </div>
                 )}
 
-                <div style={{ display: "flex", gap: 8, alignItems: "flex-end", background: "#fff", border: "1.5px solid rgba(30,41,59,0.12)", borderRadius: 14, padding: "10px 10px 10px 14px", boxShadow: "0 2px 12px rgba(30,41,59,0.06)" }}>
+                <div style={{ display: "flex", gap: 8, alignItems: "flex-end", background: "#fff", border: "1.5px solid rgba(26,43,66,0.12)", borderRadius: 14, padding: "10px 10px 10px 14px", boxShadow: "0 2px 12px rgba(26,43,66,0.06)" }}>
                     {/* Botão anexar */}
                     <button onClick={() => fileRef.current?.click()} title="Anexar arquivo CNAB" style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-dim)", padding: "4px", display: "flex", alignItems: "center", flexShrink: 0 }}>
                         <LuPaperclip size={18}/>
@@ -235,8 +235,8 @@ export default function CnabChatPage() {
                         disabled={!input.trim() || enviando}
                         style={{
                             width: 36, height: 36, borderRadius: 10, border: "none", flexShrink: 0,
-                            background: input.trim() && !enviando ? "var(--grad)" : "rgba(30,41,59,0.08)",
-                            color: input.trim() && !enviando ? "#083344" : "var(--text-dim)",
+                            background: input.trim() && !enviando ? "var(--grad)" : "rgba(26,43,66,0.08)",
+                            color: input.trim() && !enviando ? "#0B1E36" : "var(--text-dim)",
                             cursor: input.trim() && !enviando ? "pointer" : "not-allowed",
                             display: "flex", alignItems: "center", justifyContent: "center",
                             transition: "all 0.15s",
@@ -268,7 +268,7 @@ function Mensagem({ msg }) {
             <div style={{
                 width: 30, height: 30, borderRadius: 8, flexShrink: 0,
                 display: "flex", alignItems: "center", justifyContent: "center",
-                background: isUser ? "var(--text)" : isError ? "rgba(220,38,38,0.1)" : "rgba(6,182,212,0.1)",
+                background: isUser ? "var(--text)" : isError ? "rgba(220,38,38,0.1)" : "rgba(21,195,221,0.1)",
             }}>
                 {isUser
                     ? <LuUser size={14} style={{ color: "#fff" }}/>
@@ -283,7 +283,7 @@ function Mensagem({ msg }) {
                     padding: "12px 16px",
                     borderRadius: isUser ? "14px 4px 14px 14px" : "4px 14px 14px 14px",
                     background: isUser ? "var(--text)" : isError ? "rgba(220,38,38,0.06)" : "#fff",
-                    border: isUser ? "none" : `1px solid ${isError ? "rgba(220,38,38,0.15)" : "rgba(30,41,59,0.1)"}`,
+                    border: isUser ? "none" : `1px solid ${isError ? "rgba(220,38,38,0.15)" : "rgba(26,43,66,0.1)"}`,
                     color: isUser ? "#fff" : isError ? "var(--error)" : "var(--text)",
                 }}>
                     {isUser || isError
@@ -306,7 +306,7 @@ function Mensagem({ msg }) {
                         {fonteAberta && (
                             <div style={{ marginTop: 6, display: "flex", flexDirection: "column", gap: 6 }}>
                                 {msg.fontes.map((f, i) => (
-                                    <div key={i} style={{ padding: "8px 12px", borderRadius: 8, background: "rgba(30,41,59,0.03)", border: "1px solid rgba(30,41,59,0.08)", fontSize: 11 }}>
+                                    <div key={i} style={{ padding: "8px 12px", borderRadius: 8, background: "rgba(26,43,66,0.03)", border: "1px solid rgba(26,43,66,0.08)", fontSize: 11 }}>
                                         <div style={{ display: "flex", gap: 6, marginBottom: 4, flexWrap: "wrap", alignItems: "center" }}>
                                             <span style={{ fontWeight: 600, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 200 }}>{f.sourceName}</span>
                                             {f.bankCode  && <Tag>{f.bankCode.toUpperCase()}</Tag>}
@@ -346,7 +346,7 @@ function MarkdownRenderer({ content }) {
                 i++;
             }
             elements.push(
-                <pre key={i} style={{ background: "rgba(30,41,59,0.05)", border: "1px solid rgba(30,41,59,0.1)", borderRadius: 8, padding: "10px 12px", overflowX: "auto", fontSize: 12, lineHeight: 1.6, margin: "8px 0" }}>
+                <pre key={i} style={{ background: "rgba(26,43,66,0.05)", border: "1px solid rgba(26,43,66,0.1)", borderRadius: 8, padding: "10px 12px", overflowX: "auto", fontSize: 12, lineHeight: 1.6, margin: "8px 0" }}>
                     <code style={{ color: "var(--text)", fontFamily: "monospace" }}>{codeLines.join("\n")}</code>
                 </pre>
             );
@@ -360,7 +360,7 @@ function MarkdownRenderer({ content }) {
 
         // Linha horizontal
         if (line.trim() === "---" || line.trim() === "***") {
-            elements.push(<hr key={i} style={{ border: "none", borderTop: "1px solid rgba(30,41,59,0.1)", margin: "10px 0" }}/>);
+            elements.push(<hr key={i} style={{ border: "none", borderTop: "1px solid rgba(26,43,66,0.1)", margin: "10px 0" }}/>);
             i++; continue;
         }
 
@@ -408,7 +408,7 @@ function MarkdownRenderer({ content }) {
         // "Fonte real usada:" — destaque especial
         if (line.startsWith("Fonte real usada:") || line.startsWith("Fonte utilizada:")) {
             elements.push(
-                <div key={i} style={{ marginTop: 12, padding: "8px 12px", borderRadius: 8, background: "rgba(6,182,212,0.06)", border: "1px solid rgba(6,182,212,0.15)", fontSize: 12, color: "var(--text-muted)" }}>
+                <div key={i} style={{ marginTop: 12, padding: "8px 12px", borderRadius: 8, background: "rgba(21,195,221,0.06)", border: "1px solid rgba(21,195,221,0.15)", fontSize: 12, color: "var(--text-muted)" }}>
                     {renderInline(line)}
                 </div>
             );
@@ -444,7 +444,7 @@ function renderInline(text) {
         if (part.startsWith("*") && part.endsWith("*"))
             return <em key={i}>{part.slice(1, -1)}</em>;
         if (part.startsWith("`") && part.endsWith("`"))
-            return <code key={i} style={{ background: "rgba(30,41,59,0.08)", borderRadius: 4, padding: "1px 5px", fontSize: 12, fontFamily: "monospace", color: "var(--cyan-dark)" }}>{part.slice(1, -1)}</code>;
+            return <code key={i} style={{ background: "rgba(26,43,66,0.08)", borderRadius: 4, padding: "1px 5px", fontSize: 12, fontFamily: "monospace", color: "var(--cyan-dark)" }}>{part.slice(1, -1)}</code>;
         return part;
     });
 }
@@ -453,7 +453,7 @@ function TypingIndicator() {
     return (
         <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
             <img src={elvisImg} alt="Elvis" style={{ width: 30, height: 30, borderRadius: 8, objectFit: "cover", flexShrink: 0 }}/>
-            <div style={{ padding: "12px 16px", borderRadius: "4px 14px 14px 14px", background: "#fff", border: "1px solid rgba(30,41,59,0.1)", display: "flex", gap: 5, alignItems: "center" }}>
+            <div style={{ padding: "12px 16px", borderRadius: "4px 14px 14px 14px", background: "#fff", border: "1px solid rgba(26,43,66,0.1)", display: "flex", gap: 5, alignItems: "center" }}>
                 {[0, 1, 2].map(i => (
                     <div key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--text-dim)", animation: `chatDot 1.2s ease-in-out ${i * 0.2}s infinite` }}/>
                 ))}
@@ -467,8 +467,8 @@ function FiltroSelect({ value, onChange, options }) {
     return (
         <select value={value} onChange={onChange} style={{
             padding: "6px 10px", borderRadius: 8, fontSize: 12, fontWeight: 500,
-            border: value ? "1.5px solid rgba(6,182,212,0.4)" : "1px solid rgba(30,41,59,0.12)",
-            background: value ? "rgba(6,182,212,0.06)" : "#fff",
+            border: value ? "1.5px solid rgba(21,195,221,0.4)" : "1px solid rgba(26,43,66,0.12)",
+            background: value ? "rgba(21,195,221,0.06)" : "#fff",
             color: value ? "var(--cyan-dark)" : "var(--text-muted)", cursor: "pointer",
         }}>
             {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -480,8 +480,8 @@ function Tag({ children, muted }) {
     return (
         <span style={{
             fontSize: 10, fontWeight: 600, padding: "1px 6px", borderRadius: 20,
-            background: muted ? "rgba(30,41,59,0.05)" : "rgba(6,182,212,0.08)",
-            border: muted ? "1px solid rgba(30,41,59,0.1)" : "1px solid rgba(6,182,212,0.18)",
+            background: muted ? "rgba(26,43,66,0.05)" : "rgba(21,195,221,0.08)",
+            border: muted ? "1px solid rgba(26,43,66,0.1)" : "1px solid rgba(21,195,221,0.18)",
             color: muted ? "var(--text-dim)" : "var(--cyan-dark)",
         }}>{children}</span>
     );

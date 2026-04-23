@@ -22,12 +22,12 @@ export default function ElvisMiniChat() {
                 padding: "24px 20px", display: "flex", flexDirection: "column", gap: 16,
             }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <img src={elvisImg} alt="Elvis" style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(6,182,212,0.35)", flexShrink: 0 }}/>
+                    <img src={elvisImg} alt="Elvis" style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(21,195,221,0.35)", flexShrink: 0 }}/>
                     <div>
                         <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>Elvis</div>
                         <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)" }}>Agente especialista em CNAB</div>
                     </div>
-                    <div style={{ marginLeft: "auto", width: 8, height: 8, borderRadius: "50%", background: "#22D3EE", boxShadow: "0 0 8px rgba(6,182,212,0.7)", animation: "elvBlink 2s infinite" }}/>
+                    <div style={{ marginLeft: "auto", width: 8, height: 8, borderRadius: "50%", background: "#4CDDE8", boxShadow: "0 0 8px rgba(21,195,221,0.7)", animation: "elvBlink 2s infinite" }}/>
                 </div>
                 <p style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", margin: 0, lineHeight: 1.7 }}>
                     Envie dúvidas sobre layouts CNAB, segmentos e campos. O Elvis analisa arquivos de remessa e responde com base na documentação oficial dos bancos.
@@ -37,7 +37,7 @@ export default function ElvisMiniChat() {
                     style={{
                         display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                         padding: "11px 16px", borderRadius: 10,
-                        background: "var(--grad)", color: "#083344",
+                        background: "var(--grad)", color: "#0B1E36",
                         fontWeight: 700, fontSize: 14, textDecoration: "none",
                         transition: "opacity 0.15s",
                     }}
@@ -60,7 +60,7 @@ export default function ElvisMiniChat() {
             }}>
                 {/* Header escuro com Elvis */}
                 <div style={{ padding: "20px 20px 16px", display: "flex", alignItems: "center", gap: 12 }}>
-                    <img src={elvisImg} alt="Elvis" style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(6,182,212,0.3)", flexShrink: 0 }}/>
+                    <img src={elvisImg} alt="Elvis" style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(21,195,221,0.3)", flexShrink: 0 }}/>
                     <div>
                         <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>Elvis · Agente CNAB</div>
                         <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>Disponível no plano Pro</div>
@@ -74,7 +74,7 @@ export default function ElvisMiniChat() {
                     <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 6 }}>
                         {["Identifica erros no arquivo de remessa", "Responde sobre segmentos e campos", "Suporte a Itaú, Bradesco, BB e Caixa"].map(f => (
                             <li key={f} style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", display: "flex", gap: 7 }}>
-                                <span style={{ color: "rgba(6,182,212,0.7)", flexShrink: 0 }}>✓</span> {f}
+                                <span style={{ color: "rgba(21,195,221,0.7)", flexShrink: 0 }}>✓</span> {f}
                             </li>
                         ))}
                     </ul>
@@ -83,7 +83,7 @@ export default function ElvisMiniChat() {
                         style={{
                             display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                             padding: "11px 16px", borderRadius: 10,
-                            background: "var(--grad)", color: "#083344",
+                            background: "var(--grad)", color: "#0B1E36",
                             fontWeight: 700, fontSize: 13, textDecoration: "none",
                         }}
                     >
@@ -102,14 +102,14 @@ export default function ElvisMiniChat() {
             {/* Banner de apresentação */}
             <div style={{ padding: "24px 20px 20px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-                    <img src={elvisImg} alt="Elvis" style={{ width: 48, height: 48, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(6,182,212,0.35)", flexShrink: 0 }}/>
+                    <img src={elvisImg} alt="Elvis" style={{ width: 48, height: 48, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(21,195,221,0.35)", flexShrink: 0 }}/>
                     <div>
                         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                             <span style={{ fontSize: 15, fontWeight: 800, color: "#fff" }}>Elvis</span>
                             <span style={{
                                 fontSize: 9, fontWeight: 700, padding: "2px 7px", borderRadius: 20,
-                                background: "rgba(6,182,212,0.2)", border: "1px solid rgba(6,182,212,0.35)",
-                                color: "#22D3EE", letterSpacing: "0.05em",
+                                background: "rgba(21,195,221,0.2)", border: "1px solid rgba(21,195,221,0.35)",
+                                color: "#4CDDE8", letterSpacing: "0.05em",
                             }}>IA · PRO</span>
                         </div>
                         <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>Agente especialista em CNAB</div>
@@ -136,7 +136,7 @@ export default function ElvisMiniChat() {
                         "Suporte a CNAB 240 e 400 de todos os bancos",
                     ].map(f => (
                         <li key={f} style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", display: "flex", gap: 7 }}>
-                            <span style={{ color: "rgba(6,182,212,0.6)", flexShrink: 0 }}>✓</span> {f}
+                            <span style={{ color: "rgba(21,195,221,0.6)", flexShrink: 0 }}>✓</span> {f}
                         </li>
                     ))}
                 </ul>
@@ -148,7 +148,7 @@ export default function ElvisMiniChat() {
                         style={{
                             display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                             padding: "12px", borderRadius: 10,
-                            background: "var(--grad)", color: "#083344",
+                            background: "var(--grad)", color: "#0B1E36",
                             fontWeight: 700, fontSize: 13, textDecoration: "none",
                         }}
                     >

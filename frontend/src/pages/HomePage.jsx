@@ -30,7 +30,7 @@ export default function HomePage() {
                 <div>
                     <div style={{
                         display: "inline-flex", alignItems: "center", gap: 6,
-                        background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.2)",
+                        background: "rgba(21,195,221,0.08)", border: "1px solid rgba(21,195,221,0.2)",
                         borderRadius: 999, padding: "5px 14px", marginBottom: 24,
                         fontSize: 11.5, fontWeight: 700, color: "var(--cyan-dark)", letterSpacing: "0.06em",
                     }}>
@@ -62,7 +62,7 @@ export default function HomePage() {
                             padding: "12px 24px", borderRadius: 10,
                             background: "var(--text)", color: "#fff",
                             fontSize: 14, fontWeight: 700, textDecoration: "none",
-                            boxShadow: "0 4px 14px rgba(30,41,59,0.18)",
+                            boxShadow: "0 4px 14px rgba(26,43,66,0.18)",
                             transition: "opacity 0.15s, transform 0.15s",
                         }}
                               onMouseEnter={e => { e.currentTarget.style.opacity = "0.9"; e.currentTarget.style.transform = "translateY(-1px)"; }}
@@ -73,12 +73,12 @@ export default function HomePage() {
                         <Link to={rotaGestao} style={{
                             display: "inline-flex", alignItems: "center", gap: 8,
                             padding: "12px 24px", borderRadius: 10,
-                            border: "1.5px solid rgba(30,41,59,0.15)", background: "#fff",
+                            border: "1.5px solid rgba(26,43,66,0.15)", background: "#fff",
                             color: "var(--text)", fontSize: 14, fontWeight: 700, textDecoration: "none",
                             transition: "border-color 0.15s",
                         }}
-                              onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(6,182,212,0.4)"}
-                              onMouseLeave={e => e.currentTarget.style.borderColor = "rgba(30,41,59,0.15)"}
+                              onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(21,195,221,0.4)"}
+                              onMouseLeave={e => e.currentTarget.style.borderColor = "rgba(26,43,66,0.15)"}
                         >
                             <LuWalletCards size={15}/> Gestão Financeira <IcoArrow/>
                         </Link>
@@ -89,13 +89,13 @@ export default function HomePage() {
                         {["Itaú","Bradesco","Banco do Brasil","Caixa"].map(b => (
                             <span key={b} style={{
                                 padding: "4px 12px", borderRadius: 6,
-                                background: "rgba(30,41,59,0.04)", border: "1px solid rgba(30,41,59,0.1)",
+                                background: "rgba(26,43,66,0.04)", border: "1px solid rgba(26,43,66,0.1)",
                                 fontSize: 11.5, fontWeight: 600, color: "var(--text-dim)",
                             }}>{b}</span>
                         ))}
                         <span style={{
                             padding: "4px 12px", borderRadius: 6,
-                            background: "rgba(6,182,212,0.06)", border: "1px solid rgba(6,182,212,0.15)",
+                            background: "rgba(21,195,221,0.06)", border: "1px solid rgba(21,195,221,0.15)",
                             fontSize: 11.5, fontWeight: 600, color: "var(--cyan-dark)",
                         }}>CNAB 240 e 400</span>
                     </div>
@@ -149,7 +149,7 @@ export default function HomePage() {
                 }} className="hp-cards-grid">
                     <SolutionCard
                         icon={<LuSheet size={22}/>}
-                        iconBg="rgba(6,182,212,0.1)" iconColor="var(--cyan)"
+                        iconBg="rgba(21,195,221,0.1)" iconColor="var(--cyan)"
                         title="Conversor CNAB"
                         desc="Transforme arquivos de remessa e retorno bancário em Excel estruturado ou relatório PDF analítico com alertas automáticos. Sem instalação."
                         features={["CNAB 240 e 400 — Itaú, Bradesco, BB, Caixa","Excel com abas por segmento (A, J, O, N)","PDF com KPIs, alertas e distribuição","Layout 400 Protheus"]}
@@ -158,7 +158,7 @@ export default function HomePage() {
                     />
                     <SolutionCard
                         icon={<LuWalletCards size={22}/>}
-                        iconBg="rgba(30,41,59,0.07)" iconColor="var(--text)"
+                        iconBg="rgba(26,43,66,0.07)" iconColor="var(--text)"
                         title="Gestão Financeira"
                         desc="Cadastre e importe títulos a pagar, registre baixas, acompanhe vencimentos e gere relatórios — tudo integrado ao fluxo bancário."
                         features={["Contas a pagar com baixa parcial ou total","Importação via Excel compatível com Protheus","Relatórios: fluxo de caixa, aging, fornecedores","Exportação em Excel e PDF"]}
@@ -184,13 +184,13 @@ export default function HomePage() {
                             { n: "03", icon: <LuTrendingUp size={20}/>, t: "Baixe o resultado", d: "Excel estruturado ou relatório PDF analítico gerado instantaneamente." },
                         ].map((s, i) => (
                             <div key={s.n} style={{
-                                background: "#fff", border: "1px solid rgba(30,41,59,0.1)",
+                                background: "#fff", border: "1px solid rgba(26,43,66,0.1)",
                                 borderRadius: 16, padding: "28px 24px",
                                 position: "relative",
                             }}>
                                 <div style={{
                                     width: 36, height: 36, borderRadius: 10,
-                                    background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.15)",
+                                    background: "rgba(21,195,221,0.08)", border: "1px solid rgba(21,195,221,0.15)",
                                     display: "flex", alignItems: "center", justifyContent: "center",
                                     color: "var(--cyan)", marginBottom: 16,
                                 }}>{s.icon}</div>
@@ -200,7 +200,7 @@ export default function HomePage() {
                                 {i < 2 && (
                                     <div style={{
                                         position: "absolute", right: -20, top: "50%", transform: "translateY(-50%)",
-                                        width: 20, textAlign: "center", fontSize: 16, color: "rgba(30,41,59,0.2)",
+                                        width: 20, textAlign: "center", fontSize: 16, color: "rgba(26,43,66,0.2)",
                                         display: "none",
                                     }} className="hp-step-arrow">→</div>
                                 )}
@@ -221,7 +221,7 @@ export default function HomePage() {
                     <div>
                         <div style={{
                             display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 16,
-                            background: "rgba(6,182,212,0.15)", border: "1px solid rgba(6,182,212,0.25)",
+                            background: "rgba(21,195,221,0.15)", border: "1px solid rgba(21,195,221,0.25)",
                             borderRadius: 999, padding: "5px 14px",
                             fontSize: 11, fontWeight: 700, color: "var(--cyan-light)", letterSpacing: "0.06em",
                         }}>
@@ -238,7 +238,7 @@ export default function HomePage() {
                             <Link to={rotaGestao} style={{
                                 display: "inline-flex", alignItems: "center", gap: 8,
                                 padding: "12px 24px", borderRadius: 10,
-                                background: "var(--grad)", color: "#083344",
+                                background: "var(--grad)", color: "#0B1E36",
                                 fontWeight: 700, fontSize: 14, textDecoration: "none",
                             }}>
                                 {temWhalletPlus ? "Abrir Gestão Financeira" : "Conhecer o Whallet+"} <IcoArrow/>
@@ -270,7 +270,7 @@ export default function HomePage() {
                                 <span style={{ fontSize: 13, fontWeight: 600, color: f.done ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.4)", flex: 1 }}>{f.label}</span>
                                 <span style={{
                                     fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 20,
-                                    background: f.done ? "rgba(6,182,212,0.2)" : "rgba(255,255,255,0.07)",
+                                    background: f.done ? "rgba(21,195,221,0.2)" : "rgba(255,255,255,0.07)",
                                     color: f.done ? "var(--cyan-light)" : "rgba(255,255,255,0.3)",
                                 }}>{f.done ? "Disponível" : "Em breve"}</span>
                             </div>
@@ -287,7 +287,7 @@ export default function HomePage() {
                 }} className="hp-elvis-grid">
                     {/* Texto */}
                     <div style={{ padding: "48px 48px 48px 48px" }}>
-                        <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 16, background: "rgba(6,182,212,0.15)", border: "1px solid rgba(6,182,212,0.3)", borderRadius: 999, padding: "4px 14px", fontSize: 11, fontWeight: 700, color: "#22D3EE" }}>
+                        <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 16, background: "rgba(21,195,221,0.15)", border: "1px solid rgba(21,195,221,0.3)", borderRadius: 999, padding: "4px 14px", fontSize: 11, fontWeight: 700, color: "#4CDDE8" }}>
                             🤖 AGENTE DE IA · CNAB
                         </div>
                         <h2 style={{ fontSize: "clamp(22px, 2.5vw, 32px)", fontWeight: 900, color: "#fff", margin: "0 0 14px", letterSpacing: "-0.02em" }}>
@@ -306,18 +306,18 @@ export default function HomePage() {
                                 "Suporte a Itaú, Bradesco, BB e Caixa",
                             ].map(f => (
                                 <div key={f} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "rgba(255,255,255,0.7)" }}>
-                                    <span style={{ color: "#22D3EE", fontSize: 12 }}>✓</span> {f}
+                                    <span style={{ color: "#4CDDE8", fontSize: 12 }}>✓</span> {f}
                                 </div>
                             ))}
                         </div>
-                        <Link to="/admin/cnab-chat" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "11px 24px", borderRadius: 10, background: "var(--grad)", color: "#083344", fontWeight: 700, fontSize: 14, textDecoration: "none" }}>
+                        <Link to="/admin/cnab-chat" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "11px 24px", borderRadius: 10, background: "var(--grad)", color: "#0B1E36", fontWeight: 700, fontSize: 14, textDecoration: "none" }}>
                             Conversar com o Elvis <IcoArrow/>
                         </Link>
                     </div>
 
                     {/* Elvis visual */}
                     <div style={{ background: "rgba(255,255,255,0.04)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px 32px", borderLeft: "1px solid rgba(255,255,255,0.06)" }}>
-                        <img src={elvisImg} alt="Elvis" style={{ width: 96, height: 96, borderRadius: "50%", objectFit: "cover", border: "3px solid rgba(6,182,212,0.4)", marginBottom: 16 }}/>
+                        <img src={elvisImg} alt="Elvis" style={{ width: 96, height: 96, borderRadius: "50%", objectFit: "cover", border: "3px solid rgba(21,195,221,0.4)", marginBottom: 16 }}/>
                         <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", marginBottom: 4 }}>Elvis</div>
                         <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginBottom: 24 }}>Especialista em CNAB</div>
 
@@ -332,7 +332,7 @@ export default function HomePage() {
 
             {/* Footer */}
             <footer style={{
-                borderTop: "1px solid rgba(30,41,59,0.1)",
+                borderTop: "1px solid rgba(26,43,66,0.1)",
                 padding: "28px 32px",
                 display: "flex", alignItems: "center", gap: 16,
                 maxWidth: 1200, margin: "0 auto",
@@ -369,16 +369,16 @@ function DashboardMockup() {
     return (
         <div style={{
             background: "#fff",
-            border: "1px solid rgba(30,41,59,0.12)",
+            border: "1px solid rgba(26,43,66,0.12)",
             borderRadius: 20,
-            boxShadow: "0 20px 60px rgba(30,41,59,0.12), 0 4px 16px rgba(30,41,59,0.06)",
+            boxShadow: "0 20px 60px rgba(26,43,66,0.12), 0 4px 16px rgba(26,43,66,0.06)",
             overflow: "hidden",
             userSelect: "none",
         }}>
             {/* Header barra */}
             <div style={{
                 padding: "14px 20px",
-                borderBottom: "1px solid rgba(30,41,59,0.08)",
+                borderBottom: "1px solid rgba(26,43,66,0.08)",
                 display: "flex", alignItems: "center", justifyContent: "space-between",
                 background: "var(--text)",
             }}>
@@ -394,13 +394,13 @@ function DashboardMockup() {
                 {/* KPIs */}
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, marginBottom: 20 }}>
                     {[
-                        { label: "Em aberto", value: "R$ 48.200", color: "var(--text)", bg: "rgba(30,41,59,0.04)" },
-                        { label: "Pendentes", value: "12",        color: "var(--cyan)", bg: "rgba(6,182,212,0.07)" },
+                        { label: "Em aberto", value: "R$ 48.200", color: "var(--text)", bg: "rgba(26,43,66,0.04)" },
+                        { label: "Pendentes", value: "12",        color: "var(--cyan)", bg: "rgba(21,195,221,0.07)" },
                         { label: "Vencidos",  value: "3",         color: "#DC2626",     bg: "rgba(220,38,38,0.07)" },
                     ].map(k => (
                         <div key={k.label} style={{
                             padding: "12px", borderRadius: 10,
-                            background: k.bg, border: "1px solid rgba(30,41,59,0.08)",
+                            background: k.bg, border: "1px solid rgba(26,43,66,0.08)",
                         }}>
                             <div style={{ fontSize: 10, color: "var(--text-dim)", fontWeight: 600, marginBottom: 4 }}>{k.label}</div>
                             <div style={{ fontSize: 18, fontWeight: 800, color: k.color }}>{k.value}</div>
@@ -411,8 +411,8 @@ function DashboardMockup() {
                 {/* Gráfico de barras */}
                 <div style={{
                     padding: "14px", borderRadius: 10,
-                    border: "1px solid rgba(30,41,59,0.08)",
-                    marginBottom: 16, background: "rgba(30,41,59,0.01)",
+                    border: "1px solid rgba(26,43,66,0.08)",
+                    marginBottom: 16, background: "rgba(26,43,66,0.01)",
                 }}>
                     <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 12 }}>Fluxo de caixa — próximos meses</div>
                     <div style={{ display: "flex", alignItems: "flex-end", gap: 6, height: 60 }}>
@@ -424,8 +424,8 @@ function DashboardMockup() {
                                     background: i === 3
                                         ? "var(--cyan)"
                                         : i < 3
-                                            ? "rgba(30,41,59,0.15)"
-                                            : "rgba(6,182,212,0.3)",
+                                            ? "rgba(26,43,66,0.15)"
+                                            : "rgba(21,195,221,0.3)",
                                     minHeight: 4,
                                     transition: "height 0.3s",
                                 }}/>
@@ -444,7 +444,7 @@ function DashboardMockup() {
                     <div key={i} style={{
                         display: "flex", alignItems: "center", justifyContent: "space-between",
                         padding: "9px 0",
-                        borderBottom: i < 2 ? "1px solid rgba(30,41,59,0.06)" : "none",
+                        borderBottom: i < 2 ? "1px solid rgba(26,43,66,0.06)" : "none",
                     }}>
                         <div style={{ flex: 1 }}>
                             <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text)" }}>{t.nome}</div>
@@ -465,12 +465,12 @@ function DashboardMockup() {
 function SolutionCard({ icon, iconBg, iconColor, title, desc, features, cta, to }) {
     return (
         <div style={{
-            background: "#fff", border: "1px solid rgba(30,41,59,0.1)",
+            background: "#fff", border: "1px solid rgba(26,43,66,0.1)",
             borderRadius: 18, padding: "32px 28px",
             display: "flex", flexDirection: "column",
             transition: "box-shadow 0.2s, transform 0.2s",
         }}
-             onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 8px 32px rgba(30,41,59,0.1)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
+             onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 8px 32px rgba(26,43,66,0.1)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
              onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "none"; }}
         >
             <div style={{
