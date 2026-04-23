@@ -158,31 +158,17 @@ public class PdfReportService {
 
         doc.add(blankLine(24));
 
-        try (InputStream is = getClass().getResourceAsStream("/static/logo.png")) {
+        try (InputStream is = getClass().getResourceAsStream("/static/wordmark_blue.png")) {
             if (is == null) {
                 try (InputStream is2 = getClass().getResourceAsStream("/logo.png")) {
                     if (is2 != null) {
-                        doc.add(new Image(ImageDataFactory.create(is2.readAllBytes()))
-                                .setWidth(64).setHeight(64).setMarginBottom(24));
+                        doc.add(new Image(ImageDataFactory.create(is2.readAllBytes())));
                     }
                 }
             } else {
-                doc.add(new Image(ImageDataFactory.create(is.readAllBytes()))
-                        .setWidth(64).setHeight(64).setMarginBottom(24));
+                doc.add(new Image(ImageDataFactory.create(is.readAllBytes())));
             }
         } catch (Exception ignored) {}
-
-        doc.add(new Paragraph("Whallet")
-                .setFont(bold)
-                .setFontSize(32)
-                .setFontColor(TEXT_MAIN)
-                .setMarginBottom(4));
-
-        doc.add(new Paragraph("Portal CNAB")
-                .setFont(regular)
-                .setFontSize(13)
-                .setFontColor(TEXT_MUTED)
-                .setMarginBottom(36));
 
         doc.add(hRule(GOLD, 2, 24));
 
