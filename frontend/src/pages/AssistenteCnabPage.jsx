@@ -67,10 +67,10 @@ export default function AssistenteCnabPage() {
                 alignItems: "center", marginBottom: 48, overflow: "hidden", position: "relative",
             }} className="elvis-hero-grid">
                 {/* Orb decorativo */}
-                <div style={{ position: "absolute", width: 300, height: 300, borderRadius: "50%", background: "rgba(6,182,212,0.08)", top: -100, right: 200, pointerEvents: "none" }}/>
+                <div style={{ position: "absolute", width: 300, height: 300, borderRadius: "50%", background: "rgba(21,195,221,0.08)", top: -100, right: 200, pointerEvents: "none" }}/>
 
                 <div style={{ position: "relative", zIndex: 1 }}>
-                    <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 16, background: "rgba(6,182,212,0.15)", border: "1px solid rgba(6,182,212,0.3)", borderRadius: 999, padding: "4px 14px", fontSize: 11, fontWeight: 700, color: "#22D3EE", letterSpacing: "0.06em" }}>
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 16, background: "rgba(21,195,221,0.15)", border: "1px solid rgba(21,195,221,0.3)", borderRadius: 999, padding: "4px 14px", fontSize: 11, fontWeight: 700, color: "#4CDDE8", letterSpacing: "0.06em" }}>
                         🤖 AGENTE DE IA · CNAB
                     </div>
                     <h1 style={{ fontSize: "clamp(24px, 3vw, 36px)", fontWeight: 900, color: "#fff", margin: "0 0 14px", letterSpacing: "-0.03em", lineHeight: 1.1 }}>
@@ -87,7 +87,7 @@ export default function AssistenteCnabPage() {
                             "Suporte a Itaú, Bradesco, BB e Caixa",
                         ].map(f => (
                             <div key={f} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "rgba(255,255,255,0.65)" }}>
-                                <span style={{ color: "#22D3EE", fontSize: 11 }}>✓</span> {f}
+                                <span style={{ color: "#4CDDE8", fontSize: 11 }}>✓</span> {f}
                             </div>
                         ))}
                     </div>
@@ -95,7 +95,7 @@ export default function AssistenteCnabPage() {
                     {/* CTA baseado no estado */}
                     {!autenticado ? (
                         <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                            <Link to="/cadastro" state={{ plano: "pro" }} style={{ padding: "11px 24px", borderRadius: 10, background: "var(--grad)", color: "#083344", fontWeight: 700, fontSize: 14, textDecoration: "none" }}>
+                            <Link to="/cadastro" state={{ plano: "pro" }} style={{ padding: "11px 24px", borderRadius: 10, background: "var(--grad)", color: "#0B1E36", fontWeight: 700, fontSize: 14, textDecoration: "none" }}>
                                 Criar conta e usar Elvis →
                             </Link>
                             <Link to="/login" style={{ padding: "11px 24px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.7)", fontSize: 14, textDecoration: "none" }}>
@@ -103,7 +103,7 @@ export default function AssistenteCnabPage() {
                             </Link>
                         </div>
                     ) : (
-                        <Link to="/planos" style={{ display: "inline-block", padding: "11px 24px", borderRadius: 10, background: "var(--grad)", color: "#083344", fontWeight: 700, fontSize: 14, textDecoration: "none" }}>
+                        <Link to="/planos" style={{ display: "inline-block", padding: "11px 24px", borderRadius: 10, background: "var(--grad)", color: "#0B1E36", fontWeight: 700, fontSize: 14, textDecoration: "none" }}>
                             Fazer upgrade para acessar →
                         </Link>
                     )}
@@ -112,8 +112,8 @@ export default function AssistenteCnabPage() {
                 {/* Elvis foto */}
                 <div style={{ textAlign: "center", position: "relative", zIndex: 1, flexShrink: 0 }} className="elvis-photo-wrap">
                     <div style={{ position: "relative", display: "inline-block" }}>
-                        <div style={{ position: "absolute", inset: -8, borderRadius: "50%", background: "rgba(6,182,212,0.15)", animation: "elvisHalo 3s ease-in-out infinite" }}/>
-                        <img src={elvisImg} alt="Elvis" style={{ width: 120, height: 120, borderRadius: "50%", objectFit: "cover", border: "3px solid rgba(6,182,212,0.4)", position: "relative", zIndex: 1 }}/>
+                        <div style={{ position: "absolute", inset: -8, borderRadius: "50%", background: "rgba(21,195,221,0.15)", animation: "elvisHalo 3s ease-in-out infinite" }}/>
+                        <img src={elvisImg} alt="Elvis" style={{ width: 120, height: 120, borderRadius: "50%", objectFit: "cover", border: "3px solid rgba(21,195,221,0.4)", position: "relative", zIndex: 1 }}/>
                     </div>
                     <div style={{ marginTop: 12, fontSize: 16, fontWeight: 800, color: "#fff" }}>Elvis</div>
                     <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>Especialista em CNAB</div>
@@ -150,10 +150,10 @@ export default function AssistenteCnabPage() {
                             border: p.destaque ? "none" : "1px solid var(--border)",
                             borderRadius: 16, padding: "24px 20px",
                             position: "relative",
-                            boxShadow: p.destaque ? "0 8px 32px rgba(30,41,59,0.15)" : "none",
+                            boxShadow: p.destaque ? "0 8px 32px rgba(26,43,66,0.15)" : "none",
                         }}>
                             {p.destaque && (
-                                <div style={{ position: "absolute", top: -10, left: "50%", transform: "translateX(-50%)", background: "var(--grad)", color: "#083344", fontSize: 10, fontWeight: 800, padding: "3px 14px", borderRadius: 20, whiteSpace: "nowrap" }}>
+                                <div style={{ position: "absolute", top: -10, left: "50%", transform: "translateX(-50%)", background: "var(--grad)", color: "#0B1E36", fontSize: 10, fontWeight: 800, padding: "3px 14px", borderRadius: 20, whiteSpace: "nowrap" }}>
                                     MAIS COMPLETO
                                 </div>
                             )}
@@ -178,14 +178,14 @@ export default function AssistenteCnabPage() {
                                     }}>
                                         {item.startsWith("✓") ? (
                                             <>
-                                                <span style={{ color: "#22D3EE", flexShrink: 0 }}>✓</span>
-                                                <span style={{ color: p.destaque ? "#22D3EE" : "var(--cyan-dark)" }}>
+                                                <span style={{ color: "#4CDDE8", flexShrink: 0 }}>✓</span>
+                                                <span style={{ color: p.destaque ? "#4CDDE8" : "var(--cyan-dark)" }}>
                                                     {item.replace("✓ ", "")}
                                                 </span>
                                             </>
                                         ) : (
                                             <>
-                                                <span style={{ color: p.destaque ? "rgba(255,255,255,0.3)" : "rgba(30,41,59,0.3)", flexShrink: 0, fontSize: 10, marginTop: 3 }}>●</span>
+                                                <span style={{ color: p.destaque ? "rgba(255,255,255,0.3)" : "rgba(26,43,66,0.3)", flexShrink: 0, fontSize: 10, marginTop: 3 }}>●</span>
                                                 {item}
                                             </>
                                         )}
@@ -194,7 +194,7 @@ export default function AssistenteCnabPage() {
                             </ul>
 
                             {ehAtual ? (
-                                <div style={{ padding: "10px", borderRadius: 8, background: "rgba(6,182,212,0.1)", border: "1px solid rgba(6,182,212,0.2)", textAlign: "center", fontSize: 13, fontWeight: 600, color: "var(--cyan-dark)" }}>
+                                <div style={{ padding: "10px", borderRadius: 8, background: "rgba(21,195,221,0.1)", border: "1px solid rgba(21,195,221,0.2)", textAlign: "center", fontSize: 13, fontWeight: 600, color: "var(--cyan-dark)" }}>
                                     ✓ Seu plano atual
                                 </div>
                             ) : p.id === "gratuito" ? (
@@ -215,7 +215,7 @@ export default function AssistenteCnabPage() {
                                 }} style={{
                                     width: "100%", padding: "10px", borderRadius: 8, border: "none",
                                     background: p.destaque ? "var(--grad)" : "var(--text)",
-                                    color: p.destaque ? "#083344" : "#fff",
+                                    color: p.destaque ? "#0B1E36" : "#fff",
                                     fontSize: 13, fontWeight: 700, cursor: "pointer",
                                     transition: "opacity 0.15s",
                                 }}

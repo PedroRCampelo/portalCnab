@@ -37,20 +37,20 @@ const BOTS = {
     frank: {
         nome: "Frank",
         slogan: "Sério e direto ao ponto",
-        cor: "#1E293B",
-        bgCor: "rgba(30,41,59,0.05)",
-        borda: "rgba(30,41,59,0.15)",
-        bordaAtivo: "rgba(30,41,59,0.4)",
-        grad: "linear-gradient(135deg, #1E293B, #475569)",
+        cor: "#1A2B42",
+        bgCor: "rgba(26,43,66,0.05)",
+        borda: "rgba(26,43,66,0.15)",
+        bordaAtivo: "rgba(26,43,66,0.4)",
+        grad: "linear-gradient(135deg, #1A2B42, #3F4E66)",
     },
     anne: {
         nome: "Anne",
         slogan: "Analítica e estratégica",
-        cor: "#0891B2",
+        cor: "#0891A8",
         bgCor: "rgba(8,145,178,0.06)",
         borda: "rgba(8,145,178,0.18)",
         bordaAtivo: "rgba(8,145,178,0.45)",
-        grad: "linear-gradient(135deg, #06B6D4, #0891B2)",
+        grad: "linear-gradient(135deg, #15C3DD, #0891A8)",
     },
 };
 
@@ -122,7 +122,7 @@ export default function InsightCard() {
     return (
         <div style={{
             background: "#fff",
-            border: "1px solid rgba(30,41,59,0.1)",
+            border: "1px solid rgba(26,43,66,0.1)",
             borderRadius: 16,
             overflow: "hidden",
         }}>
@@ -146,8 +146,8 @@ export default function InsightCard() {
                                     display: "flex", flexDirection: "column",
                                     alignItems: "center", gap: 6,
                                     padding: "10px 8px", borderRadius: 12, cursor: "pointer",
-                                    border: ativo ? `2px solid ${b.bordaAtivo}` : "1.5px solid rgba(30,41,59,0.09)",
-                                    background: ativo ? b.bgCor : "rgba(30,41,59,0.01)",
+                                    border: ativo ? `2px solid ${b.bordaAtivo}` : "1.5px solid rgba(26,43,66,0.09)",
+                                    background: ativo ? b.bgCor : "rgba(26,43,66,0.01)",
                                     transition: "all 0.15s",
                                     position: "relative",
                                 }}
@@ -198,7 +198,7 @@ export default function InsightCard() {
                                 : "Gerar insight agora"}
                             style={{
                                 padding: "4px 12px", borderRadius: 8,
-                                border: `1px solid ${jáGeradoHoje ? "rgba(30,41,59,0.1)" : bot.borda}`,
+                                border: `1px solid ${jáGeradoHoje ? "rgba(26,43,66,0.1)" : bot.borda}`,
                                 background: "transparent",
                                 fontSize: 11, fontWeight: 600,
                                 color: jáGeradoHoje ? "var(--text-dim)" : bot.cor,
@@ -249,8 +249,8 @@ export default function InsightCard() {
                 ) : semDados ? (
                     <div style={{
                         padding: "14px 16px", borderRadius: 10, textAlign: "center",
-                        background: "rgba(30,41,59,0.02)",
-                        border: "1px dashed rgba(30,41,59,0.12)",
+                        background: "rgba(26,43,66,0.02)",
+                        border: "1px dashed rgba(26,43,66,0.12)",
                     }}>
                         <p style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.65, margin: 0 }}>
                             {insightAtual.insight}
@@ -271,7 +271,7 @@ export default function InsightCard() {
                 {insightAtual && !carregando && !semDados && (
                     <div style={{
                         marginTop: 12, paddingTop: 10,
-                        borderTop: "1px solid rgba(30,41,59,0.07)",
+                        borderTop: "1px solid rgba(26,43,66,0.07)",
                         display: "flex", justifyContent: "space-between", alignItems: "center",
                     }}>
                         <span style={{ fontSize: 11, color: "var(--text-dim)" }}>

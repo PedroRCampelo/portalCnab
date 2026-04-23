@@ -116,8 +116,8 @@ export default function CnabKnowledgePage() {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, alignItems: "start" }} className="ck-grid">
 
                 {/* ── Formulário de ingestão ── */}
-                <div style={{ background: "#fff", border: "1px solid rgba(30,41,59,0.1)", borderRadius: 16, overflow: "hidden" }}>
-                    <div style={{ padding: "20px 22px", borderBottom: "1px solid rgba(30,41,59,0.07)", background: "rgba(30,41,59,0.02)" }}>
+                <div style={{ background: "#fff", border: "1px solid rgba(26,43,66,0.1)", borderRadius: 16, overflow: "hidden" }}>
+                    <div style={{ padding: "20px 22px", borderBottom: "1px solid rgba(26,43,66,0.07)", background: "rgba(26,43,66,0.02)" }}>
                         <h2 style={{ fontSize: 15, fontWeight: 700, color: "var(--text)", margin: 0 }}>Ingerir novo documento</h2>
                         <p style={{ fontSize: 12, color: "var(--text-dim)", margin: "4px 0 0" }}>PDF com layout bancário oficial</p>
                     </div>
@@ -130,7 +130,7 @@ export default function CnabKnowledgePage() {
                                 value={descricao}
                                 onChange={e => setDescricao(e.target.value)}
                                 disabled={enviando}
-                                style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid rgba(30,41,59,0.12)", background: "#fff", color: "var(--text)", fontSize: 13, boxSizing: "border-box", outline: "none" }}
+                                style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid rgba(26,43,66,0.12)", background: "#fff", color: "var(--text)", fontSize: 13, boxSizing: "border-box", outline: "none" }}
                             />
                             <p style={{ fontSize: 11, color: "var(--text-dim)", margin: "4px 0 0", lineHeight: 1.5 }}>
                                 Descreva livremente o banco e layout. Banco e tipo CNAB são inferidos automaticamente.
@@ -150,13 +150,13 @@ export default function CnabKnowledgePage() {
                             <div
                                 onClick={() => inputRef.current?.click()}
                                 style={{
-                                    border: `2px dashed ${arquivo ? "rgba(6,182,212,0.5)" : "rgba(30,41,59,0.15)"}`,
+                                    border: `2px dashed ${arquivo ? "rgba(21,195,221,0.5)" : "rgba(26,43,66,0.15)"}`,
                                     borderRadius: 10, padding: "20px 16px", textAlign: "center",
                                     cursor: "pointer", transition: "all 0.15s",
-                                    background: arquivo ? "rgba(6,182,212,0.04)" : "rgba(30,41,59,0.02)",
+                                    background: arquivo ? "rgba(21,195,221,0.04)" : "rgba(26,43,66,0.02)",
                                 }}
-                                onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(6,182,212,0.4)"; }}
-                                onMouseLeave={e => { e.currentTarget.style.borderColor = arquivo ? "rgba(6,182,212,0.5)" : "rgba(30,41,59,0.15)"; }}
+                                onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(21,195,221,0.4)"; }}
+                                onMouseLeave={e => { e.currentTarget.style.borderColor = arquivo ? "rgba(21,195,221,0.5)" : "rgba(26,43,66,0.15)"; }}
                             >
                                 <input ref={inputRef} type="file" accept=".pdf" style={{ display: "none" }}
                                        onChange={e => { setArquivo(e.target.files[0] || null); setProgresso(null); setMensagem(""); }}/>
@@ -182,8 +182,8 @@ export default function CnabKnowledgePage() {
                         {progresso && (
                             <div style={{
                                 marginBottom: 16, padding: "10px 14px", borderRadius: 10, fontSize: 13,
-                                background: progresso === "error" ? "rgba(220,38,38,0.06)" : progresso === "done" ? "rgba(6,182,212,0.07)" : "rgba(30,41,59,0.05)",
-                                border: `1px solid ${progresso === "error" ? "rgba(220,38,38,0.2)" : progresso === "done" ? "rgba(6,182,212,0.2)" : "rgba(30,41,59,0.1)"}`,
+                                background: progresso === "error" ? "rgba(220,38,38,0.06)" : progresso === "done" ? "rgba(21,195,221,0.07)" : "rgba(26,43,66,0.05)",
+                                border: `1px solid ${progresso === "error" ? "rgba(220,38,38,0.2)" : progresso === "done" ? "rgba(21,195,221,0.2)" : "rgba(26,43,66,0.1)"}`,
                                 color: progresso === "error" ? "var(--error)" : "var(--text)",
                                 display: "flex", alignItems: "flex-start", gap: 8,
                             }}>
@@ -196,8 +196,8 @@ export default function CnabKnowledgePage() {
 
                         <button type="submit" disabled={enviando || !arquivo || !descricao.trim()} style={{
                             width: "100%", padding: "11px", borderRadius: 10, border: "none",
-                            background: enviando || !arquivo || !descricao.trim() ? "rgba(30,41,59,0.08)" : "var(--grad)",
-                            color: enviando || !arquivo || !descricao.trim() ? "var(--text-dim)" : "#083344",
+                            background: enviando || !arquivo || !descricao.trim() ? "rgba(26,43,66,0.08)" : "var(--grad)",
+                            color: enviando || !arquivo || !descricao.trim() ? "var(--text-dim)" : "#0B1E36",
                             fontWeight: 700, fontSize: 14, cursor: enviando || !arquivo || !descricao.trim() ? "not-allowed" : "pointer",
                             transition: "all 0.15s",
                         }}>
@@ -213,13 +213,13 @@ export default function CnabKnowledgePage() {
                 </div>
 
                 {/* ── Lista de documentos ── */}
-                <div style={{ background: "#fff", border: "1px solid rgba(30,41,59,0.1)", borderRadius: 16, overflow: "hidden" }}>
-                    <div style={{ padding: "20px 22px", borderBottom: "1px solid rgba(30,41,59,0.07)", background: "rgba(30,41,59,0.02)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ background: "#fff", border: "1px solid rgba(26,43,66,0.1)", borderRadius: 16, overflow: "hidden" }}>
+                    <div style={{ padding: "20px 22px", borderBottom: "1px solid rgba(26,43,66,0.07)", background: "rgba(26,43,66,0.02)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <div>
                             <h2 style={{ fontSize: 15, fontWeight: 700, color: "var(--text)", margin: 0 }}>Documentos ingeridos</h2>
                             <p style={{ fontSize: 12, color: "var(--text-dim)", margin: "4px 0 0" }}>{documentos.length} documento{documentos.length !== 1 ? "s" : ""}</p>
                         </div>
-                        <button onClick={carregarDocumentos} title="Atualizar lista" style={{ background: "transparent", border: "1px solid rgba(30,41,59,0.1)", borderRadius: 8, padding: "6px 8px", cursor: "pointer", color: "var(--text-dim)", display: "flex", alignItems: "center" }}>
+                        <button onClick={carregarDocumentos} title="Atualizar lista" style={{ background: "transparent", border: "1px solid rgba(26,43,66,0.1)", borderRadius: 8, padding: "6px 8px", cursor: "pointer", color: "var(--text-dim)", display: "flex", alignItems: "center" }}>
                             <LuRefreshCw size={14} style={{ animation: carregandoList ? "ckSpin 0.8s linear infinite" : "none" }}/>
                         </button>
                     </div>
@@ -232,7 +232,7 @@ export default function CnabKnowledgePage() {
                                 <p style={{ fontSize: 13, color: "var(--text-dim)", margin: 0 }}>Nenhum documento ingerido ainda</p>
                             </div>
                         ) : documentos.map((doc, i) => (
-                            <div key={i} style={{ padding: "14px 22px", borderBottom: i < documentos.length - 1 ? "1px solid rgba(30,41,59,0.06)" : "none" }}>
+                            <div key={i} style={{ padding: "14px 22px", borderBottom: i < documentos.length - 1 ? "1px solid rgba(26,43,66,0.06)" : "none" }}>
                                 <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
                                     <div style={{ flex: 1, minWidth: 0 }}>
                                         <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{doc.sourceName}</div>
@@ -268,7 +268,7 @@ export default function CnabKnowledgePage() {
 
 function Stat({ label, value, icon }) {
     return (
-        <div style={{ background: "#fff", border: "1px solid rgba(30,41,59,0.1)", borderRadius: 12, padding: "12px 16px", textAlign: "center", minWidth: 90 }}>
+        <div style={{ background: "#fff", border: "1px solid rgba(26,43,66,0.1)", borderRadius: 12, padding: "12px 16px", textAlign: "center", minWidth: 90 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 5, fontSize: 11, color: "var(--text-dim)", marginBottom: 4 }}>
                 {icon} {label}
             </div>
@@ -290,8 +290,8 @@ function ToggleBtn({ active, onClick, children }) {
     return (
         <button type="button" onClick={onClick} style={{
             padding: "8px 12px", borderRadius: 8, cursor: "pointer",
-            border: active ? "1.5px solid var(--cyan)" : "1px solid rgba(30,41,59,0.12)",
-            background: active ? "rgba(6,182,212,0.08)" : "transparent",
+            border: active ? "1.5px solid var(--cyan)" : "1px solid rgba(26,43,66,0.12)",
+            background: active ? "rgba(21,195,221,0.08)" : "transparent",
             color: active ? "var(--cyan-dark)" : "var(--text-muted)",
             fontSize: 12, fontWeight: 700, transition: "all 0.12s",
         }}>{children}</button>
@@ -300,7 +300,7 @@ function ToggleBtn({ active, onClick, children }) {
 
 function Select({ children, ...props }) {
     return (
-        <select {...props} style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid rgba(30,41,59,0.12)", background: "#fff", color: "var(--text)", fontSize: 13, cursor: "pointer" }}>
+        <select {...props} style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid rgba(26,43,66,0.12)", background: "#fff", color: "var(--text)", fontSize: 13, cursor: "pointer" }}>
             {children}
         </select>
     );
@@ -310,8 +310,8 @@ function Tag({ children, muted }) {
     return (
         <span style={{
             fontSize: 10, fontWeight: 600, padding: "2px 7px", borderRadius: 20,
-            background: muted ? "rgba(30,41,59,0.05)" : "rgba(6,182,212,0.08)",
-            border: muted ? "1px solid rgba(30,41,59,0.1)" : "1px solid rgba(6,182,212,0.18)",
+            background: muted ? "rgba(26,43,66,0.05)" : "rgba(21,195,221,0.08)",
+            border: muted ? "1px solid rgba(26,43,66,0.1)" : "1px solid rgba(21,195,221,0.18)",
             color: muted ? "var(--text-dim)" : "var(--cyan-dark)",
         }}>{children}</span>
     );

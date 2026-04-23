@@ -29,7 +29,7 @@ export default function ValidaCnabPage() {
                             fontWeight: 700, fontSize: 14,
                             background: ferramenta === "excel" ? "var(--grad)" : "var(--surface)",
                             border: ferramenta === "excel" ? "none" : "1px solid var(--border)",
-                            color: ferramenta === "excel" ? "#083344" : "var(--text-muted)",
+                            color: ferramenta === "excel" ? "#0B1E36" : "var(--text-muted)",
                         }}>
                         <IcoExcel/> Exportar Excel
                     </button>
@@ -41,7 +41,7 @@ export default function ValidaCnabPage() {
                             fontWeight: 700, fontSize: 14,
                             background: ferramenta === "pdf" ? "var(--grad)" : "var(--surface)",
                             border: ferramenta === "pdf" ? "none" : "1px solid var(--border)",
-                            color: ferramenta === "pdf" ? "#083344" : "var(--text-muted)",
+                            color: ferramenta === "pdf" ? "#0B1E36" : "var(--text-muted)",
                         }}>
                         <IcoPdf/> Relatório PDF
                     </button>

@@ -61,7 +61,7 @@ export default function LoginPage() {
                 <p className="auth-box-sub">Entre com sua conta para continuar</p>
 
                 {planoAposLogin && (
-                    <div style={{ marginBottom: 20, padding: "11px 14px", borderRadius: 10, background: "rgba(6,182,212,0.06)", border: "1px solid rgba(6,182,212,0.2)", fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6 }}>
+                    <div style={{ marginBottom: 20, padding: "11px 14px", borderRadius: 10, background: "rgba(21,195,221,0.06)", border: "1px solid rgba(21,195,221,0.2)", fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6 }}>
                         <strong style={{ color: "var(--text)" }}>
                             {planoAposLogin === "pro" ? "⚡ Plano Pro" : "✨ Plano Whallet+"}
                         </strong><br/>

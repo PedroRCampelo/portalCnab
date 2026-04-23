@@ -111,7 +111,7 @@ export default function PlanosPage() {
     const tagBeta = (
         <div style={{
             display: "inline-flex", alignItems: "center", gap: 5,
-            background: "rgba(6,182,212,0.1)", border: "1px solid rgba(6,182,212,0.25)",
+            background: "rgba(21,195,221,0.1)", border: "1px solid rgba(21,195,221,0.25)",
             borderRadius: 20, padding: "3px 10px", marginBottom: 12,
             fontSize: 11, fontWeight: 700, color: "var(--cyan-dark)"
         }}>🎯 Preço beta</div>
@@ -125,7 +125,7 @@ export default function PlanosPage() {
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                     <div style={{
                         padding: "12px 16px", borderRadius: 10,
-                        background: "rgba(6,182,212,0.06)", border: "1px solid rgba(6,182,212,0.2)",
+                        background: "rgba(21,195,221,0.06)", border: "1px solid rgba(21,195,221,0.2)",
                         fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6
                     }}>
                         ✅ Assinatura cancelada. Você mantém acesso até{" "}
@@ -137,7 +137,7 @@ export default function PlanosPage() {
                         style={{
                             width: "100%", padding: "10px", borderRadius: 10,
                             background: "var(--grad)", border: "none",
-                            color: "#083344", fontWeight: 700, fontSize: 13, cursor: "pointer"
+                            color: "#0B1E36", fontWeight: 700, fontSize: 13, cursor: "pointer"
                         }}>
                         🔄 Renovar assinatura
                     </button>
@@ -244,8 +244,8 @@ export default function PlanosPage() {
                     </div>
 
                     {/* Pro */}
-                    <div style={{ background: "var(--surface)", border: "2px solid rgba(6,182,212,0.25)", borderRadius: 16, padding: "28px 24px 32px", position: "relative" }}>
-                        <div style={{ position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)", background: "var(--grad)", borderRadius: 20, padding: "4px 16px", fontSize: 11, fontWeight: 700, color: "#083344", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
+                    <div style={{ background: "var(--surface)", border: "2px solid rgba(21,195,221,0.25)", borderRadius: 16, padding: "28px 24px 32px", position: "relative" }}>
+                        <div style={{ position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)", background: "var(--grad)", borderRadius: 20, padding: "4px 16px", fontSize: 11, fontWeight: 700, color: "#0B1E36", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
                             RECOMENDADO
                         </div>
                         <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--cyan-dark)", marginBottom: 12 }}>Pro</div>
@@ -262,21 +262,21 @@ export default function PlanosPage() {
                         </ul>
                         {temPro && !temWhalletPlus ? (
                             <div>
-                                <div style={{ background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.2)", borderRadius: 10, padding: "10px 16px", textAlign: "center", fontSize: 13, fontWeight: 600, color: "var(--cyan-dark)", marginBottom: 10 }}>
+                                <div style={{ background: "rgba(21,195,221,0.08)", border: "1px solid rgba(21,195,221,0.2)", borderRadius: 10, padding: "10px 16px", textAlign: "center", fontSize: 13, fontWeight: 600, color: "var(--cyan-dark)", marginBottom: 10 }}>
                                     Seu plano atual ✓
                                 </div>
                                 <BotaoCancelamento/>
                             </div>
                         ) : !temPro ? (
-                            <button onClick={handleUpgradePro} disabled={carregando} style={{ width: "100%", padding: "13px", fontSize: 15, fontWeight: 700, borderRadius: 10, background: "var(--grad)", border: "none", color: "#083344", cursor: "pointer", opacity: carregando ? 0.6 : 1 }}>
+                            <button onClick={handleUpgradePro} disabled={carregando} style={{ width: "100%", padding: "13px", fontSize: 15, fontWeight: 700, borderRadius: 10, background: "var(--grad)", border: "none", color: "#0B1E36", cursor: "pointer", opacity: carregando ? 0.6 : 1 }}>
                                 {carregando ? "Redirecionando..." : autenticado ? "Assinar Pro" : "Começar agora"}
                             </button>
                         ) : null}
                     </div>
 
                     {/* Whallet+ */}
-                    <div style={{ background: "var(--surface)", border: "2px solid rgba(6,182,212,0.35)", borderRadius: 16, padding: "28px 24px 32px", position: "relative" }}>
-                        <div style={{ position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)", background: "var(--grad)", borderRadius: 20, padding: "4px 16px", fontSize: 11, fontWeight: 700, color: "#083344", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
+                    <div style={{ background: "var(--surface)", border: "2px solid rgba(21,195,221,0.35)", borderRadius: 16, padding: "28px 24px 32px", position: "relative" }}>
+                        <div style={{ position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)", background: "var(--grad)", borderRadius: 20, padding: "4px 16px", fontSize: 11, fontWeight: 700, color: "#0B1E36", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
                             WHALLET+
                         </div>
                         <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--cyan-dark)", marginBottom: 12 }}>Gestão Financeira</div>
@@ -293,14 +293,14 @@ export default function PlanosPage() {
                         </ul>
                         {temWhalletPlus ? (
                             <div>
-                                <div style={{ background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.2)", borderRadius: 10, padding: "10px 16px", textAlign: "center", fontSize: 13, fontWeight: 600, color: "var(--cyan-dark)", marginBottom: 10 }}>
+                                <div style={{ background: "rgba(21,195,221,0.08)", border: "1px solid rgba(21,195,221,0.2)", borderRadius: 10, padding: "10px 16px", textAlign: "center", fontSize: 13, fontWeight: 600, color: "var(--cyan-dark)", marginBottom: 10 }}>
                                     Seu plano atual ✓
                                 </div>
                                 <BotaoCancelamento/>
                             </div>
                         ) : (
                             <button onClick={handleUpgradePlus} disabled={carregandoPlus}
-                                    style={{ width: "100%", padding: "13px", fontSize: 15, fontWeight: 700, borderRadius: 10, background: "var(--grad)", border: "1px solid rgba(6,182,212,0.4)", color: "#083344", cursor: "pointer", opacity: carregandoPlus ? 0.6 : 1 }}>
+                                    style={{ width: "100%", padding: "13px", fontSize: 15, fontWeight: 700, borderRadius: 10, background: "var(--grad)", border: "1px solid rgba(21,195,221,0.4)", color: "#0B1E36", cursor: "pointer", opacity: carregandoPlus ? 0.6 : 1 }}>
                                 {carregandoPlus ? "Aguarde..." : autenticado ? (temPro ? "Fazer upgrade →" : "Assinar Whallet+") : "Começar agora"}
                             </button>
                         )}
@@ -309,7 +309,7 @@ export default function PlanosPage() {
 
                 {/* Info upgrade sem dupla cobrança */}
                 {autenticado && temPro && !temWhalletPlus && !assinaturaCancelando && (
-                    <div style={{ marginTop: 12, padding: "10px 16px", borderRadius: 10, background: "rgba(6,182,212,0.04)", border: "1px solid rgba(6,182,212,0.15)", fontSize: 12, color: "var(--text-dim)", textAlign: "center" }}>
+                    <div style={{ marginTop: 12, padding: "10px 16px", borderRadius: 10, background: "rgba(21,195,221,0.04)", border: "1px solid rgba(21,195,221,0.15)", fontSize: 12, color: "var(--text-dim)", textAlign: "center" }}>
                         💡 Ao fazer upgrade para Whallet+, você recebe crédito proporcional dos dias restantes do plano Pro — sem dupla cobrança.
                     </div>
                 )}
@@ -366,7 +366,7 @@ export default function PlanosPage() {
                 <div style={{ marginTop: 20, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 16, padding: "24px 28px", textAlign: "center" }}>
                     <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>Precisa de ajuda?</div>
                     <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 14 }}>Dúvidas sobre planos, pagamentos ou suporte técnico — fale com a gente.</p>
-                    <a href="mailto:usewhallet@gmail.com" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 24px", borderRadius: 10, background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.2)", color: "var(--cyan-dark)", fontWeight: 600, fontSize: 14, textDecoration: "none" }}>
+                    <a href="mailto:usewhallet@gmail.com" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 24px", borderRadius: 10, background: "rgba(21,195,221,0.08)", border: "1px solid rgba(21,195,221,0.2)", color: "var(--cyan-dark)", fontWeight: 600, fontSize: 14, textDecoration: "none" }}>
                         ✉️ usewhallet@gmail.com
                     </a>
                 </div>
