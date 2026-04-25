@@ -9,7 +9,15 @@ export function AuthProvider({ children }) {
         // localStorage persiste entre abas e recarregamentos
         try {
             const salvo = localStorage.getItem("auth");
-            return salvo ? JSON.parse(salvo) : null;
+            if (!salvo) return null;
+            const parsed = JSON.parse(salvo);
+            // Sessão expirada: trata como deslogado em vez de manter estado autenticado
+            // até o primeiro 401 do backend.
+            if (parsed?.expiraEm && parsed.expiraEm <= Date.now()) {
+                localStorage.removeItem("auth");
+                return null;
+            }
+            return parsed;
         } catch {
             return null;
         }
