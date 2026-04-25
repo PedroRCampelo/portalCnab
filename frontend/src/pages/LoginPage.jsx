@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import api from "../services/api.js";
+import GoogleLoginButton from "../components/GoogleLoginButton.jsx";
 
 export default function LoginPage() {
     const [email,      setEmail]      = useState("");
@@ -17,29 +18,47 @@ export default function LoginPage() {
     const planoAposLogin = location.state?.planoAposLogin ?? null;
     const destino        = location.state?.from?.pathname ?? "/";
 
+    // ── Pós-login compartilhado entre email/senha e Google ──────────────────
+    async function processarPosLogin(data) {
+        login(data);
+        if (planoAposLogin === "pro" || planoAposLogin === "whallet-plus") {
+            const endpoint = planoAposLogin === "pro"
+                ? "/api/stripe/checkout/pro"
+                : "/api/stripe/checkout/whallet-plus";
+            try {
+                const { data: stripe } = await api.post(endpoint);
+                window.location.href = stripe.url;
+                return;
+            } catch {
+                navigate("/planos", { replace: true });
+                return;
+            }
+        }
+        navigate(destino === "/login" ? "/" : destino, { replace: true });
+    }
+
     async function handleSubmit(e) {
         e.preventDefault();
         setErro("");
         setCarregando(true);
         try {
             const { data } = await api.post("/api/auth/login", { email, senha });
-            login(data);
-            if (planoAposLogin === "pro" || planoAposLogin === "whallet-plus") {
-                const endpoint = planoAposLogin === "pro"
-                    ? "/api/stripe/checkout/pro"
-                    : "/api/stripe/checkout/whallet-plus";
-                try {
-                    const { data: stripe } = await api.post(endpoint);
-                    window.location.href = stripe.url;
-                    return;
-                } catch {
-                    navigate("/planos", { replace: true });
-                    return;
-                }
-            }
-            navigate(destino === "/login" ? "/" : destino, { replace: true });
+            await processarPosLogin(data);
         } catch (err) {
             setErro(err.response?.data?.mensagem ?? "Erro ao conectar com o servidor");
+        } finally {
+            setCarregando(false);
+        }
+    }
+
+    async function handleGoogleSuccess(idToken) {
+        setErro("");
+        setCarregando(true);
+        try {
+            const { data } = await api.post("/api/auth/google", { idToken });
+            await processarPosLogin(data);
+        } catch (err) {
+            setErro(err.response?.data?.mensagem ?? "Erro ao entrar com Google");
         } finally {
             setCarregando(false);
         }
@@ -85,7 +104,7 @@ export default function LoginPage() {
                     </div>
                 )}
 
-                {/* Formulário */}
+                {/* Formulário email/senha */}
                 <form onSubmit={handleSubmit} className="auth-box-form" noValidate>
                     <div className="field-group">
                         <label htmlFor="email">E-mail</label>
@@ -141,7 +160,20 @@ export default function LoginPage() {
                     </button>
                 </form>
 
-                <p className="auth-box-footer">
+                {/* Separador "ou" */}
+                <div className="auth-divisor">
+                    <span>ou</span>
+                </div>
+
+                {/* Botão de login com Google */}
+                <GoogleLoginButton
+                    onSuccess={handleGoogleSuccess}
+                    onError={(msg) => setErro(msg)}
+                    disabled={carregando}
+                    texto="continue_with"
+                />
+
+                <p className="auth-box-footer" style={{ marginTop: 24 }}>
                     Não tem conta?{" "}
                     <Link to="/cadastro" className="auth-box-link">Criar conta gratuita</Link>
                 </p>
@@ -152,6 +184,26 @@ export default function LoginPage() {
                     ))}
                 </div>
             </div>
+
+            <style>{`
+                .auth-divisor {
+                    display: flex;
+                    align-items: center;
+                    text-align: center;
+                    margin: 1.25rem 0;
+                    color: var(--text-dim);
+                    font-size: 0.8125rem;
+                }
+                .auth-divisor::before,
+                .auth-divisor::after {
+                    content: "";
+                    flex: 1;
+                    border-bottom: 1px solid var(--border);
+                }
+                .auth-divisor span {
+                    padding: 0 0.875rem;
+                }
+            `}</style>
         </div>
     );
 }

@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext.jsx";
 import api from "../services/api.js";
+import GoogleLoginButton from "../components/GoogleLoginButton.jsx";
 
 function aplicarMascaraTelefone(valor) {
     const nums = valor.replace(/\D/g, "").slice(0, 11);
@@ -34,6 +36,8 @@ const PLANOS = [
 
 export default function CadastroPage() {
     const location     = useLocation();
+    const navigate     = useNavigate();
+    const { login }    = useAuth();
     const planoInicial = location.state?.plano ?? "gratuito";
 
     const [plano,      setPlano]      = useState(planoInicial);
@@ -61,6 +65,36 @@ export default function CadastroPage() {
             setOk(form.email);
         } catch (err) {
             setErro(err.response?.data?.mensagem ?? "Erro ao criar conta.");
+            setCarregando(false);
+        }
+    }
+
+    // Cadastro via Google: o backend já cria o usuário se não existir.
+    // Diferente do email/senha, não passa pela tela de "verifique seu email"
+    // porque o Google já verificou. Vai direto pro app (ou checkout, se plano pago).
+    async function handleGoogleSuccess(idToken) {
+        setErro("");
+        setCarregando(true);
+        try {
+            const { data } = await api.post("/api/auth/google", { idToken });
+            login(data);
+
+            if (precisaPagar) {
+                const endpoint = plano === "pro"
+                    ? "/api/stripe/checkout/pro"
+                    : "/api/stripe/checkout/whallet-plus";
+                try {
+                    const { data: stripe } = await api.post(endpoint);
+                    window.location.href = stripe.url;
+                    return;
+                } catch {
+                    navigate("/planos", { replace: true });
+                    return;
+                }
+            }
+            navigate("/", { replace: true });
+        } catch (err) {
+            setErro(err.response?.data?.mensagem ?? "Erro ao cadastrar com Google.");
             setCarregando(false);
         }
     }
@@ -120,16 +154,22 @@ export default function CadastroPage() {
 
     /* ── Layout principal ────────────────────────────────────────────────── */
     return (
-        <div className="cad-fullheight" style={{ display: "flex", overflow: "hidden" }}>
+        <div className="cad-fullheight" style={{ display: "flex", overflow: "hidden", height: "100vh" }}>
 
-            {/* ── Coluna esquerda: seletor de planos (desktop only) ───────── */}
+            {/* ── Coluna esquerda: seletor de planos (desktop only) ─────────
+                Estrutura nova:
+                - Container com altura fixa da viewport, sem scroll
+                - Conteúdo interno: header + cards + spacer flex + footer
+                - O spacer (flex:1) ocupa o espaço vazio entre cards e footer
+                  empurrando o "Cobrado mensalmente..." pra baixo elegantemente */}
             <div className="cad-col-planos" style={{
                 width: 340, flexShrink: 0,
                 background: "var(--navy-deep)",
                 display: "flex", flexDirection: "column",
                 padding: "36px 24px",
-                overflowY: "auto",
                 position: "relative",
+                height: "100%",
+                overflow: "hidden",
             }}>
                 {/* Grade decorativa */}
                 <div style={{
@@ -147,13 +187,18 @@ export default function CadastroPage() {
                     pointerEvents: "none",
                 }}/>
 
-                <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%" }}>
+                <div style={{
+                    position: "relative", zIndex: 1,
+                    display: "flex", flexDirection: "column",
+                    height: "100%", minHeight: 0,
+                }}>
                     {/* Logo */}
-                    <div style={{ marginBottom: 32 }}>
+                    <div style={{ marginBottom: 32, flexShrink: 0 }}>
                         <span className="brand-wordmark" style={{ color: "#fff", fontSize: 20 }}>Whallet</span>
                     </div>
 
-                    <div style={{ marginBottom: 20 }}>
+                    {/* Eyebrow + descrição */}
+                    <div style={{ marginBottom: 20, flexShrink: 0 }}>
                         <div style={{
                             fontSize: 10, fontWeight: 600, color: "var(--cyan)",
                             letterSpacing: "0.1em", textTransform: "uppercase",
@@ -167,8 +212,8 @@ export default function CadastroPage() {
                         </p>
                     </div>
 
-                    {/* Cards de plano */}
-                    <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
+                    {/* Cards de plano — flexShrink: 0 garante tamanho natural */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8, flexShrink: 0 }}>
                         {PLANOS.map(p => {
                             const ativo = plano === p.id;
                             return (
@@ -226,7 +271,11 @@ export default function CadastroPage() {
                         })}
                     </div>
 
-                    <p style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", marginTop: 14 }}>
+                    {/* Spacer: empurra o footer pra baixo SEM gerar scroll */}
+                    <div style={{ flex: 1, minHeight: 14 }} />
+
+                    {/* Footer */}
+                    <p style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", margin: 0, flexShrink: 0 }}>
                         Cobrado mensalmente. Cancele a qualquer momento.
                     </p>
                 </div>
@@ -237,12 +286,13 @@ export default function CadastroPage() {
                 flex: 1, display: "flex", alignItems: "flex-start",
                 justifyContent: "center", overflowY: "auto",
                 background: "var(--bg)", padding: "32px 24px",
+                height: "100%",
             }}>
                 <div style={{ width: "100%", maxWidth: 400, paddingTop: 8 }}>
 
                     {/* Header */}
                     <div style={{ marginBottom: 24 }}>
-                        {/* Plano selecionado — badge visível em mobile (painel escondido) */}
+                        {/* Plano selecionado — badge visível em mobile */}
                         <div className="cad-plano-mobile" style={{
                             display: "none", marginBottom: 16,
                         }}>
@@ -279,7 +329,6 @@ export default function CadastroPage() {
                             Crie sua conta
                         </h1>
 
-                        {/* Badge plano selecionado */}
                         <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 8 }}>
                             <span style={{
                                 padding: "3px 10px", borderRadius: 999, fontSize: 12,
@@ -293,6 +342,19 @@ export default function CadastroPage() {
                                 </span>
                             </span>
                         </div>
+                    </div>
+
+                    {/* Botão Google */}
+                    <GoogleLoginButton
+                        onSuccess={handleGoogleSuccess}
+                        onError={(msg) => setErro(msg)}
+                        disabled={carregando}
+                        texto="signup_with"
+                    />
+
+                    {/* Separador */}
+                    <div className="auth-divisor">
+                        <span>ou cadastre com e-mail</span>
                     </div>
 
                     {/* Formulário */}
@@ -329,7 +391,6 @@ export default function CadastroPage() {
                             />
                         </div>
 
-                        {/* Senhas */}
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }} className="cad-senha-row">
                             <div className="field-group" style={{ margin: 0 }}>
                                 <label>Senha</label>
@@ -365,7 +426,6 @@ export default function CadastroPage() {
                             </div>
                         </div>
 
-                        {/* Força da senha */}
                         {form.senha.length > 0 && (
                             <div>
                                 <div style={{ display: "flex", gap: 4, marginBottom: 4 }}>
@@ -418,6 +478,23 @@ export default function CadastroPage() {
                 }
                 @media (max-width: 480px) {
                     .cad-senha-row { grid-template-columns: 1fr !important; }
+                }
+                .auth-divisor {
+                    display: flex;
+                    align-items: center;
+                    text-align: center;
+                    margin: 1.25rem 0;
+                    color: var(--text-dim);
+                    font-size: 0.8125rem;
+                }
+                .auth-divisor::before,
+                .auth-divisor::after {
+                    content: "";
+                    flex: 1;
+                    border-bottom: 1px solid var(--border);
+                }
+                .auth-divisor span {
+                    padding: 0 0.875rem;
                 }
             `}</style>
         </div>

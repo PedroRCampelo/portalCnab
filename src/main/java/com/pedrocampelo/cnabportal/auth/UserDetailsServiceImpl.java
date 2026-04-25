@@ -27,10 +27,15 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                     return new UsernameNotFoundException("Usuario nao encontrado: " + email);
                 });
 
+        // Log de debug — usuários OAuth não têm senhaHash, então mostra o provedor
+        String hashInfo = usuario.getSenhaHash() != null
+                ? usuario.getSenhaHash().substring(0, 10) + "..."
+                : "(sem senha local — provedor=" + usuario.getProvedorAuth() + ")";
+
         log.debug("Usuario carregado: {} | ativo={} | hash={}",
                 usuario.getEmail(),
                 usuario.getAtivo(),
-                usuario.getSenhaHash().substring(0, 10) + "...");
+                hashInfo);
 
         return usuario;
     }

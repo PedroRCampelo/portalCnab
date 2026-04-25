@@ -38,8 +38,23 @@ public class Usuario implements UserDetails {
     @Column(nullable = false, unique = true, length = 150)
     private String email;
 
-    @Column(name = "senha_hash", nullable = false, length = 255)
+    // nullable: usuários autenticados via OAuth (Google) não têm senha local
+    @Column(name = "senha_hash", length = 255)
     private String senhaHash;
+
+    // ── Provedor de autenticação ──────────────────────────────────────────────
+
+    @Column(name = "google_id", unique = true, length = 100)
+    private String googleId;  // 'sub' do ID Token do Google — identificador permanente
+
+    @Column(name = "provedor_auth", nullable = false, length = 20)
+    @Builder.Default
+    private String provedorAuth = "LOCAL";  // LOCAL | GOOGLE
+
+    @Column(name = "foto_url", length = 500)
+    private String fotoUrl;  // URL do avatar (vem do Google)
+
+    // ──────────────────────────────────────────────────────────────────────────
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -183,7 +198,10 @@ public class Usuario implements UserDetails {
 
     @Override
     public String getPassword() {
-        return senhaHash;
+        // Retorna string vazia se for usuário OAuth (sem senha local).
+        // O DaoAuthenticationProvider só chama esse método no fluxo de login
+        // por senha; no fluxo Google ele não é usado.
+        return senhaHash != null ? senhaHash : "";
     }
 
     @Override
