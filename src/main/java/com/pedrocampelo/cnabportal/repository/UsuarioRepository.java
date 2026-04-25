@@ -20,6 +20,9 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
     Optional<Usuario> findByTokenVerificacao(String token);
     Optional<Usuario> findByTokenRedefinicao(String token);
 
+    // Busca usuário pelo ID permanente da conta Google (claim 'sub' do ID Token)
+    Optional<Usuario> findByGoogleId(String googleId);
+
     // Busca usuários que querem receber algum tipo de alerta e têm e-mail verificado
     @org.springframework.data.jpa.repository.Query(
             "SELECT u FROM Usuario u WHERE u.emailVerificado = true AND u.ativo = true " +

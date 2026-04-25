@@ -3,6 +3,7 @@ package com.pedrocampelo.cnabportal.auth;
 import com.pedrocampelo.cnabportal.auth.dto.AuthRequest;
 import com.pedrocampelo.cnabportal.auth.dto.AuthResponse;
 import com.pedrocampelo.cnabportal.auth.dto.CadastroRequest;
+import com.pedrocampelo.cnabportal.auth.dto.GoogleAuthRequest;
 import com.pedrocampelo.cnabportal.auth.dto.RegisterRequest;
 import com.pedrocampelo.cnabportal.config.LoginRateLimiter;
 import com.pedrocampelo.cnabportal.model.Empresa;
@@ -43,6 +44,7 @@ public class AuthController {
     private final PasswordEncoder       passwordEncoder;
     private final EmailService          emailService;
     private final LoginRateLimiter      rateLimiter;
+    private final GoogleTokenVerifier   googleTokenVerifier;
 
     // UUID fixo da empresa padrao — todos os auto-cadastros pertencem a ela
     @Value("${app.empresa-padrao-id:00000000-0000-0000-0000-000000000001}")
@@ -95,6 +97,125 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new ErroResponse("Credenciais inválidas"));
         }
+    }
+
+    // ── Login com Google ──────────────────────────────────────────────────────
+
+    @PostMapping("/google")
+    public ResponseEntity<?> loginGoogle(@Valid @RequestBody GoogleAuthRequest request,
+                                         HttpServletRequest httpRequest) {
+        String ip = obterIp(httpRequest);
+
+        // Aplica o mesmo rate limit do login normal
+        if (!rateLimiter.permitir(ip)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body(new ErroResponse("Muitas tentativas. Aguarde 1 minuto e tente novamente."));
+        }
+
+        // 1. Valida o ID Token com o Google (assinatura + audience + expiração)
+        com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload payload;
+        try {
+            payload = googleTokenVerifier.verificar(request.idToken());
+        } catch (GoogleTokenVerifier.InvalidGoogleTokenException e) {
+            log.warn("Tentativa de login Google com token inválido: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ErroResponse("Token Google inválido"));
+        }
+
+        String googleId = payload.getSubject();          // ID permanente da conta Google
+        String email    = payload.getEmail().toLowerCase().trim();
+        String nome     = (String) payload.get("name");
+        String fotoUrl  = (String) payload.get("picture");
+
+        // 2. Resolve usuário: busca por google_id, depois por email; se não existir, cria
+        Usuario usuario = usuarioRepository.findByGoogleId(googleId)
+                .or(() -> usuarioRepository.findByEmail(email))
+                .map(existente -> vincularGoogle(existente, googleId, fotoUrl))
+                .orElseGet(() -> criarUsuarioGoogle(googleId, email, nome, fotoUrl));
+
+        // 3. Valida que o usuário está ativo
+        if (!Boolean.TRUE.equals(usuario.getAtivo())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new ErroResponse("Conta desativada. Entre em contato com o suporte."));
+        }
+
+        // 4. Sucesso: gera JWT do Whallet (mesmo formato do login normal)
+        rateLimiter.registrarSucesso(ip);
+        usuarioRepository.atualizarUltimoAcesso(usuario.getId(), LocalDateTime.now());
+
+        String token    = jwtService.generateToken(usuario);
+        long   expiraEm = jwtService.extractExpiration(token).getTime();
+
+        log.info("Login Google: {} (provedor={})", usuario.getEmail(), usuario.getProvedorAuth());
+
+        return ResponseEntity.ok(new AuthResponse(
+                token, "Bearer",
+                usuario.getId(), usuario.getNome(), usuario.getEmail(),
+                usuario.getPerfil(),
+                usuario.getEmpresa() != null ? usuario.getEmpresa().getId() : null,
+                expiraEm,
+                usuario.getPlanoId(),
+                Boolean.TRUE.equals(usuario.getEmailVerificado()),
+                usuario.getAssinaturaStatus(),
+                usuario.getAssinaturaExpiraEm()
+        ));
+    }
+
+    /**
+     * Vincula uma conta Google a um usuário existente (cadastrado por email/senha).
+     * Idempotente: chamadas subsequentes não fazem nada.
+     */
+    private Usuario vincularGoogle(Usuario existente, String googleId, String fotoUrl) {
+        boolean precisaSalvar = false;
+
+        if (existente.getGoogleId() == null) {
+            existente.setGoogleId(googleId);
+            // Se o usuário não tinha senha local, marca como GOOGLE.
+            // Se tinha, mantém LOCAL — pode logar pelos dois métodos.
+            if (existente.getSenhaHash() == null) {
+                existente.setProvedorAuth("GOOGLE");
+            }
+            // Email vindo do Google já é verificado
+            if (!Boolean.TRUE.equals(existente.getEmailVerificado())) {
+                existente.setEmailVerificado(true);
+                existente.setTokenVerificacao(null);
+                existente.setTokenExpiracao(null);
+            }
+            precisaSalvar = true;
+        }
+
+        if (fotoUrl != null && !fotoUrl.equals(existente.getFotoUrl())) {
+            existente.setFotoUrl(fotoUrl);
+            precisaSalvar = true;
+        }
+
+        return precisaSalvar ? usuarioRepository.save(existente) : existente;
+    }
+
+    /**
+     * Cria novo usuário a partir de login Google (auto-cadastro silencioso).
+     * Vai pra empresa padrão, igual ao /cadastro normal.
+     */
+    private Usuario criarUsuarioGoogle(String googleId, String email, String nome, String fotoUrl) {
+        Empresa empresa = empresaRepository.findById(UUID.fromString(empresaPadraoId))
+                .orElseThrow(() -> new IllegalStateException("Empresa padrão não encontrada"));
+
+        Usuario novo = Usuario.builder()
+                .empresa(empresa)
+                .nome(nome != null ? nome : email.split("@")[0])
+                .email(email)
+                .senhaHash(null)                      // sem senha local
+                .googleId(googleId)
+                .provedorAuth("GOOGLE")
+                .fotoUrl(fotoUrl)
+                .perfil(PerfilUsuario.OPERADOR)
+                .ativo(true)
+                .emailVerificado(true)                // Google já verificou
+                .build();
+
+        Usuario salvo = usuarioRepository.save(novo);
+        log.info("Auto-cadastro via Google: {}", salvo.getEmail());
+        return salvo;
     }
 
     // ── Auto-cadastro publico ─────────────────────────────────────────────────
