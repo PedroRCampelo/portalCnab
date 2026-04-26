@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { MdMenuBook } from "react-icons/md";
+import { ImUserPlus } from "react-icons/im";
+
 
 import {
     LuChevronDown, LuSheet, LuWalletCards, LuClipboardList,
     LuBellRing, LuShieldCheck, LuLogOut, LuMenu, LuX,
-    LuGem, LuFileText, LuTrendingUp, LuSparkles, LuBot, LuUser
+    LuGem, LuFileText, LuTrendingUp, LuSparkles, LuBot, LuUser, LuHandCoins
 } from "react-icons/lu";
 import logoSvg from "../assets/logo.svg";
 import { useAuth } from "../context/AuthContext.jsx";
@@ -24,6 +26,8 @@ const MENU = [
         label: "Gestão",
         items: [
             { to: "/titulos",           icon: <LuWalletCards size={16}/>, label: "Títulos a pagar",    desc: "Contas a pagar e baixas" },
+            { to: "/clientes",          icon: <ImUserPlus size={16}/>,       label: "Clientes",           desc: "Cadastro de clientes para recebimentos" },
+            { to: "/recebimentos",      icon: <LuHandCoins size={16}/>,   label: "Recebimentos",       desc: "Contas a receber e cobranças" },
             { to: "/tipos-gasto",       icon: <LuTrendingUp size={16}/>,  label: "Tipos de gasto",     desc: "Categorias de despesa" },
             { to: "/relatorios-titulos", icon: <LuFileText size={16}/>, label: "Relatórios", desc: "Fluxo de caixa, aging e fornecedores" },
             { to: "/preferencias-alerta", icon: <LuBellRing size={16}/>, label: "Alertas de e-mail",  desc: "Notificações de vencimento" },
