@@ -29,6 +29,8 @@ import PreferenciasAlertaPage    from "./pages/PreferenciasAlertaPage.jsx";
 import GestaFinanceiraPage       from "./pages/GestaoFinanceiraPage.jsx";
 import ValidaCnabPage            from "./pages/ValidaCnabPage.jsx";
 import RelatoriosTitulosPage     from "./pages/RelatoriosTitulosPage.jsx";
+import ClientesPage from "./pages/ClientesPage.jsx";
+import RecebimentosPage from "./pages/RecebimentosPage.jsx";
 
 const AUTH_ROUTES = ["/verificar-email", "/cadastro"];
 
@@ -70,6 +72,9 @@ function AppShell() {
                 <Route path="/admin/usuarios"       element={<AdminRoute><AdminUsuariosPage/></AdminRoute>}/>
                 <Route path="/admin/cnab-knowledge" element={<AdminRoute><CnabKnowledgePage/></AdminRoute>}/>
                 <Route path="/admin/cnab-chat"      element={<AdminRoute><CnabChatPage/></AdminRoute>}/>
+
+                <Route path="/clientes" element={<ProtectedRoute><ClientesPage/></ProtectedRoute>}/>
+                <Route path="/recebimentos" element={<ProtectedRoute><RecebimentosPage/></ProtectedRoute>}/>
             </Routes>
         </div>
     );
