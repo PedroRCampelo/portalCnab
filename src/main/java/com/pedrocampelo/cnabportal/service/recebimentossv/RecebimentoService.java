@@ -6,8 +6,11 @@ import com.pedrocampelo.cnabportal.dto.RecebimentoRequest;
 import com.pedrocampelo.cnabportal.dto.RecebimentoResponse;
 import com.pedrocampelo.cnabportal.model.Cliente;
 import com.pedrocampelo.cnabportal.model.Recebimento;
+import com.pedrocampelo.cnabportal.model.SaldoBancario;
 import com.pedrocampelo.cnabportal.model.Usuario;
 import com.pedrocampelo.cnabportal.repository.RecebimentoRepository;
+import com.pedrocampelo.cnabportal.service.fluxocaixasv.MovimentoBancarioService;
+import com.pedrocampelo.cnabportal.service.fluxocaixasv.SaldoBancarioService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -26,15 +29,27 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
+/**
+ * RecebimentoService — versão integrada com módulo Fluxo de Caixa.
+ *
+ * MUDANÇAS PARTE 2:
+ *   - receber() agora cria movimento bancário automaticamente
+ *   - estornarBaixa() cria movimento de compensação
+ *   - Validação: precisa ter conta bancária cadastrada antes de baixar
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class RecebimentoService {
 
-    private final RecebimentoRepository recebimentoRepository;
-    private final ClienteService        clienteService;
+    private final RecebimentoRepository      recebimentoRepository;
+    private final ClienteService             clienteService;
+    private final SaldoBancarioService       saldoBancarioService;
+    private final MovimentoBancarioService   movimentoBancarioService;
 
-    // ── Listagem ──────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────
+    // Listagem e resumo (sem mudanças)
+    // ─────────────────────────────────────────────────────────────────────────
 
     public Page<RecebimentoResponse> listar(Usuario usuario, String status, UUID clienteId,
                                             int pagina, int tamanho) {
@@ -43,7 +58,6 @@ public class RecebimentoService {
                 Sort.by("dataVencimento").descending());
 
         Page<Recebimento> page;
-
         atualizarStatusAtrasados(empresaId);
 
         if (clienteId != null) {
@@ -56,8 +70,6 @@ public class RecebimentoService {
 
         return page.map(RecebimentoResponse::from);
     }
-
-    // ── Resumo ────────────────────────────────────────────────────────────────
 
     public Map<String, Object> resumo(Usuario usuario) {
         UUID empresaId = usuario.getEmpresa().getId();
@@ -76,14 +88,14 @@ public class RecebimentoService {
         return resumo;
     }
 
-    // ── Detalhe ───────────────────────────────────────────────────────────────
-
     public RecebimentoResponse buscarPorId(Usuario usuario, UUID id) {
         Recebimento r = buscarEntidadePorId(usuario, id);
         return RecebimentoResponse.from(r);
     }
 
-    // ── Criação simples ───────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────
+    // Criação simples (sem mudanças)
+    // ─────────────────────────────────────────────────────────────────────────
 
     @Transactional
     public RecebimentoResponse criar(Usuario usuario, RecebimentoRequest request) {
@@ -116,21 +128,10 @@ public class RecebimentoService {
         return RecebimentoResponse.from(salvo);
     }
 
-    // ── Criação parcelada ─────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────
+    // Criação parcelada (sem mudanças)
+    // ─────────────────────────────────────────────────────────────────────────
 
-    /**
-     * Cria N recebimentos como parcelas de um mesmo grupo.
-     *
-     * Estratégia de divisão de valor:
-     *   - Cada parcela recebe valorTotal / N (arredondado para 2 casas)
-     *   - A diferença centesimal é ajustada na ÚLTIMA parcela
-     *     (assim a soma das parcelas == valorTotal exato)
-     *
-     * Exemplo: R$ 100,00 em 3 parcelas
-     *   - Parcela 1: R$ 33,33
-     *   - Parcela 2: R$ 33,33
-     *   - Parcela 3: R$ 33,34 (ajuste pra fechar)
-     */
     @Transactional
     public List<RecebimentoResponse> criarParcelado(Usuario usuario, RecebimentoParceladoRequest request) {
         Cliente cliente = clienteService.buscarEntidadePorId(usuario, request.clienteId());
@@ -138,7 +139,6 @@ public class RecebimentoService {
         int qtd = request.qtdParcelas();
         BigDecimal valorTotal = request.valorTotal();
 
-        // Divisão centesimal precisa
         BigDecimal valorPorParcela = valorTotal
                 .divide(BigDecimal.valueOf(qtd), 2, RoundingMode.HALF_UP);
         BigDecimal somaParcelasIgual = valorPorParcela.multiply(BigDecimal.valueOf(qtd - 1));
@@ -185,13 +185,10 @@ public class RecebimentoService {
         return criados.stream().map(RecebimentoResponse::from).toList();
     }
 
-    // ── Edição ────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────
+    // Edição (com regra ERP — bloqueia se tem baixa)
+    // ─────────────────────────────────────────────────────────────────────────
 
-    /**
-     * REGRA ERP: Recebimentos com baixa (RECEBIDO/PARCIAL/CANCELADO)
-     * NÃO podem ser editados em valores ou cliente.
-     * Para alterar valores, primeiro estornar a baixa.
-     */
     @Transactional
     public RecebimentoResponse atualizar(Usuario usuario, UUID id, RecebimentoRequest request) {
         Recebimento r = buscarEntidadePorId(usuario, id);
@@ -206,7 +203,6 @@ public class RecebimentoService {
             throw new IllegalStateException("Recebimento cancelado não pode ser editado.");
         }
 
-        // Cliente pode mudar (sem baixa registrada)
         if (!r.getCliente().getId().equals(request.clienteId())) {
             r.setCliente(clienteService.buscarEntidadePorId(usuario, request.clienteId()));
         }
@@ -229,8 +225,25 @@ public class RecebimentoService {
         return RecebimentoResponse.from(salvo);
     }
 
-    // ── Receber (dar baixa) ───────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────
+    // RECEBER (DAR BAIXA) — INTEGRAÇÃO COM MOVIMENTO BANCÁRIO
+    // ─────────────────────────────────────────────────────────────────────────
 
+    /**
+     * Registra recebimento (parcial ou total) E cria movimento bancário.
+     *
+     * Fluxo:
+     *   1. Valida estado do recebimento
+     *   2. Determina conta bancária:
+     *      - Se contaId vier no request: usa essa
+     *      - Se null: usa conta padrão (principal ou única)
+     *   3. Atualiza valor recebido + status do Recebimento
+     *   4. Cria movimento bancário do tipo RECEBIMENTO
+     *   5. Saldo da conta é recalculado automaticamente na próxima consulta
+     *
+     * Importante: a operação é transacional. Se a criação do movimento falhar,
+     * o recebimento NÃO é marcado como baixado (rollback).
+     */
     @Transactional
     public RecebimentoResponse receber(Usuario usuario, UUID id, ReceberRequest request) {
         Recebimento r = buscarEntidadePorId(usuario, id);
@@ -254,32 +267,57 @@ public class RecebimentoService {
             );
         }
 
-        r.setValorRecebido(r.getValorRecebido().add(valorRecebimento));
-        if (request.dataRecebimento() != null) {
-            r.setDataRecebimento(request.dataRecebimento());
-        } else if (r.getDataRecebimento() == null) {
-            r.setDataRecebimento(LocalDate.now());
-        }
+        // ── Determina a conta bancária do movimento ──────────────────────────
+        SaldoBancario conta = resolverConta(usuario, request.contaId());
 
+        // ── Atualiza Recebimento ─────────────────────────────────────────────
+        LocalDate dataMovimento = request.dataRecebimento() != null
+                ? request.dataRecebimento()
+                : LocalDate.now();
+
+        r.setValorRecebido(r.getValorRecebido().add(valorRecebimento));
+        if (r.getDataRecebimento() == null) {
+            r.setDataRecebimento(dataMovimento);
+        }
         r.atualizarStatus();
         Recebimento salvo = recebimentoRepository.save(r);
 
-        log.info("Recebimento baixado: {} (valor={}, status={})",
-                salvo.getId(), valorRecebimento, salvo.getStatus());
+        // ── Cria movimento bancário ──────────────────────────────────────────
+        String descricao = "Recebimento de " + r.getCliente().getNome() + " — " + r.getDescricao();
+        movimentoBancarioService.criarRecebimento(
+                usuario, conta, dataMovimento, valorRecebimento, descricao, salvo.getId()
+        );
+
+        log.info("Recebimento baixado: {} (valor={}, conta={}, status={})",
+                salvo.getId(), valorRecebimento, conta.getNomeConta(), salvo.getStatus());
         return RecebimentoResponse.from(salvo);
     }
 
-    // ── Estornar baixa ────────────────────────────────────────────────────────
+    /**
+     * Resolve qual conta usar pra o movimento.
+     * Prioridade: 1) contaId do request, 2) conta padrão da empresa.
+     */
+    private SaldoBancario resolverConta(Usuario usuario, UUID contaId) {
+        if (contaId != null) {
+            return saldoBancarioService.buscarEntidadePorId(usuario, contaId);
+        }
+        // Sem conta especificada — usa padrão (principal ou primeira disponível)
+        return saldoBancarioService.buscarContaPadrao(usuario);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // ESTORNAR BAIXA — INTEGRAÇÃO COM MOVIMENTO BANCÁRIO
+    // ─────────────────────────────────────────────────────────────────────────
 
     /**
-     * Estorna a baixa do recebimento — ação de "desfazer recebimento".
+     * Estorna a baixa do recebimento E cria movimento(s) de compensação.
      *
-     * Operação distinta de edição: zera o valor recebido e a data de recebimento,
-     * volta o status pra PENDENTE/ATRASADO conforme a data de vencimento.
-     *
-     * Necessário pra corrigir erros de baixa sem perder o registro original.
-     * No futuro, quando houver módulo de saldo bancário, o estorno também
-     * deve reverter a entrada no extrato.
+     * Fluxo:
+     *   1. Valida que tem baixa pra estornar
+     *   2. Estorna TODOS os movimentos ativos vinculados a este recebimento
+     *      (pode ter múltiplos se foram baixas parciais)
+     *   3. Zera valor recebido e data de recebimento no Recebimento
+     *   4. Recalcula status (volta pra PENDENTE/ATRASADO)
      */
     @Transactional
     public RecebimentoResponse estornarBaixa(Usuario usuario, UUID id) {
@@ -289,6 +327,13 @@ public class RecebimentoService {
             throw new IllegalStateException("Este recebimento não possui baixa para estornar.");
         }
 
+        // ── Estorna todos os movimentos vinculados ───────────────────────────
+        movimentoBancarioService.estornarPorOrigem(
+                usuario, "RECEBIMENTO", r.getId(),
+                "Estorno de baixa do recebimento"
+        );
+
+        // ── Zera valores no Recebimento ──────────────────────────────────────
         BigDecimal valorEstornado = r.getValorRecebido();
         r.setValorRecebido(BigDecimal.ZERO);
         r.setDataRecebimento(null);
@@ -299,12 +344,10 @@ public class RecebimentoService {
         return RecebimentoResponse.from(salvo);
     }
 
-    // ── Cancelar ──────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────
+    // Cancelar e excluir (sem mudanças vs Sprint 1)
+    // ─────────────────────────────────────────────────────────────────────────
 
-    /**
-     * REGRA ERP: Só permite cancelar se NÃO houver baixa.
-     * Para cancelar com baixa, estornar primeiro.
-     */
     @Transactional
     public RecebimentoResponse cancelar(Usuario usuario, UUID id) {
         Recebimento r = buscarEntidadePorId(usuario, id);
@@ -329,13 +372,6 @@ public class RecebimentoService {
         return RecebimentoResponse.from(salvo);
     }
 
-    // ── Excluir ───────────────────────────────────────────────────────────────
-
-    /**
-     * REGRA ERP: Só permite excluir se NÃO houver baixa registrada.
-     * Excluir = remover do sistema (uso pra erros de cadastro);
-     * Cancelar = manter histórico marcado como cancelado.
-     */
     @Transactional
     public void excluir(Usuario usuario, UUID id) {
         Recebimento r = buscarEntidadePorId(usuario, id);
@@ -350,7 +386,9 @@ public class RecebimentoService {
         log.info("Recebimento excluído: {}", id);
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────
+    // Helpers
+    // ─────────────────────────────────────────────────────────────────────────
 
     public Recebimento buscarEntidadePorId(Usuario usuario, UUID id) {
         return recebimentoRepository
@@ -370,11 +408,6 @@ public class RecebimentoService {
         }
     }
 
-    /**
-     * Gera um número único pra um novo recebimento (ou grupo de parcelas).
-     * Formato: R-<timestamp curto> — único o suficiente pra MEI.
-     * Em V2, podemos numerar sequencialmente por empresa se necessário.
-     */
     private String gerarNumero() {
         long ts = System.currentTimeMillis();
         return "R-" + Long.toString(ts, 36).toUpperCase();

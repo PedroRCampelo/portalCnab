@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, memo } from "react";
 import { Link } from "react-router-dom";
 import api from "../services/api.js";
 import InsightCard from "../components/InsightCard.jsx";
+import { LuUndo2 } from "react-icons/lu";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constantes
@@ -129,10 +130,10 @@ function Tooltip({ texto }) {
             {vis && (
                 <div style={{
                     position: "absolute", top: "calc(100% + 8px)", right: 0,
-                    background: "#ffffff", border: "1px solid var(--border)",
-                    borderRadius: 10, padding: "12px 14px", width: 280,
-                    fontSize: 12, color: "var(--text-muted)", lineHeight: 1.65,
-                    zIndex: 999, boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+                    background: "var(--surface)", border: "1px solid var(--border)",
+                    borderRadius: 10, padding: "12px 14px",
+                    fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6,
+                    width: 320, zIndex: 100, textAlign: "left",
                     whiteSpace: "pre-line"
                 }}>
                     <div style={{
@@ -217,6 +218,11 @@ export default function TitulosPage() {
     const [baixaObs,     setBaixaObs]     = useState("");
     const [baixando,     setBaixando]     = useState(false);
     const [erroBaixa,    setErroBaixa]    = useState("");
+
+    // NOVO: contas bancárias e seleção
+    const [contasBancarias,   setContasBancarias]   = useState([]);
+    const [baixaContaId,      setBaixaContaId]      = useState("");
+    const [carregandoContas,  setCarregandoContas]  = useState(false);
 
     const [abaModal,     setAbaModal]     = useState("geral"); // "geral" | "cnab"
     const [modalParcelado, setModalParcelado] = useState(false);
@@ -340,10 +346,33 @@ export default function TitulosPage() {
         } finally { setSalvandoParcelado(false); }
     }
 
-    function abrirBaixa(t) {
+    // ATUALIZADO: agora carrega contas bancárias ao abrir o modal
+    async function abrirBaixa(t) {
         setModalBaixa(t);
         setBaixaValor(t.saldo ? mascaraMoeda(String(Math.round(t.saldo * 100))) : "");
-        setBaixaData(hoje()); setBaixaObs(""); setErroBaixa("");
+        setBaixaData(hoje());
+        setBaixaObs("");
+        setErroBaixa("");
+        setBaixaContaId("");
+
+        // Carrega contas ativas
+        setCarregandoContas(true);
+        try {
+            const { data } = await api.get("/api/saldos-bancarios");
+            setContasBancarias(data || []);
+
+            // Pré-seleciona conta principal (ou primeira)
+            const principal = data?.find(c => c.principal);
+            const padrao = principal ?? data?.[0];
+            if (padrao) {
+                setBaixaContaId(padrao.id);
+            }
+        } catch (err) {
+            console.error("Erro ao carregar contas", err);
+            setContasBancarias([]);
+        } finally {
+            setCarregandoContas(false);
+        }
     }
 
     async function salvar() {
@@ -367,6 +396,7 @@ export default function TitulosPage() {
             else          await api.post("/api/titulos", payload);
             setModalAberto(false); carregarTitulos(); carregarResumo();
         } catch (err) {
+            // Erro 400 do backend (ex: bloqueio de edição em título pago)
             setErro(err.response?.data?.mensagem ?? "Erro ao salvar título.");
         } finally { setSalvando(false); }
     }
@@ -375,17 +405,42 @@ export default function TitulosPage() {
         try {
             await api.delete(`/api/titulos/${modalExcluir.id}`);
             setModalExcluir(null); carregarTitulos(); carregarResumo();
-        } catch {}
+        } catch (err) {
+            const msg = err.response?.data?.mensagem ?? "Erro ao excluir título.";
+            setModalExcluir(null);
+            alert("⚠️ " + msg);
+        }
     }
 
+    async function estornarTitulo(t) {
+        const confirmacao = window.confirm(
+            `Estornar a baixa do título #${t.numero}?\n\n` +
+            `O título voltará para o status de pendente. ` +
+            `O movimento bancário do pagamento será compensado e ficará registrado no histórico.`
+        );
+        if (!confirmacao) return;
+        try {
+            await api.post(`/api/titulos/${t.id}/estornar`);
+            carregarTitulos(); carregarResumo();
+        } catch (err) {
+            const msg = err.response?.data?.mensagem ?? "Erro ao estornar título.";
+            alert("⚠️ " + msg);
+        }
+    }
+
+    // ATUALIZADO: envia contaId no payload
     async function confirmarBaixa() {
         setErroBaixa("");
         const valorNum = parseMoeda(baixaValor);
         if (valorNum <= 0) { setErroBaixa("Informe um valor maior que zero."); return; }
+        if (!baixaContaId) { setErroBaixa("Selecione a conta bancária do pagamento."); return; }
         setBaixando(true);
         try {
             await api.post(`/api/titulos/${modalBaixa.id}/baixa`, {
-                valorPago: valorNum, dataBaixa: baixaData, observacao: baixaObs,
+                valorPago: valorNum,
+                dataBaixa: baixaData,
+                observacao: baixaObs,
+                contaId: baixaContaId,  // NOVO
             });
             setModalBaixa(null); carregarTitulos(); carregarResumo();
         } catch (err) {
@@ -560,18 +615,45 @@ export default function TitulosPage() {
                                             </span>
                                         </td>
                                         <td>
-                                            <div style={{ display: "flex", gap: 5 }}>
-                                                {t.status !== "PAGO" && (
-                                                    <button onClick={() => abrirBaixa(t)} title="Registrar baixa"
-                                                            className="btn-acao"
-                                                            style={{ fontSize: 12, background: "rgba(17,17,17,0.06)", borderColor: "rgba(17,17,17,0.18)", color: "var(--text)" }}>
-                                                        💰
-                                                    </button>
-                                                )}
-                                                <button onClick={() => abrirEditar(t)} className="btn-acao" title="Editar" style={{ fontSize: 12 }}>✏️</button>
-                                                <button onClick={() => setModalExcluir({ id: t.id, numero: t.numero })}
-                                                        className="btn-acao btn-acao--excluir" title="Excluir" style={{ fontSize: 12 }}>🗑️</button>
-                                            </div>
+                                            {(() => {
+                                                // Estado do título pra decidir quais botões mostrar
+                                                const ehPago     = t.status === "PAGO";
+                                                const temBaixa   = ehPago || (t.saldo != null && t.valor != null && t.saldo < t.valor);
+                                                const podeBaixar = !ehPago;       // pode baixar enquanto não totalmente pago
+                                                const podeEstornar = temBaixa;    // pode estornar se tem qualquer baixa
+                                                const podeEditar = !temBaixa;     // só edita se não tem baixa
+                                                const podeExcluir = !temBaixa;    // só exclui se não tem baixa
+
+                                                return (
+                                                    <div style={{ display: "flex", gap: 5 }}>
+                                                        {podeBaixar && (
+                                                            <button onClick={() => abrirBaixa(t)} title="Registrar baixa"
+                                                                    className="btn-acao"
+                                                                    style={{ fontSize: 12, background: "rgba(17,17,17,0.06)", borderColor: "rgba(17,17,17,0.18)", color: "var(--text)" }}>
+                                                                💰
+                                                            </button>
+                                                        )}
+                                                        {podeEstornar && (
+                                                            <button onClick={() => estornarTitulo(t)} title="Estornar baixa"
+                                                                    className="btn-acao"
+                                                                    style={{ fontSize: 12,
+                                                                        background: "rgba(245,158,11,0.10)",
+                                                                        borderColor: "rgba(245,158,11,0.35)",
+                                                                        color: "#D97706",
+                                                                        display: "inline-flex", alignItems: "center" }}>
+                                                                <LuUndo2 size={13}/>
+                                                            </button>
+                                                        )}
+                                                        {podeEditar && (
+                                                            <button onClick={() => abrirEditar(t)} className="btn-acao" title="Editar" style={{ fontSize: 12 }}>✏️</button>
+                                                        )}
+                                                        {podeExcluir && (
+                                                            <button onClick={() => setModalExcluir({ id: t.id, numero: t.numero })}
+                                                                    className="btn-acao btn-acao--excluir" title="Excluir" style={{ fontSize: 12 }}>🗑️</button>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })()}
                                         </td>
                                     </tr>
                                 );
@@ -909,6 +991,51 @@ export default function TitulosPage() {
                             )}
                         </div>
                     )}
+
+                    {/* NOVO: Seleção de conta bancária */}
+                    <div style={{ marginBottom: 12 }}>
+                        <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-dim)", display: "block", marginBottom: 4 }}>
+                            Conta bancária <span style={{ color: "var(--warning)" }}>*</span>
+                        </label>
+                        {carregandoContas ? (
+                            <div style={{
+                                padding: "10px 12px", borderRadius: 8, background: "var(--bg)",
+                                border: "1px solid var(--border)", fontSize: 13, color: "var(--text-dim)",
+                            }}>
+                                Carregando contas...
+                            </div>
+                        ) : contasBancarias.length === 0 ? (
+                            <div style={{
+                                padding: "10px 12px", borderRadius: 8,
+                                background: "rgba(220,38,38,0.06)", border: "1px solid rgba(220,38,38,0.20)",
+                                fontSize: 12, color: "#DC2626", lineHeight: 1.5,
+                            }}>
+                                ⚠️ Nenhuma conta bancária cadastrada. Cadastre uma conta em{" "}
+                                <Link to="/fluxo-caixa" style={{ color: "#DC2626", fontWeight: 700 }}>Fluxo de Caixa</Link>{" "}
+                                antes de registrar a baixa.
+                            </div>
+                        ) : (
+                            <select
+                                value={baixaContaId}
+                                onChange={e => setBaixaContaId(e.target.value)}
+                                style={{
+                                    width: "100%", padding: "10px 12px", borderRadius: 8,
+                                    background: "var(--bg)", border: "1px solid var(--border)",
+                                    color: "var(--text)", fontSize: 14, boxSizing: "border-box",
+                                }}>
+                                <option value="">Selecione a conta</option>
+                                {contasBancarias.map(c => (
+                                    <option key={c.id} value={c.id}>
+                                        {c.nomeConta}{c.banco ? ` — ${c.banco}` : ""} · saldo: {
+                                        new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(c.saldoAtual))
+                                    }
+                                        {c.principal ? " ⭐" : ""}
+                                    </option>
+                                ))}
+                            </select>
+                        )}
+                    </div>
+
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 12px", marginBottom: 12 }}>
                         <div>
                             <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-dim)", display: "block", marginBottom: 4 }}>Data da baixa</label>
@@ -935,10 +1062,10 @@ export default function TitulosPage() {
                                     border: "1px solid var(--border)", color: "var(--text-muted)", fontWeight: 600, cursor: "pointer" }}>
                             Cancelar
                         </button>
-                        <button onClick={confirmarBaixa} disabled={baixando || valorBaixa <= 0}
+                        <button onClick={confirmarBaixa} disabled={baixando || valorBaixa <= 0 || !baixaContaId || contasBancarias.length === 0}
                                 style={{ flex: 2, padding: "12px", borderRadius: 10, background: "var(--grad)",
                                     border: "1px solid rgba(212,160,23,0.45)", color: "#1a1a1a", fontWeight: 700, cursor: "pointer",
-                                    opacity: (baixando || valorBaixa <= 0) ? 0.5 : 1 }}>
+                                    opacity: (baixando || valorBaixa <= 0 || !baixaContaId || contasBancarias.length === 0) ? 0.5 : 1 }}>
                             {baixando ? "Registrando..." : quita ? "✅ Confirmar quitação" : "⚡ Confirmar baixa parcial"}
                         </button>
                     </div>

@@ -16,13 +16,12 @@ import java.util.UUID;
 @Repository
 public interface MovimentoBancarioRepository extends JpaRepository<MovimentoBancario, UUID> {
 
-    // Garantia de tenant
     Optional<MovimentoBancario> findByIdAndEmpresaId(UUID id, UUID empresaId);
 
     // ── Extrato (paginado, ordenado por data desc) ────────────────────────────
 
     /**
-     * Extrato de UMA conta específica, ordenado do mais recente ao mais antigo.
+     * Extrato de UMA conta específica.
      */
     @Query("""
         SELECT m FROM MovimentoBancario m
@@ -37,7 +36,7 @@ public interface MovimentoBancarioRepository extends JpaRepository<MovimentoBanc
     );
 
     /**
-     * Extrato consolidado de TODAS as contas da empresa.
+     * Extrato consolidado de TODAS as contas da empresa (sem filtros).
      */
     @Query("""
         SELECT m FROM MovimentoBancario m
@@ -50,7 +49,41 @@ public interface MovimentoBancarioRepository extends JpaRepository<MovimentoBanc
     );
 
     /**
-     * Extrato de uma conta filtrado por período.
+     * Extrato com filtros opcionais.
+     * Filtros que vierem null são ignorados (graças aos `CAST(:param AS tipo) IS NULL OR ...`).
+     *
+     * Usa native query porque o PostgreSQL não consegue inferir o tipo dos parâmetros
+     * em queries JPQL quando comparados com IS NULL. O cast explícito resolve.
+     */
+    @Query(value = """
+        SELECT * FROM movimentos_bancarios m
+        WHERE m.empresa_id = :empresaId
+          AND (CAST(:contaId AS uuid) IS NULL OR m.conta_id = CAST(:contaId AS uuid))
+          AND (CAST(:tipo AS text) IS NULL OR m.tipo = CAST(:tipo AS text))
+          AND (CAST(:dataInicio AS date) IS NULL OR m.data_movimento >= CAST(:dataInicio AS date))
+          AND (CAST(:dataFim AS date) IS NULL OR m.data_movimento <= CAST(:dataFim AS date))
+        ORDER BY m.data_movimento DESC, m.criado_em DESC
+        """,
+            countQuery = """
+        SELECT COUNT(*) FROM movimentos_bancarios m
+        WHERE m.empresa_id = :empresaId
+          AND (CAST(:contaId AS uuid) IS NULL OR m.conta_id = CAST(:contaId AS uuid))
+          AND (CAST(:tipo AS text) IS NULL OR m.tipo = CAST(:tipo AS text))
+          AND (CAST(:dataInicio AS date) IS NULL OR m.data_movimento >= CAST(:dataInicio AS date))
+          AND (CAST(:dataFim AS date) IS NULL OR m.data_movimento <= CAST(:dataFim AS date))
+        """,
+            nativeQuery = true)
+    Page<MovimentoBancario> extratoFiltrado(
+            @Param("empresaId")  UUID empresaId,
+            @Param("contaId")    UUID contaId,
+            @Param("tipo")       String tipo,
+            @Param("dataInicio") LocalDate dataInicio,
+            @Param("dataFim")    LocalDate dataFim,
+            Pageable pageable
+    );
+
+    /**
+     * Extrato de uma conta filtrado por período (lista, sem paginação).
      */
     @Query("""
         SELECT m FROM MovimentoBancario m
@@ -66,7 +99,7 @@ public interface MovimentoBancarioRepository extends JpaRepository<MovimentoBanc
             @Param("fim") LocalDate fim
     );
 
-    // ── Buscar movimentos por origem (ex: "todos os movimentos do recebimento X") ──
+    // ── Movimentos por origem ────────────────────────────────────────────────
 
     @Query("""
         SELECT m FROM MovimentoBancario m
@@ -81,10 +114,6 @@ public interface MovimentoBancarioRepository extends JpaRepository<MovimentoBanc
             @Param("empresaId") UUID empresaId
     );
 
-    /**
-     * Verifica se existe movimento ATIVO (não cancelado) com a origem informada.
-     * Útil pra evitar duplicar movimentos.
-     */
     @Query("""
         SELECT COUNT(m) > 0 FROM MovimentoBancario m
         WHERE m.origemTipo = :origemTipo

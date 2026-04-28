@@ -28,33 +28,43 @@ public interface SaldoBancarioRepository extends JpaRepository<SaldoBancario, UU
     long countByEmpresaIdAndAtivoTrue(UUID empresaId);
 
     /**
-     * Calcula o saldo atual de UMA conta = saldo_inicial + soma(movimentos não cancelados).
+     * Calcula o saldo atual de UMA conta = saldoInicial + soma(movimentos não cancelados).
      *
-     * Query usa CASE pra somar/subtrair conforme eh_entrada.
-     * COALESCE garante zero quando não há movimentos.
+     * IMPORTANTE: foi dividido em 2 queries (saldoInicial e somaMovimentos) e somado
+     * em código (no Service) para evitar bug clássico de JOIN+SUM:
+     *   - LEFT JOIN com movimentos cria N linhas (1 por movimento)
+     *   - SUM(s.saldoInicial) acabava sendo somado N vezes (duplicação)
+     *
+     * Aqui a query retorna SÓ a soma dos movimentos. O service soma com
+     * saldoInicial da entidade.
      */
     @Query("""
-        SELECT COALESCE(s.saldoInicial, 0) +
-               COALESCE(SUM(CASE WHEN m.ehEntrada = true THEN m.valor ELSE -m.valor END), 0)
-        FROM SaldoBancario s
-        LEFT JOIN MovimentoBancario m
-            ON m.conta.id = s.id AND m.cancelado = false
-        WHERE s.id = :contaId
-        GROUP BY s.id, s.saldoInicial
+        SELECT COALESCE(SUM(CASE WHEN m.ehEntrada = true THEN m.valor ELSE -m.valor END), 0)
+        FROM MovimentoBancario m
+        WHERE m.conta.id = :contaId AND m.cancelado = false
     """)
-    Optional<BigDecimal> calcularSaldoAtual(@Param("contaId") UUID contaId);
+    BigDecimal somarMovimentosDaConta(@Param("contaId") UUID contaId);
 
     /**
-     * Calcula a soma dos saldos atuais de TODAS as contas ativas da empresa.
-     * Usado pelo Fluxo de Caixa para o "Saldo total".
+     * Soma o saldoInicial de todas as contas ativas da empresa (sem JOIN com movimentos).
      */
     @Query("""
-        SELECT COALESCE(SUM(s.saldoInicial), 0) +
-               COALESCE(SUM(CASE WHEN m.ehEntrada = true THEN m.valor ELSE -m.valor END), 0)
+        SELECT COALESCE(SUM(s.saldoInicial), 0)
         FROM SaldoBancario s
-        LEFT JOIN MovimentoBancario m
-            ON m.conta.id = s.id AND m.cancelado = false
         WHERE s.empresa.id = :empresaId AND s.ativo = true
     """)
-    BigDecimal somarSaldosAtivos(@Param("empresaId") UUID empresaId);
+    BigDecimal somarSaldosIniciaisAtivos(@Param("empresaId") UUID empresaId);
+
+    /**
+     * Soma todos os movimentos não cancelados das contas ativas da empresa.
+     * Query separada (sem JOIN com saldos_bancarios além do necessário).
+     */
+    @Query("""
+        SELECT COALESCE(SUM(CASE WHEN m.ehEntrada = true THEN m.valor ELSE -m.valor END), 0)
+        FROM MovimentoBancario m
+        WHERE m.empresa.id = :empresaId
+          AND m.cancelado = false
+          AND m.conta.ativo = true
+    """)
+    BigDecimal somarMovimentosDaEmpresa(@Param("empresaId") UUID empresaId);
 }

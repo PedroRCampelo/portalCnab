@@ -106,7 +106,7 @@ function StatusBadge({ status }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Componente: Autocomplete de cliente
+// Autocomplete de cliente
 // ─────────────────────────────────────────────────────────────────────────────
 function ClienteAutocomplete({ valor, onChange, disabled }) {
     const [termo, setTermo]               = useState("");
@@ -229,7 +229,7 @@ function ClienteAutocomplete({ valor, onChange, disabled }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Componente: Modal de cadastro/edição (simples)
+// Modal de cadastro/edição
 // ─────────────────────────────────────────────────────────────────────────────
 const RecebimentoModal = memo(function RecebimentoModal({
                                                             recebimento, onSalvar, onFechar, salvando,
@@ -561,47 +561,77 @@ const ParceladoModal = memo(function ParceladoModal({ onSalvar, onFechar, salvan
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Modal de baixa parcial
+// Modal de baixa (UNIFICADO — pergunta sempre a conta) — ATUALIZADO
 // ─────────────────────────────────────────────────────────────────────────────
-function ReceberParcialModal({ recebimento, onConfirmar, onFechar }) {
-    const [valor, setValor] = useState("");
-    const [data, setData]   = useState(hoje());
-    const [erro, setErro]   = useState("");
+function ReceberModal({ recebimento, onConfirmar, onFechar }) {
+    const saldo = Number(recebimento.saldoPendente);
+
+    // Pré-preenche com o valor TOTAL (mas pode editar pra parcial)
+    const [valor, setValor] = useState(() =>
+        new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2 }).format(saldo)
+    );
+    const [data, setData]         = useState(hoje());
+    const [contaId, setContaId]   = useState("");
+    const [contas, setContas]     = useState([]);
+    const [carregandoContas, setCarregandoContas] = useState(false);
+    const [erro, setErro]         = useState("");
     const [salvando, setSalvando] = useState(false);
 
-    const saldo = Number(recebimento.saldoPendente);
+    // Carrega contas e pré-seleciona principal
+    useEffect(() => {
+        async function carregar() {
+            setCarregandoContas(true);
+            try {
+                const { data: lista } = await api.get("/api/saldos-bancarios");
+                setContas(lista || []);
+                const principal = lista?.find(c => c.principal);
+                const padrao = principal ?? lista?.[0];
+                if (padrao) setContaId(padrao.id);
+            } catch (err) {
+                console.error("Erro ao carregar contas", err);
+            } finally {
+                setCarregandoContas(false);
+            }
+        }
+        carregar();
+    }, []);
 
     async function confirmar() {
         setErro("");
         const valorNum = parseMoeda(valor);
         if (valorNum <= 0) { setErro("Informe um valor válido"); return; }
         if (valorNum > saldo) { setErro(`Valor maior que saldo pendente (${fmtValor(saldo)})`); return; }
+        if (!contaId) { setErro("Selecione a conta bancária do recebimento"); return; }
         setSalvando(true);
         try {
-            await onConfirmar({ valor: valorNum, dataRecebimento: data });
+            await onConfirmar({ valor: valorNum, dataRecebimento: data, contaId });
         } catch (err) {
             setErro(err.response?.data?.mensagem ?? "Erro ao registrar");
             setSalvando(false);
         }
     }
 
+    const ehTotal = Math.abs(parseMoeda(valor) - saldo) < 0.01;
+
     return (
         <div style={overlayStyle} onClick={onFechar}>
-            <div style={{ ...modalStyle, maxWidth: 400 }} onClick={e => e.stopPropagation()}>
+            <div style={{ ...modalStyle, maxWidth: 440 }} onClick={e => e.stopPropagation()}>
                 <div style={modalHeader}>
                     <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>Registrar recebimento</h2>
                     <button onClick={onFechar} style={closeBtn}><LuX size={18}/></button>
                 </div>
                 <div style={{ padding: "16px 24px" }}>
                     <div style={{ marginBottom: 16, fontSize: 13, color: "var(--text-muted)" }}>
-                        Saldo pendente: <strong style={{ color: "var(--text)" }}>{fmtValor(saldo)}</strong>
+                        <div>{recebimento.cliente?.nome} · {recebimento.descricao}</div>
+                        <div style={{ marginTop: 4 }}>
+                            Saldo pendente: <strong style={{ color: "var(--text)" }}>{fmtValor(saldo)}</strong>
+                        </div>
                     </div>
 
                     <div className="field-group">
                         <label>Valor recebido (R$)</label>
                         <input type="text" value={valor}
                                onChange={e => setValor(mascaraMoeda(e.target.value))}
-                               placeholder={`Máx ${fmtValor(saldo).replace("R$ ", "")}`}
                                autoFocus disabled={salvando}/>
                         <div style={{ display: "flex", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
                             <button type="button" className="btn-secondary"
@@ -615,6 +645,44 @@ function ReceberParcialModal({ recebimento, onConfirmar, onFechar }) {
                                 Metade
                             </button>
                         </div>
+                        {!ehTotal && parseMoeda(valor) > 0 && parseMoeda(valor) < saldo && (
+                            <small style={{ color: "#0EA5E9", fontSize: 11, marginTop: 4, display: "block" }}>
+                                ⚡ Recebimento parcial — saldo restante: {fmtValor(saldo - parseMoeda(valor))}
+                            </small>
+                        )}
+                    </div>
+
+                    {/* Dropdown de conta bancária */}
+                    <div className="field-group">
+                        <label>Conta bancária *</label>
+                        {carregandoContas ? (
+                            <div style={{ padding: "10px 12px", color: "var(--text-dim)", fontSize: 13 }}>
+                                Carregando contas...
+                            </div>
+                        ) : contas.length === 0 ? (
+                            <div style={{
+                                padding: "10px 12px", borderRadius: 8,
+                                background: "rgba(220,38,38,0.06)", border: "1px solid rgba(220,38,38,0.20)",
+                                fontSize: 12, color: "#DC2626", lineHeight: 1.5,
+                            }}>
+                                ⚠️ Nenhuma conta bancária cadastrada. Cadastre uma em{" "}
+                                <Link to="/fluxo-caixa" style={{ color: "#DC2626", fontWeight: 700 }}>
+                                    Fluxo de Caixa
+                                </Link>{" "}
+                                antes de registrar a baixa.
+                            </div>
+                        ) : (
+                            <select value={contaId} onChange={e => setContaId(e.target.value)}
+                                    disabled={salvando}>
+                                <option value="">Selecione a conta</option>
+                                {contas.map(c => (
+                                    <option key={c.id} value={c.id}>
+                                        {c.nomeConta}{c.banco ? ` — ${c.banco}` : ""} · saldo: {fmtValor(c.saldoAtual)}
+                                        {c.principal ? " ⭐" : ""}
+                                    </option>
+                                ))}
+                            </select>
+                        )}
                     </div>
 
                     <div className="field-group">
@@ -626,7 +694,8 @@ function ReceberParcialModal({ recebimento, onConfirmar, onFechar }) {
 
                     <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 16 }}>
                         <button onClick={onFechar} className="btn-secondary" disabled={salvando}>Cancelar</button>
-                        <button onClick={confirmar} className="auth-box-btn" disabled={salvando || !valor}
+                        <button onClick={confirmar} className="auth-box-btn"
+                                disabled={salvando || !valor || !contaId || contas.length === 0}
                                 style={{ width: "auto", padding: "10px 20px" }}>
                             {salvando ? "Registrando..." : "Confirmar"}
                         </button>
@@ -657,7 +726,7 @@ export default function RecebimentosPage() {
     const [modalParcelado, setModalParcelado] = useState(false);
     const [editando, setEditando]             = useState(null);
     const [salvando, setSalvando]             = useState(false);
-    const [parcialAberto, setParcialAberto]   = useState(null);
+    const [receberAberto, setReceberAberto]   = useState(null);
     const [cobrancaAberta, setCobrancaAberta] = useState(null);
 
     const carregar = useCallback(async () => {
@@ -697,7 +766,6 @@ export default function RecebimentosPage() {
     function abrirNovo() { setEditando(null); setModalAberto(true); }
 
     function abrirEdicao(r) {
-        // Regra ERP: não permite editar recebimento com baixa
         if (Number(r.valorRecebido) > 0 || r.status === "CANCELADO") {
             setErro("Este recebimento não pode ser editado. Estorne a baixa primeiro.");
             return;
@@ -733,18 +801,11 @@ export default function RecebimentosPage() {
         }
     }
 
-    async function receberRapido(r) {
-        try {
-            await api.post(`/api/recebimentos/${r.id}/receber`);
-            await carregar();
-        } catch (err) {
-            setErro(err.response?.data?.mensagem ?? "Erro ao registrar recebimento");
-        }
-    }
-
-    async function receberParcial({ valor, dataRecebimento }) {
-        await api.post(`/api/recebimentos/${parcialAberto.id}/receber`, { valor, dataRecebimento });
-        setParcialAberto(null);
+    async function confirmarRecebimento({ valor, dataRecebimento, contaId }) {
+        await api.post(`/api/recebimentos/${receberAberto.id}/receber`, {
+            valor, dataRecebimento, contaId,
+        });
+        setReceberAberto(null);
         await carregar();
     }
 
@@ -764,7 +825,6 @@ export default function RecebimentosPage() {
     }
 
     async function cancelar(r) {
-        // Regra ERP: não permite cancelar recebimento com baixa
         if (Number(r.valorRecebido) > 0) {
             setErro("Este recebimento não pode ser cancelado. Estorne a baixa primeiro.");
             return;
@@ -879,8 +939,7 @@ export default function RecebimentosPage() {
                         {recebimentosFiltrados.map(r => (
                             <RecebimentoCard
                                 key={r.id} recebimento={r}
-                                onReceber={() => receberRapido(r)}
-                                onReceberParcial={() => setParcialAberto(r)}
+                                onReceber={() => setReceberAberto(r)}
                                 onEditar={() => abrirEdicao(r)}
                                 onEstornar={() => estornar(r)}
                                 onCancelar={() => cancelar(r)}
@@ -913,9 +972,9 @@ export default function RecebimentosPage() {
                 <ParceladoModal onSalvar={salvarParcelado}
                                 onFechar={() => setModalParcelado(false)} salvando={salvando}/>
             )}
-            {parcialAberto && (
-                <ReceberParcialModal recebimento={parcialAberto}
-                                     onConfirmar={receberParcial} onFechar={() => setParcialAberto(null)}/>
+            {receberAberto && (
+                <ReceberModal recebimento={receberAberto}
+                              onConfirmar={confirmarRecebimento} onFechar={() => setReceberAberto(null)}/>
             )}
             {cobrancaAberta && (
                 <CobrancaWhatsappModal
@@ -970,17 +1029,17 @@ function ResumoBox({ label, valor, cor, icon }) {
     );
 }
 
-function RecebimentoCard({ recebimento: r, onReceber, onReceberParcial, onEditar, onEstornar, onCancelar, onCobrar }) {
+function RecebimentoCard({ recebimento: r, onReceber, onEditar, onEstornar, onCancelar, onCobrar }) {
     const dias = diasAteVencer(r.dataVencimento);
     const ehFinalizado = r.status === "RECEBIDO" || r.status === "CANCELADO";
     const ehParcelado  = (r.parcelaTotal ?? 1) > 1;
 
-    // Lógica calculada localmente (não depende de flags do backend)
     const temBaixa     = Number(r.valorRecebido) > 0;
     const podeEditar   = !temBaixa && r.status !== "CANCELADO";
     const podeCancelar = !temBaixa && r.status !== "CANCELADO";
     const podeEstornar = temBaixa && r.status !== "CANCELADO";
     const podeCobrar   = ["PENDENTE", "ATRASADO", "PARCIAL"].includes(r.status) && r.cliente?.telefone;
+    const podeReceber  = ["PENDENTE", "ATRASADO", "PARCIAL"].includes(r.status);
 
     return (
         <div style={cardStyle} className="receb-card">
@@ -1038,10 +1097,8 @@ function RecebimentoCard({ recebimento: r, onReceber, onReceberParcial, onEditar
                 </div>
             </div>
 
-            {/* Ações — calculadas localmente, regras ERP aplicadas */}
             <div className="receb-actions">
 
-                {/* Cobrar via WhatsApp */}
                 {podeCobrar && (
                     <button onClick={onCobrar} className="btn-secondary"
                             style={{
@@ -1059,26 +1116,18 @@ function RecebimentoCard({ recebimento: r, onReceber, onReceberParcial, onEditar
                     </button>
                 )}
 
-                {/* Receber: pra pendente/atrasado/parcial */}
-                {(r.status === "PENDENTE" || r.status === "ATRASADO" || r.status === "PARCIAL") && (
-                    <>
-                        <button onClick={onReceber} className="btn-secondary"
-                                style={{
-                                    background: "rgba(16,185,129,0.08)",
-                                    borderColor: "rgba(16,185,129,0.25)",
-                                    color: "#10B981", padding: "8px 14px",
-                                }} title="Marcar como recebido (total)">
-                            <LuCircleCheck size={14} style={{ marginRight: 4 }}/>
-                            Receber
-                        </button>
-                        <button onClick={onReceberParcial} className="btn-secondary"
-                                style={{ padding: "8px 10px" }} title="Recebimento parcial">
-                            <LuCircleEllipsis size={14}/>
-                        </button>
-                    </>
+                {podeReceber && (
+                    <button onClick={onReceber} className="btn-secondary"
+                            style={{
+                                background: "rgba(16,185,129,0.08)",
+                                borderColor: "rgba(16,185,129,0.25)",
+                                color: "#10B981", padding: "8px 14px",
+                            }} title="Registrar recebimento">
+                        <LuCircleCheck size={14} style={{ marginRight: 4 }}/>
+                        Receber
+                    </button>
                 )}
 
-                {/* Estornar: só se tem baixa registrada */}
                 {podeEstornar && (
                     <button onClick={onEstornar} className="btn-secondary"
                             style={{
@@ -1090,13 +1139,12 @@ function RecebimentoCard({ recebimento: r, onReceber, onReceberParcial, onEditar
                                 display: "inline-flex",
                                 alignItems: "center",
                                 gap: 5,
-                            }} title="Desfazer baixa — volta o recebimento para pendente">
+                            }} title="Desfazer baixa">
                         <LuUndo2 size={14}/>
                         Estornar
                     </button>
                 )}
 
-                {/* Editar: só aparece se editável (sem baixa, não cancelado) */}
                 {podeEditar && (
                     <button onClick={onEditar} className="btn-secondary"
                             style={{ padding: "8px 10px" }} title="Editar">
@@ -1104,7 +1152,6 @@ function RecebimentoCard({ recebimento: r, onReceber, onReceberParcial, onEditar
                     </button>
                 )}
 
-                {/* Cancelar: só se cancelável (sem baixa, não cancelado) */}
                 {podeCancelar && (
                     <button onClick={onCancelar} className="btn-secondary"
                             style={{ padding: "8px 10px", color: "#DC2626" }} title="Cancelar">

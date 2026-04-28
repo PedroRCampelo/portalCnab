@@ -31,6 +31,7 @@ import ValidaCnabPage            from "./pages/ValidaCnabPage.jsx";
 import RelatoriosTitulosPage     from "./pages/RelatoriosTitulosPage.jsx";
 import ClientesPage from "./pages/ClientesPage.jsx";
 import RecebimentosPage from "./pages/RecebimentosPage.jsx";
+import FluxoCaixaPage from "./pages/FluxoCaixaPage.jsx";
 
 const AUTH_ROUTES = ["/verificar-email", "/cadastro"];
 
@@ -75,6 +76,7 @@ function AppShell() {
 
                 <Route path="/clientes" element={<ProtectedRoute><ClientesPage/></ProtectedRoute>}/>
                 <Route path="/recebimentos" element={<ProtectedRoute><RecebimentosPage/></ProtectedRoute>}/>
+                <Route path="/fluxo-caixa" element={<ProtectedRoute><FluxoCaixaPage/></ProtectedRoute>}/>
             </Routes>
         </div>
     );

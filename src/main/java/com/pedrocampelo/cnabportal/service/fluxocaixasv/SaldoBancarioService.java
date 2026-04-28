@@ -21,10 +21,12 @@ import java.util.UUID;
 /**
  * Service de gestão de contas bancárias.
  *
- * MUDANÇAS vs versão anterior:
- *   - saldo_inicial é IMUTÁVEL após criação
- *   - Saldo "atual" é calculado via SaldoBancarioRepository.calcularSaldoAtual()
- *   - Ajuste de saldo NÃO mexe direto no campo — cria movimento AJUSTE_MANUAL
+ * MUDANÇA IMPORTANTE no cálculo de saldo (corrigindo bug de duplicação):
+ *   - calcularSaldoAtual(conta) = conta.saldoInicial + somarMovimentosDaConta(id)
+ *   - calcularSaldoTotalEmpresa() = somarSaldosIniciais() + somarMovimentos()
+ *
+ * Antes: query única com LEFT JOIN multiplicava saldoInicial pelo nº de movimentos.
+ * Agora: queries separadas + soma em código.
  */
 @Service
 @RequiredArgsConstructor
@@ -41,20 +43,19 @@ public class SaldoBancarioService {
     public List<SaldoResponse> listar(Usuario usuario) {
         return saldoRepository.listarAtivas(usuario.getEmpresa().getId())
                 .stream()
-                .map(s -> SaldoResponse.from(s, calcularSaldoAtual(s.getId())))
+                .map(s -> SaldoResponse.from(s, calcularSaldoAtualEntidade(s)))
                 .toList();
     }
 
     public SaldoResponse buscarPorId(Usuario usuario, UUID id) {
         SaldoBancario s = buscarEntidadePorId(usuario, id);
-        return SaldoResponse.from(s, calcularSaldoAtual(s.getId()));
+        return SaldoResponse.from(s, calcularSaldoAtualEntidade(s));
     }
 
     @Transactional
     public SaldoResponse criar(Usuario usuario, SaldoRequest request) {
         boolean principal = Boolean.TRUE.equals(request.principal());
 
-        // Se está marcando como principal, desmarca a anterior
         if (principal) {
             saldoRepository.findByEmpresaIdAndPrincipalTrueAndAtivoTrue(
                     usuario.getEmpresa().getId()
@@ -64,7 +65,6 @@ public class SaldoBancarioService {
             });
         }
 
-        // Primeira conta da empresa? Vira principal por default.
         if (saldoRepository.countByEmpresaIdAndAtivoTrue(usuario.getEmpresa().getId()) == 0) {
             principal = true;
         }
@@ -83,14 +83,9 @@ public class SaldoBancarioService {
         SaldoBancario salvo = saldoRepository.save(nova);
         log.info("Conta criada: {} (saldo inicial={})", salvo.getNomeConta(), salvo.getSaldoInicial());
 
-        // Saldo atual = saldo inicial (sem movimentos ainda)
         return SaldoResponse.from(salvo, salvo.getSaldoInicial());
     }
 
-    /**
-     * Atualiza dados de cadastro (nome/banco/principal).
-     * NÃO permite alterar saldo_inicial — usa endpoint /ajustar pra isso.
-     */
     @Transactional
     public SaldoResponse atualizar(Usuario usuario, UUID id, SaldoUpdateRequest request) {
         SaldoBancario s = buscarEntidadePorId(usuario, id);
@@ -111,21 +106,14 @@ public class SaldoBancarioService {
 
         SaldoBancario salvo = saldoRepository.save(s);
         log.info("Conta atualizada (cadastro): {}", salvo.getId());
-        return SaldoResponse.from(salvo, calcularSaldoAtual(salvo.getId()));
+        return SaldoResponse.from(salvo, calcularSaldoAtualEntidade(salvo));
     }
 
-    /**
-     * Ajusta o saldo da conta criando movimento AJUSTE_MANUAL.
-     * MEI informa o saldo "real" (ex: olhou o app do banco e viu R$ 4.800).
-     * Sistema calcula a diferença e cria movimento com o delta.
-     */
     @Transactional
     public SaldoResponse ajustarSaldo(Usuario usuario, UUID id, AjusteSaldoRequest request) {
         SaldoBancario s = buscarEntidadePorId(usuario, id);
-
         movimentoService.ajustarSaldo(usuario, s, request.saldoReal(), request.motivo());
-
-        return SaldoResponse.from(s, calcularSaldoAtual(s.getId()));
+        return SaldoResponse.from(s, calcularSaldoAtualEntidade(s));
     }
 
     @Transactional
@@ -138,7 +126,43 @@ public class SaldoBancarioService {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Helpers — também usados por outros services
+    // Cálculo de saldo (CORRIGIDO — sem bug de duplicação)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Calcula saldo atual de UMA conta a partir da entidade já carregada.
+     * Preferir esse quando já temos a entidade (1 query a menos).
+     */
+    public BigDecimal calcularSaldoAtualEntidade(SaldoBancario conta) {
+        BigDecimal somaMovimentos = saldoRepository.somarMovimentosDaConta(conta.getId());
+        BigDecimal saldoInicial = conta.getSaldoInicial() != null
+                ? conta.getSaldoInicial()
+                : BigDecimal.ZERO;
+        return saldoInicial.add(somaMovimentos != null ? somaMovimentos : BigDecimal.ZERO);
+    }
+
+    /**
+     * Calcula saldo atual de UMA conta a partir do ID (busca a conta primeiro).
+     */
+    public BigDecimal calcularSaldoAtual(UUID contaId) {
+        SaldoBancario conta = saldoRepository.findById(contaId)
+                .orElseThrow(() -> new NoSuchElementException("Conta não encontrada"));
+        return calcularSaldoAtualEntidade(conta);
+    }
+
+    /**
+     * Calcula saldo TOTAL de todas as contas ativas da empresa.
+     * Usado pelo Fluxo de Caixa.
+     */
+    public BigDecimal calcularSaldoTotalEmpresa(UUID empresaId) {
+        BigDecimal somaIniciais = saldoRepository.somarSaldosIniciaisAtivos(empresaId);
+        BigDecimal somaMovimentos = saldoRepository.somarMovimentosDaEmpresa(empresaId);
+        return (somaIniciais != null ? somaIniciais : BigDecimal.ZERO)
+                .add(somaMovimentos != null ? somaMovimentos : BigDecimal.ZERO);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Helpers
     // ─────────────────────────────────────────────────────────────────────────
 
     public SaldoBancario buscarEntidadePorId(Usuario usuario, UUID id) {
@@ -154,21 +178,14 @@ public class SaldoBancarioService {
     public SaldoBancario buscarContaPadrao(Usuario usuario) {
         UUID empresaId = usuario.getEmpresa().getId();
 
-        // Prioridade 1: conta principal
         var principal = saldoRepository.findByEmpresaIdAndPrincipalTrueAndAtivoTrue(empresaId);
         if (principal.isPresent()) return principal.get();
 
-        // Prioridade 2: primeira conta ativa
         var contas = saldoRepository.listarAtivas(empresaId);
         if (!contas.isEmpty()) return contas.get(0);
 
         throw new IllegalStateException(
                 "Nenhuma conta bancária cadastrada. Cadastre uma conta antes de registrar movimentos."
         );
-    }
-
-    public BigDecimal calcularSaldoAtual(UUID contaId) {
-        return saldoRepository.calcularSaldoAtual(contaId)
-                .orElse(BigDecimal.ZERO);
     }
 }

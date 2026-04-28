@@ -97,14 +97,14 @@ public class TituloController {
             return ResponseEntity.notFound().build();
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | IllegalStateException e) {
             return ResponseEntity.badRequest().body(Map.of("mensagem", e.getMessage()));
         }
     }
 
     // ── DELETE /api/titulos/{id} — exclusão ───────────────────────────────────
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> excluir(
+    public ResponseEntity<?> excluir(
             @AuthenticationPrincipal Usuario usuario,
             @PathVariable UUID id) {
         if (!temAcessoGestao(usuario)) {
@@ -117,10 +117,13 @@ public class TituloController {
             return ResponseEntity.notFound().build();
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(Map.of("mensagem", e.getMessage()));
         }
     }
 
     // ── POST /api/titulos/{id}/baixa — registrar pagamento ───────────────────
+    // ATUALIZADO: aceita contaId no body
     @PostMapping("/{id}/baixa")
     public ResponseEntity<?> baixar(
             @AuthenticationPrincipal Usuario usuario,
@@ -137,12 +140,42 @@ public class TituloController {
                     : LocalDate.now();
             String observacao    = body.get("observacao") != null
                     ? String.valueOf(body.get("observacao")) : "";
-            return ResponseEntity.ok(tituloService.registrarBaixa(id, valorPago, dataBaixa, observacao, usuario));
+
+            // NOVO: contaId opcional (qual conta paga o título)
+            UUID contaId = null;
+            if (body.get("contaId") != null && !String.valueOf(body.get("contaId")).isBlank()) {
+                contaId = UUID.fromString(String.valueOf(body.get("contaId")));
+            }
+
+            return ResponseEntity.ok(
+                    tituloService.registrarBaixa(id, valorPago, dataBaixa, observacao, contaId, usuario)
+            );
         } catch (NoSuchElementException e) {
             return ResponseEntity.notFound().build();
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().body(Map.of("mensagem", e.getMessage()));
+        }
+    }
+
+    // ── POST /api/titulos/{id}/estornar — desfazer pagamento ─────────────────
+    // NOVO: estorna a baixa do título (cria movimento de compensação)
+    @PostMapping("/{id}/estornar")
+    public ResponseEntity<?> estornar(
+            @AuthenticationPrincipal Usuario usuario,
+            @PathVariable UUID id) {
+        if (!temAcessoGestao(usuario)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("mensagem", "Recurso disponível apenas no plano Whallet+."));
+        }
+        try {
+            return ResponseEntity.ok(tituloService.estornarBaixa(id, usuario));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.notFound().build();
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (IllegalStateException e) {
             return ResponseEntity.badRequest().body(Map.of("mensagem", e.getMessage()));
         }
     }
@@ -193,7 +226,6 @@ public class TituloController {
                     .body(Map.of("mensagem", "Recurso disponível apenas no plano Whallet+."));
         }
         try {
-            // Deserializa o template manualmente para evitar complexidade de @Valid
             com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
             mapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
             Titulo template = mapper.convertValue(body.get("titulo"), Titulo.class);
@@ -220,6 +252,7 @@ public class TituloController {
     public ResponseEntity<Map<String, Object>> relatorio(@AuthenticationPrincipal Usuario usuario) {
         return ResponseEntity.ok(tituloService.relatorioCompleto(usuario.getId()));
     }
+
     @PostMapping(value = "/importar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> importar(
             @AuthenticationPrincipal Usuario usuario,
