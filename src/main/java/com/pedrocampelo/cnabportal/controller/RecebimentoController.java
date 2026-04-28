@@ -1,5 +1,6 @@
 package com.pedrocampelo.cnabportal.controller;
 
+import com.pedrocampelo.cnabportal.config.gate.RequireWhalletPlus;
 import com.pedrocampelo.cnabportal.dto.RecebimentoOperacoes.CobrancaHistoricoResponse;
 import com.pedrocampelo.cnabportal.dto.RecebimentoOperacoes.CobrancaWhatsappResponse;
 import com.pedrocampelo.cnabportal.dto.RecebimentoOperacoes.GerarCobrancaRequest;
@@ -28,6 +29,7 @@ import java.util.UUID;
 @RequestMapping("/api/recebimentos")
 @RequiredArgsConstructor
 @Slf4j
+@RequireWhalletPlus
 public class RecebimentoController {
 
     private final RecebimentoService recebimentoService;

@@ -1,5 +1,6 @@
 package com.pedrocampelo.cnabportal.controller;
 
+import com.pedrocampelo.cnabportal.config.gate.RequireWhalletPlus;
 import com.pedrocampelo.cnabportal.model.Titulo;
 import com.pedrocampelo.cnabportal.model.Usuario;
 import com.pedrocampelo.cnabportal.service.gestaosv.TituloReportService;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/titulos")
+@RequireWhalletPlus
 @RequiredArgsConstructor
 @Slf4j
 public class TituloController {

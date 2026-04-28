@@ -1,5 +1,6 @@
 package com.pedrocampelo.cnabportal.controller;
 
+import com.pedrocampelo.cnabportal.config.gate.RequireWhalletPlus;
 import com.pedrocampelo.cnabportal.model.TipoGasto;
 import com.pedrocampelo.cnabportal.model.Usuario;
 import com.pedrocampelo.cnabportal.repository.TipoGastoRepository;
@@ -21,6 +22,7 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/api/tipos-gasto")
+@RequireWhalletPlus
 @RequiredArgsConstructor
 public class TipoGastoController {
 
