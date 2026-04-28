@@ -7,7 +7,7 @@ import { ImUserPlus } from "react-icons/im";
 import {
     LuChevronDown, LuSheet, LuWalletCards, LuClipboardList,
     LuBellRing, LuShieldCheck, LuLogOut, LuMenu, LuX,
-    LuGem, LuFileText, LuTrendingUp, LuSparkles, LuBot, LuUser, LuHandCoins, LuActivity
+    LuGem, LuFileText, LuTrendingUp, LuSparkles, LuBot, LuUser, LuHandCoins, LuActivity, LuSettings
 } from "react-icons/lu";
 import logoSvg from "../assets/logo.svg";
 import { useAuth } from "../context/AuthContext.jsx";
@@ -41,6 +41,12 @@ const MENU = [
         items: [
             { to: "/titulos",     icon: <LuSparkles size={16}/>, label: "Insights de IA",  desc: "Aurora, Frank e Anne" },
             { to: "/assistente-cnab", icon: <LuBot size={16}/>,  label: "Agente CNAB",     desc: "Elvis · Especialista CNAB" },
+        ],
+    },
+    {
+        label: "Configurações",
+        items: [
+            { to: "/configuracoes", icon: <LuSettings size={16}/>, label: "Geral", desc: "Empresa, MEI e DAS" },
         ],
     },
 ];

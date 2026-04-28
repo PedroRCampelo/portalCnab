@@ -112,6 +112,9 @@ public class Titulo {
     @Builder.Default
     private String status = "PENDENTE";
 
+    @Column(name = "tipo_especial", length = 20)
+    private String tipoEspecial;
+
     // ── Integração Protheus/CNAB ──────────────────────────────────────────────
 
     @Column(name = "numero_bordero", length = 20)

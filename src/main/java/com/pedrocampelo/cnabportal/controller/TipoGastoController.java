@@ -1,12 +1,9 @@
 package com.pedrocampelo.cnabportal.controller;
 
-import com.pedrocampelo.cnabportal.model.Empresa;
 import com.pedrocampelo.cnabportal.model.TipoGasto;
 import com.pedrocampelo.cnabportal.model.Usuario;
-import com.pedrocampelo.cnabportal.repository.EmpresaRepository;
 import com.pedrocampelo.cnabportal.repository.TipoGastoRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -17,16 +14,17 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
+/**
+ * Controller de Tipos de Gasto.
+ *
+ * MUDANÇA Sprint 2.2-A1: Remove empresaPadraoId. Empresa vem do usuário logado.
+ */
 @RestController
 @RequestMapping("/api/tipos-gasto")
 @RequiredArgsConstructor
 public class TipoGastoController {
 
     private final TipoGastoRepository tipoGastoRepository;
-    private final EmpresaRepository   empresaRepository;
-
-    @Value("${app.empresa-padrao-id:00000000-0000-0000-0000-000000000001}")
-    private String empresaPadraoId;
 
     @GetMapping
     public List<TipoGasto> listar(@AuthenticationPrincipal Usuario usuario) {
@@ -52,13 +50,10 @@ public class TipoGastoController {
                     .body(Map.of("mensagem", "Já existe um tipo de gasto com este nome."));
         }
 
-        Empresa empresa = empresaRepository.findById(UUID.fromString(empresaPadraoId))
-                .orElseThrow(() -> new IllegalStateException("Empresa não encontrada"));
-
         TipoGasto tipo = TipoGasto.builder()
                 .nome(nome)
                 .usuario(usuario)
-                .empresa(empresa)
+                .empresa(usuario.getEmpresa())     // ← antes: empresaPadraoId
                 .ativo(true)
                 .build();
 
@@ -84,7 +79,6 @@ public class TipoGastoController {
         }
         nome = nome.trim();
 
-        // Verifica duplicata (ignorando o próprio)
         if (!tipo.getNome().equalsIgnoreCase(nome) &&
                 tipoGastoRepository.existsByNomeIgnoreCaseAndUsuarioIdAndAtivoTrue(nome, usuario.getId())) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
@@ -107,7 +101,6 @@ public class TipoGastoController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        // Soft delete — mantém integridade com títulos que usam este tipo
         tipo.setAtivo(false);
         tipoGastoRepository.save(tipo);
         return ResponseEntity.noContent().build();
