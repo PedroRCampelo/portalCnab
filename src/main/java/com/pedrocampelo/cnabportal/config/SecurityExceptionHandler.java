@@ -26,7 +26,7 @@ public class SecurityExceptionHandler
     public void commence(HttpServletRequest request,
                          HttpServletResponse response,
                          AuthenticationException exception) throws IOException {
-        writeError(response, HttpServletResponse.SC_UNAUTHORIZED, "Nao autenticado");
+        writeError(response, HttpServletResponse.SC_UNAUTHORIZED, "Não autenticado");
     }
 
     // 403 — autenticado mas sem permissao para o recurso

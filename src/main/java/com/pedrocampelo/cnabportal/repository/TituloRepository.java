@@ -10,6 +10,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
@@ -133,4 +135,37 @@ public interface TituloRepository extends JpaRepository<Titulo, UUID> {
         GROUP BY faixa
         ORDER BY MIN(CURRENT_DATE - t.vencimento)
         """, nativeQuery = true)
-    List<Object[]> aging(@Param("usuarioId") UUID usuarioId);}
+    List<Object[]> aging(@Param("usuarioId") UUID usuarioId);
+    
+    /**
+     * Soma títulos pendentes (não pagos) com vencimento no período.
+     * Usado pelo Fluxo de Caixa para "A pagar esse mês".
+     *
+     * Visão da empresa toda (todos usuários da empresa).
+     */
+    @Query(value = """
+    SELECT COALESCE(SUM(t.saldo), 0)
+    FROM titulos t
+    JOIN usuarios u ON u.id = t.usuario_id
+    WHERE u.empresa_id = :empresaId
+      AND t.status != 'PAGO'
+      AND t.vencimento BETWEEN :inicio AND :fim
+""", nativeQuery = true)
+    BigDecimal somarPendentesPorEmpresaNoPeriodo(
+            @Param("empresaId") UUID empresaId,
+            @Param("inicio") LocalDate inicio,
+            @Param("fim") LocalDate fim);
+
+    /**
+     * Lista títulos atrasados da empresa (todos os usuários).
+     * Usado pelo Fluxo de Caixa pra contagem de atrasados.
+     */
+    @Query(value = """
+    SELECT t.* FROM titulos t
+    JOIN usuarios u ON u.id = t.usuario_id
+    WHERE u.empresa_id = :empresaId
+      AND t.status != 'PAGO'
+      AND t.vencimento < CURRENT_DATE
+    ORDER BY t.vencimento
+""", nativeQuery = true)
+    List<Titulo> listarAtrasadosPorEmpresa(@Param("empresaId") UUID empresaId);}

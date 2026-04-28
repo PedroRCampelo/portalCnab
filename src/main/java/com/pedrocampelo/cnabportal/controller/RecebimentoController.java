@@ -109,7 +109,7 @@ public class RecebimentoController {
                                      @PathVariable UUID id,
                                      @RequestBody(required = false) ReceberRequest request) {
         try {
-            ReceberRequest req = request != null ? request : new ReceberRequest(null, null);
+            ReceberRequest req = request != null ? request : new ReceberRequest(null, null, null);
             return ResponseEntity.ok(recebimentoService.receber(usuario, id, req));
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("mensagem", e.getMessage()));

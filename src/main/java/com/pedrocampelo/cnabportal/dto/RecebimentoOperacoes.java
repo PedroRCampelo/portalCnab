@@ -2,7 +2,6 @@ package com.pedrocampelo.cnabportal.dto;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -10,7 +9,12 @@ import java.util.UUID;
 
 /**
  * Operações específicas sobre Recebimento.
- * Agrupei aqui pra não criar 5 arquivos pequenos.
+ *
+ * MUDANÇA NA PARTE 2 (Sprint 2.1a):
+ *   ReceberRequest ganha o campo `contaId` (qual conta recebe o dinheiro).
+ *   - Se vier null e o MEI tem 1 conta: usa essa conta
+ *   - Se vier null e o MEI tem múltiplas: usa a conta principal
+ *   - Se MEI não tem nenhuma conta: erro pedindo cadastrar conta primeiro
  */
 public final class RecebimentoOperacoes {
 
@@ -18,19 +22,15 @@ public final class RecebimentoOperacoes {
 
     /**
      * Request pra dar baixa (parcial ou total) num recebimento.
-     *
-     * Se valor for null/igual ao saldo → considera baixa total.
-     * Se valor < saldo → baixa parcial, recebimento fica PARCIAL.
      */
     public record ReceberRequest(
             BigDecimal valor,           // se null, baixa o saldo todo
-            LocalDate dataRecebimento   // default = hoje
+            LocalDate dataRecebimento,  // default = hoje
+            UUID contaId                // NOVO: conta bancária onde o dinheiro entra
     ) {}
 
     /**
      * Request pra preview de cobrança via WhatsApp.
-     * O backend GERA a mensagem (de acordo com tipo) e retorna o link wa.me.
-     * Frontend abre o link em nova aba — usuário envia.
      */
     public record GerarCobrancaRequest(
             @NotNull(message = "Tipo de mensagem obrigatório")
@@ -40,24 +40,17 @@ public final class RecebimentoOperacoes {
             )
             String tipoMensagem,
 
-            // Opcional — se preenchido, sobrescreve o template padrão
             String mensagemCustomizada
     ) {}
 
-    /**
-     * Response da geração de cobrança WhatsApp.
-     */
     public record CobrancaWhatsappResponse(
-            String mensagem,        // texto final que será enviado
-            String linkWhatsapp,    // ex: https://wa.me/5511987654321?text=...
-            String telefoneCliente, // formatado pra exibição
-            boolean prontoParaEnvio,// false se não tem telefone do cliente
-            String avisoSpam        // null OU "Você já cobrou esse cliente nas últimas 24h"
+            String mensagem,
+            String linkWhatsapp,
+            String telefoneCliente,
+            boolean prontoParaEnvio,
+            String avisoSpam
     ) {}
 
-    /**
-     * Histórico de cobrança enviada (item da timeline).
-     */
     public record CobrancaHistoricoResponse(
             UUID id,
             String tipoMensagem,

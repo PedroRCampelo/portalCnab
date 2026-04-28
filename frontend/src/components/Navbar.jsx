@@ -7,7 +7,7 @@ import { ImUserPlus } from "react-icons/im";
 import {
     LuChevronDown, LuSheet, LuWalletCards, LuClipboardList,
     LuBellRing, LuShieldCheck, LuLogOut, LuMenu, LuX,
-    LuGem, LuFileText, LuTrendingUp, LuSparkles, LuBot, LuUser, LuHandCoins
+    LuGem, LuFileText, LuTrendingUp, LuSparkles, LuBot, LuUser, LuHandCoins, LuActivity
 } from "react-icons/lu";
 import logoSvg from "../assets/logo.svg";
 import { useAuth } from "../context/AuthContext.jsx";
@@ -25,7 +25,10 @@ const MENU = [
     {
         label: "Gestão",
         items: [
+            { to: "/fluxo-caixa",       icon: <LuActivity size={16}/>,    label: "Fluxo de Caixa",     desc: "Saúde do mês, contas e extrato" },
             { to: "/titulos",           icon: <LuWalletCards size={16}/>, label: "Títulos a pagar",    desc: "Contas a pagar e baixas" },
+            { to: "/clientes",          icon: <LuUser size={16}/>,       label: "Clientes",           desc: "Cadastro de clientes para recebimentos" },
+            { to: "/recebimentos",      icon: <LuHandCoins size={16}/>,   label: "Recebimentos",       desc: "Contas a receber e cobranças" },
             { to: "/clientes",          icon: <ImUserPlus size={16}/>,       label: "Clientes",           desc: "Cadastro de clientes para recebimentos" },
             { to: "/recebimentos",      icon: <LuHandCoins size={16}/>,   label: "Recebimentos",       desc: "Contas a receber e cobranças" },
             { to: "/tipos-gasto",       icon: <LuTrendingUp size={16}/>,  label: "Tipos de gasto",     desc: "Categorias de despesa" },

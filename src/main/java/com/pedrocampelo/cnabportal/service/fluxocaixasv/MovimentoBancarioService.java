@@ -22,21 +22,10 @@ import java.util.UUID;
 /**
  * Serviço central de movimentos bancários (razão auxiliar / livro caixa).
  *
- * RESPONSABILIDADES:
- *   1. Criar movimentos quando outros módulos solicitam
- *      (ex: RecebimentoService chama criarRecebimento ao dar baixa)
- *   2. Estornar movimentos (criar movimento de compensação)
- *   3. Listar extratos (consolidado ou por conta)
- *   4. Ajuste manual de saldo
- *
- * REGRA DE OURO: movimentos NUNCA são apagados.
- *   - Estornar = marcar cancelado=true + criar movimento inverso
- *   - Modificar valor = não pode (estornar e recriar)
- *
- * USO POR OUTROS SERVICES:
- *   - RecebimentoService.receber()       → criarRecebimento()
- *   - RecebimentoService.estornarBaixa() → estornarPorOrigem()
- *   - TituloService (operação pagar)     → criarPagamento()
+ * REGRAS DE OURO:
+ *   - Movimentos NUNCA são apagados.
+ *   - Estornar = criar movimento INVERSO de compensação. O original permanece ativo.
+ *   - Cancelar (cancelado=true) = uso reservado pra ERROS ADMINISTRATIVOS, não estornos.
  */
 @Service
 @RequiredArgsConstructor
@@ -47,28 +36,9 @@ public class MovimentoBancarioService {
     private final SaldoBancarioRepository      saldoRepository;
 
     // ─────────────────────────────────────────────────────────────────────────
-    // CRIAÇÃO DE MOVIMENTOS (chamados por outros services)
+    // CRIAÇÃO DE MOVIMENTOS
     // ─────────────────────────────────────────────────────────────────────────
 
-    /**
-     * Cria movimento SALDO_INICIAL ao cadastrar nova conta bancária.
-     * NOTA: Não é mais usado — o saldo inicial está no campo `saldoInicial`
-     * de SaldoBancario. Mantido aqui caso queira evoluir pra modelo full-event-sourced.
-     */
-    // (intencionalmente vazio — saldo_inicial é registrado direto na conta)
-
-    /**
-     * Cria movimento de RECEBIMENTO (entrada).
-     *
-     * Chamado por RecebimentoService.receber() após validar a baixa.
-     *
-     * @param usuario        usuário que está dando a baixa
-     * @param conta          conta bancária onde o dinheiro entrou
-     * @param dataMovimento  data efetiva do recebimento
-     * @param valor          valor recebido (sempre positivo)
-     * @param descricao      texto livre — "Recebimento de João Silva (consultoria abril)"
-     * @param recebimentoId  ID do recebimento que originou este movimento
-     */
     @Transactional
     public MovimentoBancario criarRecebimento(Usuario usuario, SaldoBancario conta,
                                               LocalDate dataMovimento, BigDecimal valor,
@@ -95,10 +65,6 @@ public class MovimentoBancarioService {
         return salvo;
     }
 
-    /**
-     * Cria movimento de PAGAMENTO (saída).
-     * Chamado por TituloService quando MEI paga um título.
-     */
     @Transactional
     public MovimentoBancario criarPagamento(Usuario usuario, SaldoBancario conta,
                                             LocalDate dataMovimento, BigDecimal valor,
@@ -129,63 +95,54 @@ public class MovimentoBancarioService {
     // ESTORNO
     // ─────────────────────────────────────────────────────────────────────────
 
-    /**
-     * Estorna TODOS os movimentos ativos de uma origem específica.
-     *
-     * Usado quando MEI estorna a baixa de um recebimento que tinha múltiplas
-     * baixas parciais — todos os movimentos relacionados são estornados de uma vez.
-     *
-     * Estratégia:
-     *   1. Busca todos movimentos ATIVOS dessa origem
-     *   2. Pra cada um:
-     *      - Marca cancelado=true (mas não deleta)
-     *      - Cria movimento de compensação (estorno)
-     *
-     * @return lista de movimentos de estorno criados
-     */
     @Transactional
     public List<MovimentoBancario> estornarPorOrigem(Usuario usuario, String origemTipo, UUID origemId,
                                                      String motivo) {
-        List<MovimentoBancario> ativos = movimentoRepository.buscarPorOrigem(
-                        origemTipo, origemId, usuario.getEmpresa().getId()
-                ).stream()
+        List<MovimentoBancario> daOrigem = movimentoRepository.buscarPorOrigem(
+                origemTipo, origemId, usuario.getEmpresa().getId()
+        );
+
+        var idsJaEstornados = daOrigem.stream()
+                .filter(m -> m.getMovimentoEstornado() != null)
+                .map(m -> m.getMovimentoEstornado().getId())
+                .toList();
+
+        List<MovimentoBancario> aEstornar = daOrigem.stream()
+                .filter(m -> m.getMovimentoEstornado() == null)
+                .filter(m -> !idsJaEstornados.contains(m.getId()))
                 .filter(m -> !Boolean.TRUE.equals(m.getCancelado()))
                 .toList();
 
-        if (ativos.isEmpty()) {
-            log.warn("Tentativa de estornar origem sem movimentos ativos: tipo={}, id={}",
+        if (aEstornar.isEmpty()) {
+            log.warn("Tentativa de estornar origem sem movimentos válidos: tipo={}, id={}",
                     origemTipo, origemId);
             return List.of();
         }
 
-        return ativos.stream()
+        return aEstornar.stream()
                 .map(m -> estornarMovimento(usuario, m, motivo))
                 .toList();
     }
 
-    /**
-     * Estorna UM movimento específico:
-     *   1. Marca o original como cancelado
-     *   2. Cria movimento inverso apontando pro original
-     */
     @Transactional
     public MovimentoBancario estornarMovimento(Usuario usuario, MovimentoBancario original,
                                                String motivo) {
         if (Boolean.TRUE.equals(original.getCancelado())) {
-            throw new IllegalStateException("Movimento já está cancelado");
+            throw new IllegalStateException("Movimento foi cancelado por erro administrativo e não pode ser estornado");
         }
 
-        // Marca o original como cancelado
-        original.setCancelado(true);
-        original.setMotivoCancelamento(motivo != null ? motivo : "Estorno");
-        movimentoRepository.save(original);
+        boolean jaEstornado = movimentoRepository.findAll().stream()
+                .anyMatch(m -> m.getMovimentoEstornado() != null
+                        && m.getMovimentoEstornado().getId().equals(original.getId()));
+        if (jaEstornado) {
+            throw new IllegalStateException("Este movimento já foi estornado anteriormente");
+        }
 
-        // Cria movimento inverso (compensação)
         String tipoEstorno = "RECEBIMENTO".equals(original.getTipo())
                 ? "ESTORNO_RECEBIMENTO"
                 : "PAGAMENTO".equals(original.getTipo())
                 ? "ESTORNO_PAGAMENTO"
-                : "AJUSTE_MANUAL";  // fallback
+                : "AJUSTE_MANUAL";
 
         MovimentoBancario estorno = MovimentoBancario.builder()
                 .empresa(usuario.getEmpresa())
@@ -193,9 +150,11 @@ public class MovimentoBancarioService {
                 .conta(original.getConta())
                 .dataMovimento(LocalDate.now())
                 .tipo(tipoEstorno)
-                .ehEntrada(!original.getEhEntrada())  // INVERTE a direção
+                .ehEntrada(!original.getEhEntrada())
                 .valor(original.getValor())
-                .descricao("Estorno: " + original.getDescricao())
+                .descricao(motivo != null && !motivo.isBlank()
+                        ? "Estorno (" + motivo + "): " + original.getDescricao()
+                        : "Estorno: " + original.getDescricao())
                 .origemTipo(original.getOrigemTipo())
                 .origemId(original.getOrigemId())
                 .movimentoEstornado(original)
@@ -203,32 +162,25 @@ public class MovimentoBancarioService {
                 .build();
 
         MovimentoBancario salvo = movimentoRepository.save(estorno);
-        log.info("Movimento estornado: original={}, estorno={}", original.getId(), salvo.getId());
+        log.info("Movimento estornado: original={} (continua ativo), estorno={} criado",
+                original.getId(), salvo.getId());
         return salvo;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // AJUSTE MANUAL DE SALDO
+    // AJUSTE MANUAL
     // ─────────────────────────────────────────────────────────────────────────
 
-    /**
-     * Cria movimento AJUSTE_MANUAL para corrigir o saldo de uma conta.
-     *
-     * Calcula a diferença entre o saldo informado pelo MEI e o saldo atual
-     * calculado, e cria movimento com o delta.
-     *
-     * Exemplos:
-     *   Saldo atual = R$ 5.000, MEI informa saldo real = R$ 4.800
-     *     → cria movimento AJUSTE_MANUAL, ehEntrada=false, valor=200
-     *   Saldo atual = R$ 5.000, MEI informa saldo real = R$ 5.300
-     *     → cria movimento AJUSTE_MANUAL, ehEntrada=true, valor=300
-     *   Sem diferença → não cria nada
-     */
     @Transactional
     public MovimentoBancario ajustarSaldo(Usuario usuario, SaldoBancario conta,
                                           BigDecimal saldoReal, String motivo) {
-        BigDecimal saldoAtual = saldoRepository.calcularSaldoAtual(conta.getId())
-                .orElse(BigDecimal.ZERO);
+        BigDecimal saldoInicial = conta.getSaldoInicial() != null
+                ? conta.getSaldoInicial()
+                : BigDecimal.ZERO;
+        BigDecimal somaMovimentos = saldoRepository.somarMovimentosDaConta(conta.getId());
+        BigDecimal saldoAtual = saldoInicial.add(
+                somaMovimentos != null ? somaMovimentos : BigDecimal.ZERO
+        );
 
         BigDecimal diferenca = saldoReal.subtract(saldoAtual);
 
@@ -262,11 +214,15 @@ public class MovimentoBancarioService {
 
     // ─────────────────────────────────────────────────────────────────────────
     // CONSULTA / EXTRATO
+    //
+    // IMPORTANTE: @Transactional(readOnly = true) mantém a sessão Hibernate aberta
+    // durante o `.map()`, evitando LazyInitializationException ao acessar
+    // movimento.getConta().getNomeConta() no DTO.
     // ─────────────────────────────────────────────────────────────────────────
 
+    @Transactional(readOnly = true)
     public Page<MovimentoResponse> extratoPorConta(Usuario usuario, UUID contaId,
                                                    int pagina, int tamanho) {
-        // Validação de tenant: conta deve pertencer à empresa
         saldoRepository.findByIdAndEmpresaId(contaId, usuario.getEmpresa().getId())
                 .orElseThrow(() -> new NoSuchElementException("Conta não encontrada"));
 
@@ -276,9 +232,24 @@ public class MovimentoBancarioService {
         ).map(MovimentoResponse::from);
     }
 
+    @Transactional(readOnly = true)
     public Page<MovimentoResponse> extratoConsolidado(Usuario usuario, int pagina, int tamanho) {
         return movimentoRepository.extratoConsolidado(
                 usuario.getEmpresa().getId(),
+                PageRequest.of(pagina, Math.min(tamanho, 100))
+        ).map(MovimentoResponse::from);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<MovimentoResponse> extratoFiltrado(Usuario usuario,
+                                                   UUID contaId,
+                                                   String tipo,
+                                                   LocalDate dataInicio,
+                                                   LocalDate dataFim,
+                                                   int pagina, int tamanho) {
+        return movimentoRepository.extratoFiltrado(
+                usuario.getEmpresa().getId(),
+                contaId, tipo, dataInicio, dataFim,
                 PageRequest.of(pagina, Math.min(tamanho, 100))
         ).map(MovimentoResponse::from);
     }
