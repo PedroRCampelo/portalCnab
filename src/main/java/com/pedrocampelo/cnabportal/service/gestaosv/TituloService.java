@@ -1,11 +1,9 @@
 package com.pedrocampelo.cnabportal.service.gestaosv;
 
-import com.pedrocampelo.cnabportal.model.Empresa;
 import com.pedrocampelo.cnabportal.model.MovimentoBancario;
 import com.pedrocampelo.cnabportal.model.SaldoBancario;
 import com.pedrocampelo.cnabportal.model.Titulo;
 import com.pedrocampelo.cnabportal.model.Usuario;
-import com.pedrocampelo.cnabportal.repository.EmpresaRepository;
 import com.pedrocampelo.cnabportal.repository.TituloRepository;
 import com.pedrocampelo.cnabportal.service.fluxocaixasv.MovimentoBancarioService;
 import com.pedrocampelo.cnabportal.service.fluxocaixasv.SaldoBancarioService;
@@ -13,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -25,18 +22,20 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
 
+/**
+ * Service de gestão de títulos a pagar.
+ *
+ * MUDANÇA Sprint 2.2-A1: Remove empresaPadraoId. Empresa vem do usuário logado.
+ * Cada usuário só vê e cria títulos da SUA empresa (multi-tenant real).
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class TituloService {
 
     private final TituloRepository           tituloRepository;
-    private final EmpresaRepository          empresaRepository;
     private final SaldoBancarioService       saldoBancarioService;
     private final MovimentoBancarioService   movimentoBancarioService;
-
-    @Value("${app.empresa-padrao-id:00000000-0000-0000-0000-000000000001}")
-    private String empresaPadraoId;
 
     // ── Listagem com filtros ───────────────────────────────────────────────────
 
@@ -66,11 +65,9 @@ public class TituloService {
 
     public Titulo criar(Titulo titulo, Usuario usuario) {
         validar(titulo);
-        Empresa empresa = empresaRepository.findById(UUID.fromString(empresaPadraoId))
-                .orElseThrow(() -> new IllegalStateException("Empresa padrão não encontrada"));
 
         titulo.setUsuario(usuario);
-        titulo.setEmpresa(empresa);
+        titulo.setEmpresa(usuario.getEmpresa());     // ← antes: empresaPadraoId
 
         if (titulo.getSaldo() == null || titulo.getSaldo().compareTo(BigDecimal.ZERO) == 0) {
             titulo.setSaldo(titulo.getValor());
@@ -82,11 +79,6 @@ public class TituloService {
 
     // ── Atualização (com regras ERP) ──────────────────────────────────────────
 
-    /**
-     * REGRA ERP: títulos com baixa registrada (PAGO ou com saldo < valor)
-     * NÃO podem ser editados nos campos financeiros.
-     * Para alterar, primeiro estornar a baixa.
-     */
     public Titulo atualizar(UUID id, Titulo dados, Usuario usuario) {
         Titulo existente = tituloRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Título não encontrado"));
@@ -95,7 +87,6 @@ public class TituloService {
             throw new SecurityException("Acesso negado");
         }
 
-        // Regra ERP: não permite editar título com baixa registrada
         if (temBaixa(existente)) {
             throw new IllegalStateException(
                     "Título com baixa registrada não pode ser editado. " +
@@ -132,14 +123,8 @@ public class TituloService {
         return tituloRepository.save(existente);
     }
 
-    // ── Baixa (pagamento total ou parcial) — INTEGRADO COM FLUXO DE CAIXA ─────
+    // ── Baixa (pagamento total ou parcial) ────────────────────────────────────
 
-    /**
-     * Registra baixa de título E cria movimento bancário PAGAMENTO.
-     *
-     * @param contaId conta bancária da qual sai o dinheiro.
-     *                Se null, usa conta padrão (principal ou primeira ativa).
-     */
     @Transactional
     public Titulo registrarBaixa(UUID id, BigDecimal valorPago, LocalDate dataBaixa,
                                  String observacao, UUID contaId, Usuario usuario) {
@@ -154,7 +139,6 @@ public class TituloService {
             throw new IllegalArgumentException("Valor da baixa deve ser maior que zero");
         }
 
-        // Resolve conta bancária
         SaldoBancario conta = contaId != null
                 ? saldoBancarioService.buscarEntidadePorId(usuario, contaId)
                 : saldoBancarioService.buscarContaPadrao(usuario);
@@ -172,7 +156,6 @@ public class TituloService {
             titulo.atualizarStatus();
         }
 
-        // Acumula acréscimo (juros) se valor pago > saldo
         if (valorPago.compareTo(saldoAtual) > 0) {
             BigDecimal acrescimo = valorPago.subtract(saldoAtual);
             BigDecimal jurosAtuais = titulo.getJuros() != null ? titulo.getJuros() : BigDecimal.ZERO;
@@ -189,7 +172,6 @@ public class TituloService {
 
         Titulo salvo = tituloRepository.save(titulo);
 
-        // ── Cria movimento bancário PAGAMENTO ─────────────────────────────────
         String descricao = "Pagamento de " +
                 (titulo.getFornecedorNome() != null ? titulo.getFornecedorNome() : "fornecedor") +
                 " — #" + titulo.getNumero();
@@ -207,14 +189,6 @@ public class TituloService {
 
     // ── Estornar baixa ────────────────────────────────────────────────────────
 
-    /**
-     * Estorna a baixa de um título E cria movimento(s) de compensação.
-     *
-     * Operação:
-     *   1. Estorna TODOS os movimentos PAGAMENTO ativos vinculados ao título
-     *   2. Reverte status do título pra PENDENTE/VENCIDO
-     *   3. Restaura o saldo do título com o valor total estornado
-     */
     @Transactional
     public Titulo estornarBaixa(UUID id, Usuario usuario) {
         Titulo titulo = tituloRepository.findById(id)
@@ -224,7 +198,6 @@ public class TituloService {
             throw new SecurityException("Acesso negado");
         }
 
-        // Estorna movimentos vinculados
         List<MovimentoBancario> estornos = movimentoBancarioService.estornarPorOrigem(
                 usuario, "TITULO", titulo.getId(),
                 "Estorno de pagamento de título"
@@ -234,7 +207,6 @@ public class TituloService {
             throw new IllegalStateException("Este título não possui pagamento para estornar.");
         }
 
-        // Calcula valor total estornado e restaura saldo
         BigDecimal valorEstornado = estornos.stream()
                 .map(MovimentoBancario::getValor)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -243,9 +215,7 @@ public class TituloService {
         titulo.setSaldo(saldoAtual.add(valorEstornado));
         titulo.setDataBaixa(null);
 
-        // IMPORTANTE: força status pra PENDENTE antes do atualizarStatus(),
-        // pois atualizarStatus() ignora títulos PAGOS (early return).
-        // Depois, atualizarStatus() decide se vira VENCIDO baseado na data.
+        // Força status PENDENTE antes do atualizarStatus() (early-return em PAGO)
         titulo.setStatus("PENDENTE");
         titulo.atualizarStatus();
 
@@ -260,10 +230,6 @@ public class TituloService {
 
     // ── Exclusão (com regra ERP) ──────────────────────────────────────────────
 
-    /**
-     * REGRA ERP: títulos com baixa registrada NÃO podem ser excluídos.
-     * Para excluir, primeiro estornar a baixa.
-     */
     public void excluir(UUID id, Usuario usuario) {
         Titulo titulo = tituloRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Título não encontrado"));
@@ -272,7 +238,6 @@ public class TituloService {
             throw new SecurityException("Acesso negado");
         }
 
-        // Regra ERP: não permite excluir título com baixa registrada
         if (temBaixa(titulo)) {
             throw new IllegalStateException(
                     "Título com baixa registrada não pode ser excluído. " +
@@ -285,12 +250,6 @@ public class TituloService {
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    /**
-     * Retorna true se o título tem baixa registrada (total ou parcial).
-     * Critérios:
-     *   - status = PAGO, OU
-     *   - saldo < valor (baixa parcial)
-     */
     private boolean temBaixa(Titulo t) {
         if ("PAGO".equals(t.getStatus())) return true;
         if (t.getSaldo() != null && t.getValor() != null
@@ -318,9 +277,6 @@ public class TituloService {
 
         validar(req.templateTitulo());
 
-        Empresa empresa = empresaRepository.findById(UUID.fromString(empresaPadraoId))
-                .orElseThrow(() -> new IllegalStateException("Empresa padrão não encontrada"));
-
         List<Titulo> criados = new ArrayList<>();
         LocalDate vencimentoBase = req.templateTitulo().getVencimento();
 
@@ -330,7 +286,7 @@ public class TituloService {
 
             Titulo t = Titulo.builder()
                     .usuario(usuario)
-                    .empresa(empresa)
+                    .empresa(usuario.getEmpresa())     // ← antes: empresaPadraoId
                     .prefixo(req.templateTitulo().getPrefixo() != null ? req.templateTitulo().getPrefixo() : "AP")
                     .numero(req.templateTitulo().getNumero())
                     .parcela(numeroParcela)
@@ -404,9 +360,6 @@ public class TituloService {
     // ── Importação Excel ──────────────────────────────────────────────────────
 
     public ImportacaoResultado importarExcel(MultipartFile arquivo, Usuario usuario) throws IOException {
-        Empresa empresa = empresaRepository.findById(UUID.fromString(empresaPadraoId))
-                .orElseThrow(() -> new IllegalStateException("Empresa padrão não encontrada"));
-
         List<String> erros    = new ArrayList<>();
         List<Titulo> salvos   = new ArrayList<>();
         int linha = 1;
@@ -439,7 +392,7 @@ public class TituloService {
 
                     Titulo titulo = Titulo.builder()
                             .usuario(usuario)
-                            .empresa(empresa)
+                            .empresa(usuario.getEmpresa())     // ← antes: empresaPadraoId
                             .numero(numero)
                             .parcela(parcela.isBlank() ? "001" : parcela)
                             .tipo(tipo)
