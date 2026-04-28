@@ -1,5 +1,6 @@
 package com.pedrocampelo.cnabportal.controller;
 
+import com.pedrocampelo.cnabportal.config.gate.RequireWhalletPlus;
 import com.pedrocampelo.cnabportal.dto.FluxoCaixaDtos.AjusteSaldoRequest;
 import com.pedrocampelo.cnabportal.dto.FluxoCaixaDtos.SaldoRequest;
 import com.pedrocampelo.cnabportal.dto.FluxoCaixaDtos.SaldoResponse;
@@ -21,6 +22,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/saldos-bancarios")
+@RequireWhalletPlus
 @RequiredArgsConstructor
 @Slf4j
 public class SaldoBancarioController {

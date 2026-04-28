@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import api from "../services/api.js";
 import {
     LuSettings, LuBuilding, LuLandmark, LuLoader, LuCircleCheck,
-    LuCircleAlert, LuInfo, LuPercent,
+    LuCircleAlert, LuInfo, LuPercent, LuLock,
 } from "react-icons/lu";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -42,6 +42,39 @@ function formatarMoedaParaInput(valor) {
     }).format(Number(valor));
 }
 
+function mascaraCnpj(valor) {
+    if (!valor) return "";
+    const d = String(valor).replace(/\D/g, "").slice(0, 14);
+    let r = d;
+    if (d.length > 2)  r = d.slice(0, 2) + "." + d.slice(2);
+    if (d.length > 5)  r = r.slice(0, 6) + "." + r.slice(6);
+    if (d.length > 8)  r = r.slice(0, 10) + "/" + r.slice(10);
+    if (d.length > 12) r = r.slice(0, 15) + "-" + r.slice(15);
+    return r;
+}
+
+function cnpjEhValido(cnpj) {
+    const d = String(cnpj).replace(/\D/g, "");
+    if (d.length !== 14) return false;
+    if (/^(\d)\1{13}$/.test(d)) return false;
+
+    const calcular = (digitos, pesos) => {
+        let soma = 0;
+        for (let i = 0; i < pesos.length; i++) {
+            soma += parseInt(digitos[i]) * pesos[i];
+        }
+        const resto = soma % 11;
+        return resto < 2 ? 0 : 11 - resto;
+    };
+
+    const peso1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+    const peso2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+
+    if (calcular(d, peso1) !== parseInt(d[12])) return false;
+    if (calcular(d, peso2) !== parseInt(d[13])) return false;
+    return true;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Página principal
 // ─────────────────────────────────────────────────────────────────────────────
@@ -51,8 +84,8 @@ export default function ConfiguracoesPage() {
     const [erro, setErro]             = useState("");
     const [sucesso, setSucesso]       = useState("");
 
-    // Form values (editáveis)
     const [nome, setNome]                       = useState("");
+    const [cnpj, setCnpj]                       = useState("");
     const [limiteAnual, setLimiteAnual]         = useState("");
     const [dasAtivo, setDasAtivo]               = useState(false);
     const [dasCategoria, setDasCategoria]       = useState("");
@@ -68,6 +101,7 @@ export default function ConfiguracoesPage() {
             const { data } = await api.get("/api/empresa");
             setEmpresa(data);
             setNome(data.nome ?? "");
+            setCnpj(data.cnpj ?? "");
             setLimiteAnual(formatarMoedaParaInput(data.limiteAnualMei));
             setDasAtivo(!!data.dasAtivo);
             setDasCategoria(data.dasCategoria ?? "");
@@ -82,11 +116,21 @@ export default function ConfiguracoesPage() {
 
     useEffect(() => { carregar(); }, [carregar]);
 
+    // Estados derivados
+    const cnpjBloqueado = empresa?.cnpj != null && empresa.cnpj.length > 0;
+    const temCnpj       = cnpjBloqueado;  // só conta CNPJ "real" do servidor, não o digitado
+    const seccoesMeiBloqueadas = !temCnpj;
+
     async function salvar() {
         setErro("");
         setSucesso("");
 
-        // Validações de frontend
+        // Bloqueia salvar features MEI se sem CNPJ
+        if (seccoesMeiBloqueadas && dasAtivo) {
+            setErro("Adicione e salve seu CNPJ antes de ativar o controle do DAS.");
+            return;
+        }
+
         if (dasAtivo && !dasCategoria) {
             setErro("Selecione a categoria do DAS antes de ativar");
             return;
@@ -97,21 +141,31 @@ export default function ConfiguracoesPage() {
             return;
         }
 
+        // Valida CNPJ se foi preenchido (e não está bloqueado)
+        if (!cnpjBloqueado && cnpj && cnpj.replace(/\D/g, "").length > 0) {
+            if (!cnpjEhValido(cnpj)) {
+                setErro("CNPJ inválido. Verifique os números.");
+                return;
+            }
+        }
+
         const valorCustomNum = usarValorCustom ? parseMoeda(dasValorCustom) : null;
 
         const payload = {
             nome: nome.trim(),
+            cnpj: !cnpjBloqueado && cnpj && cnpj.replace(/\D/g, "").length > 0 ? cnpj : null,
             limiteAnualMei: limiteNum,
-            dasAtivo,
-            dasCategoria: dasAtivo ? dasCategoria : null,
+            dasAtivo: temCnpj ? dasAtivo : false, // segurança: nunca envia true sem CNPJ
+            dasCategoria: dasAtivo && temCnpj ? dasCategoria : null,
             dasValorMensal: valorCustomNum,
-            dasValorMensalEditado: true, // sempre envia o valor (null pra resetar)
+            dasValorMensalEditado: true,
         };
 
         setSalvando(true);
         try {
             const { data } = await api.put("/api/empresa", payload);
             setEmpresa(data);
+            setCnpj(data.cnpj ?? "");
             setSucesso("Configurações salvas com sucesso!");
             setTimeout(() => setSucesso(""), 3000);
         } catch (err) {
@@ -178,18 +232,52 @@ export default function ConfiguracoesPage() {
                            disabled={salvando} maxLength={150}/>
                 </div>
 
-                <div style={{ marginBottom: 0 }}>
-                    <label style={labelStyle}>CNPJ</label>
-                    <input type="text" value={empresa?.cnpj ?? ""} disabled
-                           style={{ background: "var(--surface)", color: "var(--text-muted)", cursor: "not-allowed" }}/>
-                    <small style={{ color: "var(--text-dim)", fontSize: 11 }}>
-                        CNPJ não pode ser alterado pelo app. Entre em contato com o suporte se precisar.
-                    </small>
+                <div>
+                    <label style={labelStyle}>
+                        CNPJ
+                        {cnpjBloqueado && (
+                            <span style={{
+                                display: "inline-flex", alignItems: "center", gap: 4,
+                                marginLeft: 8, color: "#94A3B8", fontSize: 10,
+                                fontWeight: 700, letterSpacing: "0.04em",
+                            }}>
+                                <LuLock size={11}/> bloqueado
+                            </span>
+                        )}
+                    </label>
+                    <input
+                        type="text"
+                        value={cnpjBloqueado ? empresa.cnpj : cnpj}
+                        onChange={e => setCnpj(mascaraCnpj(e.target.value))}
+                        placeholder="00.000.000/0000-00"
+                        disabled={salvando || cnpjBloqueado}
+                        maxLength={18}
+                        style={cnpjBloqueado ? {
+                            background: "var(--surface)",
+                            color: "var(--text-muted)",
+                            cursor: "not-allowed",
+                        } : {}}/>
+                    {cnpjBloqueado ? (
+                        <small style={{ color: "var(--text-dim)", fontSize: 11, display: "block", marginTop: 4 }}>
+                            <LuInfo size={11} style={{ verticalAlign: "middle", marginRight: 4 }}/>
+                            CNPJ não pode ser alterado depois de cadastrado. Para correção,
+                            entre em contato com o suporte.
+                        </small>
+                    ) : (
+                        <small style={{ color: "var(--text-dim)", fontSize: 11, display: "block", marginTop: 4 }}>
+                            Opcional. Adicione se você é MEI/empresa para desbloquear features fiscais (limite anual e DAS).
+                        </small>
+                    )}
                 </div>
             </Section>
 
             {/* Seção: Limite MEI */}
-            <Section icon={<LuPercent size={20}/>} titulo="Limite anual MEI">
+            <Section
+                icon={<LuPercent size={20}/>}
+                titulo="Limite anual MEI"
+                bloqueada={seccoesMeiBloqueadas}
+                hintBloqueio="Adicione seu CNPJ na seção Empresa para usar.">
+
                 <div style={infoBoxStyle}>
                     <LuInfo size={14} style={{ marginRight: 6, verticalAlign: "middle", color: "var(--cyan-dark)" }}/>
                     Limite legal vigente: <strong>R$ 81.000,00 por ano</strong>. Se a regra mudar (ex: aumento pra R$ 144.913),
@@ -201,29 +289,39 @@ export default function ConfiguracoesPage() {
                     <input type="text" value={limiteAnual}
                            onChange={e => setLimiteAnual(mascaraMoeda(e.target.value))}
                            placeholder="81.000,00"
-                           disabled={salvando}/>
+                           disabled={salvando || seccoesMeiBloqueadas}/>
                 </div>
             </Section>
 
             {/* Seção: DAS */}
-            <Section icon={<LuLandmark size={20}/>} titulo="Controle do DAS">
+            <Section
+                icon={<LuLandmark size={20}/>}
+                titulo="Controle do DAS"
+                bloqueada={seccoesMeiBloqueadas}
+                hintBloqueio="Adicione seu CNPJ na seção Empresa para usar.">
+
                 <div style={infoBoxStyle}>
                     <LuInfo size={14} style={{ marginRight: 6, verticalAlign: "middle", color: "var(--cyan-dark)" }}/>
                     Ative pra acompanhar os DAS mensais (R$ 76,90 a R$ 81,90 dependendo da categoria).
                     Quando ativar, o Whallet cria automaticamente os DAS pendentes do mês atual até dezembro.
                 </div>
 
-                <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", padding: "12px 0" }}>
-                    <input type="checkbox" checked={dasAtivo}
+                <label style={{
+                    display: "flex", alignItems: "center", gap: 10,
+                    cursor: seccoesMeiBloqueadas ? "not-allowed" : "pointer",
+                    padding: "12px 0",
+                    opacity: seccoesMeiBloqueadas ? 0.6 : 1,
+                }}>
+                    <input type="checkbox" checked={dasAtivo && !seccoesMeiBloqueadas}
                            onChange={e => setDasAtivo(e.target.checked)}
-                           disabled={salvando}
+                           disabled={salvando || seccoesMeiBloqueadas}
                            style={{ margin: 0, width: 18, height: 18 }}/>
                     <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>
                         Quero controlar o DAS no Whallet
                     </span>
                 </label>
 
-                {dasAtivo && (
+                {dasAtivo && !seccoesMeiBloqueadas && (
                     <div style={{
                         marginTop: 12, padding: 16, borderRadius: 10,
                         background: "rgba(21,195,221,0.04)",
@@ -299,30 +397,57 @@ export default function ConfiguracoesPage() {
     );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Componente: Section
-// ─────────────────────────────────────────────────────────────────────────────
-function Section({ icon, titulo, children }) {
+function Section({ icon, titulo, children, bloqueada = false, hintBloqueio }) {
     return (
         <div style={{
             padding: 20, borderRadius: 12, marginBottom: 16,
-            background: "var(--surface)", border: "1px solid var(--border)",
+            background: "var(--surface)",
+            border: "1px solid var(--border)",
+            opacity: bloqueada ? 0.65 : 1,
+            position: "relative",
         }}>
             <div style={{
                 display: "flex", alignItems: "center", gap: 8, marginBottom: 16,
                 paddingBottom: 12, borderBottom: "1px solid var(--border)",
+                justifyContent: "space-between",
             }}>
-                <span style={{ color: "var(--cyan-dark)", lineHeight: 0 }}>{icon}</span>
-                <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "var(--text)" }}>{titulo}</h2>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ color: "var(--cyan-dark)", lineHeight: 0 }}>{icon}</span>
+                    <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "var(--text)" }}>{titulo}</h2>
+                </div>
+
+                {bloqueada && (
+                    <span style={{
+                        display: "inline-flex", alignItems: "center", gap: 4,
+                        padding: "3px 8px", borderRadius: 999, fontSize: 10, fontWeight: 700,
+                        background: "rgba(148,163,184,0.10)",
+                        border: "1px solid rgba(148,163,184,0.25)",
+                        color: "#64748B",
+                        letterSpacing: "0.04em",
+                    }}>
+                        <LuLock size={11}/> BLOQUEADO
+                    </span>
+                )}
             </div>
+
+            {bloqueada && hintBloqueio && (
+                <div style={{
+                    padding: "10px 14px", borderRadius: 8, marginBottom: 16,
+                    background: "rgba(148,163,184,0.06)",
+                    border: "1px solid rgba(148,163,184,0.20)",
+                    fontSize: 12, color: "#64748B",
+                    display: "flex", alignItems: "center", gap: 6,
+                }}>
+                    <LuInfo size={13} style={{ flexShrink: 0 }}/>
+                    {hintBloqueio}
+                </div>
+            )}
+
             {children}
         </div>
     );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Estilos compartilhados
-// ─────────────────────────────────────────────────────────────────────────────
 const containerStyle = { maxWidth: 760, margin: "0 auto", padding: "32px 24px" };
 const labelStyle = {
     display: "block", fontSize: 12, fontWeight: 600, color: "var(--text-dim)",
