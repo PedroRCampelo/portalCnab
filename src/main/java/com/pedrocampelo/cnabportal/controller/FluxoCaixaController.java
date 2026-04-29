@@ -1,6 +1,6 @@
 package com.pedrocampelo.cnabportal.controller;
 
-import com.pedrocampelo.cnabportal.config.gate.RequireWhalletPlus;
+import com.pedrocampelo.cnabportal.config.gate.RequireWhalletPlusWrite;
 import com.pedrocampelo.cnabportal.dto.FluxoCaixaDtos.SaudeMesResponse;
 import com.pedrocampelo.cnabportal.model.Usuario;
 import com.pedrocampelo.cnabportal.service.fluxocaixasv.FluxoCaixaService;
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/fluxo-caixa")
-@RequireWhalletPlus
+@RequireWhalletPlusWrite
 @RequiredArgsConstructor
 @Slf4j
 public class FluxoCaixaController {

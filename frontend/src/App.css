@@ -3,60 +3,79 @@
 *, *::before, *::after { box-sizing: border-box; }
 
 :root {
-  /* ── Paleta Whallet (Brand Book V1) ──────────────────────────────────────
-     Navy profundo para autoridade, ciano elétrico para tecnologia e
-     movimento. Neutros frios sustentam leitura longa no dashboard.
-     Uso 60% navy / 30% neutros / 10% ciano. */
-  --navy:        #122F50;
-  --navy-deep:   #0B1E36;
-  --ink:         #1A2B42;
-  --ink-2:       #3F4E66;
-  --muted:       #6B7A92;
-  --hair:        #E3E7ED;
 
-  --cyan:        #15C3DD;
-  --cyan-light:  #4CDDE8;
-  --cyan-dark:   #0891A8;
+  /* ── Brand · Cyan (assinatura da marca) ────────────────────────────────── */
+  --cyan:           #15C3DD;   /* primária — CTAs, links ativos, dot da marca */
+  --cyan-dark:      #0891A8;   /* hover/active/pressed, italics editoriais */
+  --cyan-deep:      #0891A8;   /* alias — mesmo valor, só nome do kit oficial */
+  --cyan-light:     #4CDDE8;   /* destaques, glow, hover de gráfico */
+  --cyan-soft:      #E6F8FB;   /* backgrounds suaves, badges, hover sutil */
 
-  --grad:        linear-gradient(135deg, #15C3DD, #4CDDE8);
-  --grad-tidal:  linear-gradient(135deg, #15C3DD 0%, #0891A8 50%, #122F50 100%);
-  --grad-text:   linear-gradient(135deg, #122F50, #3F4E66);
+  /* ── Brand · Navy (a âncora) ──────────────────────────────────────────── */
+  --navy:           #122F50;   /* superfície escura, gradient stop */
+  --navy-deep:      #0B1E36;   /* dark mode bg, headers escuros */
 
-  /* Aliases p/ compatibilidade com código existente */
-  --gold:        #15C3DD;
-  --gold-light:  #4CDDE8;
-  --purple:      #122F50;
-  --blue:        #0891A8;
+  /* ── Tipografia (escala de cinzas) ─────────────────────────────────────── */
+  --ink:            #0F1824;   /* texto principal — kit oficial */
+  --ink-2:          #3F4E66;   /* texto secundário, descrições */
+  --muted:          #6B7A92;   /* captions, labels, placeholder */
 
-  /* Backgrounds */
-  --bg:          #F4F6F8;
-  --surface:     #FFFFFF;
-  --surface-2:   #ECEEF2;
-  --border:      rgba(26,43,66,0.10);
-  --border-hi:   rgba(21,195,221,0.4);
+  /* Aliases padronizados (uso preferido nos novos componentes) */
+  --text:           #0F1824;
+  --text-muted:     #3F4E66;
+  --text-dim:       #6B7A92;
 
-  /* Texto sobre fundo claro */
-  --text:        #1A2B42;
-  --text-muted:  #3F4E66;
-  --text-dim:    #6B7A92;
+  /* ── Surfaces & estrutura ──────────────────────────────────────────────── */
+  --bg:             #F7F8FA;   /* background da página */
+  --surface:        #FFFFFF;   /* cards, modais, dropdowns */
+  --surface-2:      #ECEEF2;   /* surface secundária (sidebar, etc) */
+  --hair:           #E3E7ED;   /* hairlines, divisores, borda input */
+  --border:         #E3E7ED;   /* alias — usar este nos novos componentes */
+  --border-hi:      rgba(21,195,221,0.4);
 
-  /* Semânticas */
-  --success:     #0891A8;
-  --error:       #DC2626;
-  --warning:     #D97706;
-  --success-bg:  rgba(21,195,221,0.06);
-  --error-bg:    rgba(220,38,38,0.06);
+  /* ── Status semânticos · CALIBRADOS ────────────────────────────────────── */
+  /* IMPORTANTE: estes substituem --success/--error/--warning antigos.
+     Verde de verdade pra entrada (não cyan). Vermelho real pra saída. */
+  --success:        #18B26B;   /* entradas, conciliado, ✓ */
+  --success-bg:     rgba(24,178,107,0.08);
+  --warning:        #E6A23C;   /* atenção, divergência leve */
+  --warning-bg:     rgba(230,162,60,0.08);
+  --error:          #E5484D;   /* saídas, erro, divergência crítica */
+  --error-bg:       rgba(229,72,77,0.08);
+  --info:           #2D6FE8;   /* notificações neutras (≠ cyan da marca) */
+  --info-bg:        rgba(45,111,232,0.08);
 
-  --r-sm:  8px;
-  --r-md:  14px;
-  --r-lg:  20px;
-  --r-xl:  26px;
+  /* ── Gradientes ────────────────────────────────────────────────────────── */
+  --grad:           linear-gradient(135deg, #15C3DD, #4CDDE8);
+  --grad-tidal:     linear-gradient(135deg, #15C3DD 0%, #0891A8 50%, #122F50 100%);
+  --grad-text:      linear-gradient(135deg, #122F50, #3F4E66);
+  --grad-navy:      linear-gradient(145deg, #112E4F 0%, #1B4375 45%, #15C3DD 100%);
 
-  /* Stacks tipográficos Whallet */
-  --ff-sans:  'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  --ff-serif: 'Instrument Serif', Georgia, serif;
-  --ff-mono:  'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  /* ── Radius ────────────────────────────────────────────────────────────── */
+  --r-sm:           8px;
+  --r-md:           14px;
+  --r-lg:           20px;
+  --r-xl:           26px;
 
+  /* ── Tipografia ────────────────────────────────────────────────────────── */
+  --ff-sans:        'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --ff-serif:       'Instrument Serif', Georgia, serif;
+  --ff-mono:        'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* ── DEPRECATED · não usar em código novo ──────────────────────────────── */
+  /* Mantido pra compatibilidade com código existente.
+     Migrar gradualmente conforme refatorar páginas:
+       --gold       → --cyan
+       --gold-light → --cyan-light
+       --purple     → --navy
+       --blue       → --cyan-dark
+  */
+  --gold:           #15C3DD;
+  --gold-light:     #4CDDE8;
+  --purple:         #122F50;
+  --blue:           #0891A8;
+
+  /* ── Aplicar configuração base ─────────────────────────────────────────── */
   font-family: var(--ff-sans);
   font-feature-settings: 'ss01', 'cv11';
   font-size: 15px;
@@ -66,6 +85,63 @@
   -webkit-font-smoothing: antialiased;
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════
+   UTILITÁRIOS DE MARCA
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+/* Italic editorial — use 1-2 palavras em títulos de marketing.
+   NÃO usar no app logado (decisão de produto). */
+.serif-accent {
+  font-family: var(--ff-serif);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--cyan-dark);
+  letter-spacing: -0.01em;
+}
+
+/* Eyebrow técnico — pra kickers, números, metadados */
+.mono-label {
+  font-family: var(--ff-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Eyebrow com linha (estilo kit oficial) */
+.mono-label--lined {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--ff-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cyan-dark);
+}
+.mono-label--lined::before {
+  content: "";
+  width: 24px;
+  height: 1px;
+  background: var(--cyan-dark);
+}
+
+/* Dot da marca (bolinha cyan) — pra wordmarks/logos */
+.brand-dot {
+  display: inline-block;
+  width: 0.32em;
+  height: 0.32em;
+  border-radius: 50%;
+  background: var(--cyan);
+  margin-left: 0.08em;
+  vertical-align: baseline;
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   RESET BASE — não mudar
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+*, *::before, *::after { box-sizing: border-box; }
 body  { margin: 0; min-width: 320px; }
 button, input, select, textarea { font: inherit; }
 img   { display: block; }
@@ -210,7 +286,7 @@ a     { color: inherit; text-decoration: none; }
 }
 .topbar-badge-dot {
   width:7px; height:7px; border-radius:50%;
-  background:var(--gold); box-shadow:0 0 6px rgba(21,195,221,0.4);
+  /*background:var(--gold); box-shadow:0 0 6px rgba(21,195,221,0.4);*/
   animation:blink 2s ease-in-out infinite; flex-shrink:0;
 }
 @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:.3;} }
@@ -1750,8 +1826,9 @@ a     { color: inherit; text-decoration: none; }
   }
 
   /* Conteudo principal */
-  .app-shell       { padding-top: 104px; } /* topbar mobile: 10px padding + 80px inner + 14px folga */
-  .app-shell--auth { padding-top: 0; }     /* auth pages gerenciam seu próprio padding */
+  .app-shell             { padding-top: 104px; } /* topbar mobile: 10px padding + 80px inner + 14px folga */
+  .app-shell--auth       { padding-top: 0; }     /* auth pages gerenciam seu próprio padding */
+  .app-shell--fullscreen { padding-top: 0; }     /* landing/auth split-screen ocupam 100vh */
 
   /* Paginas de auth */
   .auth-page  { grid-template-columns: 1fr; }

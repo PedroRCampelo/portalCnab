@@ -1,0 +1,419 @@
+/* ═════════════════════════════════════════════════════════════════════════════
+   TopBar — Shell do App
+   Sprint A3.1 · ERP-style layout
+
+   Estrutura:
+     [☰] [whallet.] [Empresa ▾]  ────────────  [Trial] [🔔] [Avatar ▾]
+     │   └─ brand    └─ seletor                  └─ direita
+     └─ menu mobile
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+.tb {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 0 16px 0 12px;
+}
+
+/* ─── Esquerda: menu + brand + empresa ────────────────────────────────────── */
+
+.tb-left {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+/* Botão de menu (collapse sidebar / mobile menu) */
+.tb-menu-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--ink-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.tb-menu-btn:hover {
+    background: var(--bg);
+    color: var(--navy-deep);
+}
+
+/* Brand wordmark */
+.tb-brand {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 3px;
+    font-family: var(--ff-sans);
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: -0.05em;
+    line-height: 1;
+    color: var(--navy-deep);
+    text-decoration: none;
+    margin: 0 16px 0 8px;
+    transition: opacity 0.15s;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+}
+
+.tb-brand:hover { opacity: 0.85; }
+
+.tb-brand-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--cyan);
+    display: inline-block;
+}
+
+/* ─── Seletor de empresa ──────────────────────────────────────────────────── */
+
+.tb-empresa {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    border-radius: 8px;
+    background: var(--bg);
+    border: 1px solid var(--hair);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    font-family: inherit;
+    max-width: 240px;
+}
+
+.tb-empresa:hover {
+    border-color: var(--cyan);
+    background: var(--cyan-soft);
+}
+
+.tb-empresa-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: var(--navy-deep);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    flex-shrink: 0;
+}
+
+.tb-empresa-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+}
+
+.tb-empresa-label {
+    font-family: var(--ff-mono);
+    font-size: 8px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    line-height: 1;
+    margin-bottom: 2px;
+}
+
+.tb-empresa-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--navy-deep);
+    letter-spacing: -0.005em;
+    line-height: 1.1;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tb-empresa-chevron {
+    color: var(--text-dim);
+    flex-shrink: 0;
+}
+
+/* ─── Direita: trial + notif + avatar ─────────────────────────────────────── */
+
+.tb-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+/* Trial badge */
+.tb-trial {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 100px;
+    background: var(--cyan-soft);
+    border: 1px solid rgba(21, 195, 221, 0.2);
+    color: var(--cyan-dark);
+    font-family: var(--ff-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+    transition: background 0.15s, border-color 0.15s;
+    white-space: nowrap;
+}
+
+.tb-trial:hover {
+    background: rgba(21, 195, 221, 0.12);
+    border-color: var(--cyan);
+}
+
+.tb-trial.critical {
+    background: var(--warning-bg);
+    border-color: rgba(230, 162, 60, 0.3);
+    color: var(--warning);
+}
+
+.tb-trial-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 6px currentColor;
+    animation: tbBlink 2s infinite ease-in-out;
+}
+
+@keyframes tbBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+/* Botão genérico (notificações, busca) */
+.tb-icon-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--ink-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    transition: background 0.15s, color 0.15s;
+}
+
+.tb-icon-btn:hover {
+    background: var(--bg);
+    color: var(--navy-deep);
+}
+
+/* Indicador de notificação não lida */
+.tb-icon-btn-dot {
+    position: absolute;
+    top: 9px;
+    right: 9px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--cyan);
+    border: 2px solid var(--surface);
+}
+
+/* Avatar do usuário */
+.tb-user {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 10px 4px 4px;
+    border-radius: 100px;
+    border: 1px solid var(--hair);
+    background: transparent;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    font-family: inherit;
+}
+
+.tb-user:hover {
+    border-color: var(--cyan);
+    background: var(--cyan-soft);
+}
+
+.tb-user-avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--navy-deep);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+.tb-user-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--navy-deep);
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    letter-spacing: -0.005em;
+}
+
+.tb-user-chevron {
+    color: var(--text-dim);
+    transition: transform 0.2s;
+}
+
+.tb-user-chevron.open { transform: rotate(180deg); }
+
+/* ─── Dropdown do usuário ─────────────────────────────────────────────────── */
+
+.tb-user-wrap {
+    position: relative;
+}
+
+.tb-user-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: var(--surface);
+    border: 1px solid var(--hair);
+    border-radius: 12px;
+    min-width: 240px;
+    box-shadow: 0 12px 40px rgba(11, 30, 54, 0.10);
+    overflow: hidden;
+    padding: 6px;
+    z-index: 999;
+    animation: tbDropdownIn 0.15s ease;
+}
+
+@keyframes tbDropdownIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.tb-user-info {
+    padding: 12px 14px 14px;
+    border-bottom: 1px solid var(--hair);
+    margin-bottom: 4px;
+}
+
+.tb-user-info-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--navy-deep);
+    letter-spacing: -0.005em;
+}
+
+.tb-user-info-email {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 2px;
+}
+
+.tb-user-info-plan {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 2px 8px;
+    border-radius: 100px;
+    background: var(--cyan-soft);
+    color: var(--cyan-dark);
+    font-family: var(--ff-mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.tb-user-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    color: var(--ink-2);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    transition: background 0.1s, color 0.1s;
+    cursor: pointer;
+    background: none;
+    border: none;
+    width: 100%;
+    font-family: inherit;
+    text-align: left;
+}
+
+.tb-user-item:hover {
+    background: var(--bg);
+    color: var(--navy-deep);
+}
+
+.tb-user-item-icon {
+    color: var(--text-dim);
+    display: inline-flex;
+}
+
+.tb-user-divider {
+    height: 1px;
+    background: var(--hair);
+    margin: 4px 6px;
+}
+
+.tb-user-logout {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    background: transparent;
+    border: none;
+    color: var(--ink-2);
+    font-family: var(--ff-sans);
+    font-weight: 500;
+    font-size: 13px;
+    letter-spacing: -0.005em;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    transition: background 0.1s, color 0.1s;
+}
+
+.tb-user-logout:hover {
+    background: var(--error-bg);
+    color: var(--error);
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   RESPONSIVO
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+    .tb-empresa-text { display: none; }
+    .tb-empresa { padding: 7px 10px; }
+    .tb-trial { display: none; }
+    .tb-user-name { display: none; }
+}
+
+@media (max-width: 480px) {
+    .tb-brand { font-size: 20px; margin: 0 8px; }
+    .tb-empresa { display: none; }
+}

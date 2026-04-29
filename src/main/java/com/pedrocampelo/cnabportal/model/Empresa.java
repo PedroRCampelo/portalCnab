@@ -10,17 +10,19 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
- * Entidade JPA que representa a tabela 'empresas'.
+ * Entidade que representa a tabela 'empresas'.
  *
- * Cada empresa é um tenant do sistema multi-tenant real (Sprint 2.2-A1).
+ * Sprint 2.2-A1.5: refatoração para suportar regime tributário escalável.
  *
- * Campos MEI (Sprint 2.2):
- *   - limiteAnualMei
- *   - dasAtivo / dasCategoria / dasValorMensal
+ * Estrutura:
+ *   - regimeTributario: define quais sub-campos fazem sentido
+ *   - limiteFaturamentoAnual: aplicável a todos os regimes
+ *   - meiCategoria/meiValorDasMensal: específicos de MEI
+ *   - dasAtivo: toggle independente (qualquer regime pode ter DAS no futuro)
  *
- * Campos multi-tenant (Sprint 2.2-A1):
- *   - cnpj agora é NULLABLE (opcional no plano Gratuito)
- *   - criadorUsuarioId rastreia quem criou a empresa (DONO original)
+ * Multi-tenant (Sprint 2.2-A1):
+ *   - cnpj nullable (opcional pra pessoa física)
+ *   - criadorUsuarioId rastreia o DONO original
  */
 @Entity
 @Table(name = "empresas")
@@ -39,11 +41,6 @@ public class Empresa {
     @Column(nullable = false, length = 150)
     private String nome;
 
-    /**
-     * CNPJ formatado: XX.XXX.XXX/XXXX-XX
-     * Nullable: opcional no plano Gratuito, obrigatório ao assinar Whallet+.
-     * Único quando preenchido (1 CNPJ = 1 Empresa).
-     */
     @Column(unique = true, length = 18)
     private String cnpj;
 
@@ -51,28 +48,56 @@ public class Empresa {
     @Builder.Default
     private Boolean ativa = true;
 
-    /**
-     * Usuário que criou a empresa — vira o DONO automaticamente.
-     * Pode ser null para empresas legadas (criadas antes desta migração).
-     */
     @Column(name = "criador_usuario_id")
     private UUID criadorUsuarioId;
 
-    // ── Configurações MEI (Sprint 2.2) ───────────────────────────────────────
+    // ── Regime tributário (Sprint 2.2-A1.5) ──────────────────────────────────
 
-    @Column(name = "limite_anual_mei", nullable = false, precision = 18, scale = 2)
+    /**
+     * Regime tributário da empresa.
+     * Default: NENHUM (pessoa física com CNPJ, ou empresa sem regime definido).
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "regime_tributario", nullable = false, length = 20)
     @Builder.Default
-    private BigDecimal limiteAnualMei = new BigDecimal("81000.00");
+    private RegimeTributario regimeTributario = RegimeTributario.NENHUM;
 
+    /**
+     * Limite anual de faturamento aplicável ao regime.
+     * MEI=81.000, ME=360.000, EPP=4.800.000, etc.
+     * Null se regime=NENHUM ou regime sem limite definido.
+     */
+    @Column(name = "limite_faturamento_anual", precision = 18, scale = 2)
+    private BigDecimal limiteFaturamentoAnual;
+
+    // ── Sub-campos MEI (só aplicáveis se regime=MEI) ─────────────────────────
+
+    /**
+     * Categoria MEI: COMERCIO_INDUSTRIA, SERVICOS, AMBOS.
+     * Define o valor padrão do DAS.
+     * Só preenchido se regime=MEI.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "mei_categoria", length = 20)
+    private CategoriaMei meiCategoria;
+
+    /**
+     * Override manual do valor mensal do DAS MEI.
+     * Null usa o valor padrão da categoria.
+     * Só preenchido se regime=MEI.
+     */
+    @Column(name = "mei_valor_das_mensal", precision = 18, scale = 2)
+    private BigDecimal meiValorDasMensal;
+
+    // ── DAS (independente do regime — qualquer regime pode ativar futuramente) ──
+
+    /**
+     * Empresa ativou o controle de DAS no Whallet.
+     * Hoje só implementado pra MEI; futuramente expandido pra Simples Nacional.
+     */
     @Column(name = "das_ativo", nullable = false)
     @Builder.Default
     private Boolean dasAtivo = false;
-
-    @Column(name = "das_categoria", length = 20)
-    private String dasCategoria;
-
-    @Column(name = "das_valor_mensal", precision = 18, scale = 2)
-    private BigDecimal dasValorMensal;
 
     // ── Auditoria ────────────────────────────────────────────────────────────
 

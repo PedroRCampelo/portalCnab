@@ -1,29 +1,41 @@
 package com.pedrocampelo.cnabportal.dto;
 
+import com.pedrocampelo.cnabportal.model.CategoriaMei;
 import com.pedrocampelo.cnabportal.model.Empresa;
+import com.pedrocampelo.cnabportal.model.RegimeTributario;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
 /**
  * DTOs do módulo Empresa.
+ *
+ * Sprint 2.2-A1.5: refatoração para regime tributário escalável.
  */
 public final class EmpresaDtos {
 
     private EmpresaDtos() {}
 
+    /**
+     * Resposta com dados da empresa do MEI logado.
+     */
     public record EmpresaResponse(
             UUID id,
             String nome,
             String cnpj,
             Boolean ativa,
 
-            // Configurações MEI
-            BigDecimal limiteAnualMei,
+            // Regime tributário
+            RegimeTributario regimeTributario,
+            BigDecimal limiteFaturamentoAnual,
+
+            // Sub-campos MEI
+            CategoriaMei meiCategoria,
+            BigDecimal meiValorDasMensal,
+
+            // DAS
             Boolean dasAtivo,
-            String dasCategoria,
-            BigDecimal dasValorMensal,
-            BigDecimal dasValorEfetivo
+            BigDecimal dasValorEfetivo    // calculado pelo service
     ) {
         public static EmpresaResponse from(Empresa e, BigDecimal valorEfetivo) {
             return new EmpresaResponse(
@@ -31,10 +43,11 @@ public final class EmpresaDtos {
                     e.getNome(),
                     e.getCnpj(),
                     e.getAtiva(),
-                    e.getLimiteAnualMei(),
+                    e.getRegimeTributario(),
+                    e.getLimiteFaturamentoAnual(),
+                    e.getMeiCategoria(),
+                    e.getMeiValorDasMensal(),
                     e.getDasAtivo(),
-                    e.getDasCategoria(),
-                    e.getDasValorMensal(),
                     valorEfetivo
             );
         }
@@ -43,18 +56,21 @@ public final class EmpresaDtos {
     /**
      * Request de atualização da empresa.
      *
-     * Sprint 2.2-A1.3: adicionado campo cnpj
-     *   - Pode ser enviado com ou sem máscara (XX.XXX.XXX/XXXX-XX ou só dígitos)
-     *   - Se já existe CNPJ salvo, qualquer tentativa de mudar é rejeitada
-     *   - 1ª vez: valida formato + dígitos + duplicidade
+     * Todos os campos são opcionais (null = não atualiza).
+     *
+     * Mudanças Sprint 2.2-A1.5:
+     *   - regimeTributario: substitui flag implícita "isMei"
+     *   - limiteFaturamentoAnual: substitui limiteAnualMei
+     *   - meiCategoria + meiValorDasMensal: substituem dasCategoria + dasValorMensal
      */
     public record EmpresaUpdateRequest(
             String nome,
             String cnpj,
-            BigDecimal limiteAnualMei,
-            Boolean dasAtivo,
-            String dasCategoria,
-            BigDecimal dasValorMensal,
-            Boolean dasValorMensalEditado
+            RegimeTributario regimeTributario,
+            BigDecimal limiteFaturamentoAnual,
+            CategoriaMei meiCategoria,
+            BigDecimal meiValorDasMensal,
+            Boolean meiValorDasMensalEditado,  // flag explícita (null vs reset)
+            Boolean dasAtivo
     ) {}
 }

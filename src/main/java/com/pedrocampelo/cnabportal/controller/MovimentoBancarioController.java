@@ -1,6 +1,6 @@
 package com.pedrocampelo.cnabportal.controller;
 
-import com.pedrocampelo.cnabportal.config.gate.RequireWhalletPlus;
+import com.pedrocampelo.cnabportal.config.gate.RequireWhalletPlusWrite;
 import com.pedrocampelo.cnabportal.dto.FluxoCaixaDtos.MovimentoResponse;
 import com.pedrocampelo.cnabportal.model.Usuario;
 import com.pedrocampelo.cnabportal.service.fluxocaixasv.MovimentoBancarioService;
@@ -28,7 +28,7 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/api/movimentos-bancarios")
-@RequireWhalletPlus
+@RequireWhalletPlusWrite
 @RequiredArgsConstructor
 @Slf4j
 public class MovimentoBancarioController {

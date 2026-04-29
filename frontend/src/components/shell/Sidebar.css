@@ -1,0 +1,302 @@
+/* ═════════════════════════════════════════════════════════════════════════════
+   Sidebar — Shell do App
+   Sprint A3.1 · ERP-style layout
+
+   Estrutura:
+     ┌─────────────────────┐
+     │ Body (scroll)        │
+     │  ── VISÃO GERAL      │
+     │  ▣ Fluxo de Caixa    │
+     │  ▣ Saúde do Mês      │
+     │                      │
+     │  ── GESTÃO           │
+     │  💵 Recebimentos     │
+     │  ...                 │
+     ├─────────────────────┤
+     │ Footer (fixed)       │
+     │  ⚙️ Configurações     │
+     │  📌 Pin/Unpin sidebar │
+     └─────────────────────┘
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+.sb {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+}
+
+/* ─── Body com scroll ─────────────────────────────────────────────────────── */
+
+.sb-body {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 12px 8px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--hair) transparent;
+}
+
+.sb-body::-webkit-scrollbar { width: 4px; }
+.sb-body::-webkit-scrollbar-track { background: transparent; }
+.sb-body::-webkit-scrollbar-thumb { background: var(--hair); border-radius: 4px; }
+
+/* ─── Grupo de navegação ──────────────────────────────────────────────────── */
+
+.sb-group {
+    margin-bottom: 18px;
+}
+
+.sb-group:last-child { margin-bottom: 0; }
+
+.sb-group-label {
+    display: block;
+    padding: 0 12px 8px;
+    font-family: var(--ff-mono);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    white-space: nowrap;
+    opacity: 1;
+    transition: opacity 0.15s, height 0.15s, padding 0.15s, margin 0.15s;
+}
+
+/* ─── Item da sidebar ─────────────────────────────────────────────────────── */
+
+.sb-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 12px;
+    margin: 1px 0;
+    border-radius: 8px;
+    text-decoration: none;
+    font-family: var(--ff-sans);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    color: var(--ink-2);
+    transition: background 0.12s, color 0.12s;
+    position: relative;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.sb-item:hover {
+    background: var(--bg);
+    color: var(--navy-deep);
+}
+
+/* Item ativo */
+.sb-item.active {
+    background: var(--cyan-soft);
+    color: var(--cyan-dark);
+    font-weight: 600;
+}
+
+.sb-item.active::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 8px;
+    bottom: 8px;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: var(--cyan);
+}
+
+.sb-item-icon {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: currentColor;
+}
+
+.sb-item-label {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: opacity 0.15s;
+}
+
+/* Badge opcional (ex: contagem de pendências) */
+.sb-item-badge {
+    flex-shrink: 0;
+    padding: 2px 6px;
+    border-radius: 100px;
+    background: var(--cyan-soft);
+    color: var(--cyan-dark);
+    font-family: var(--ff-mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+
+.sb-item.active .sb-item-badge {
+    background: var(--cyan);
+    color: white;
+}
+
+/* ─── Footer ──────────────────────────────────────────────────────────────── */
+
+.sb-footer {
+    flex-shrink: 0;
+    border-top: 1px solid var(--hair);
+    padding: 8px;
+    background: var(--surface);
+}
+
+.sb-footer .sb-item {
+    margin: 0;
+}
+
+/* Botão de pin (canto inferior direito) */
+.sb-pin-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.sb-pin-btn:hover {
+    background: var(--bg);
+    color: var(--navy-deep);
+}
+
+.sb-pin-btn.active {
+    color: var(--cyan-dark);
+}
+
+.sb-pin-btn.active:hover {
+    background: var(--cyan-soft);
+}
+
+.sb-footer-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.sb-footer-row .sb-item {
+    flex: 1;
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   ESTADO COLAPSADO
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+.shell.sidebar-collapsed .sb-group-label {
+    height: 8px;
+    padding: 0;
+    margin: 4px 0;
+    opacity: 0;
+    overflow: hidden;
+}
+
+.shell.sidebar-collapsed .sb-item {
+    justify-content: center;
+    padding: 9px;
+}
+
+.shell.sidebar-collapsed .sb-item-label {
+    opacity: 0;
+    width: 0;
+    overflow: hidden;
+}
+
+.shell.sidebar-collapsed .sb-item-badge {
+    display: none;
+}
+
+.shell.sidebar-collapsed .sb-item.active::before {
+    left: -4px;
+}
+
+.shell.sidebar-collapsed .sb-pin-btn {
+    display: none;
+}
+
+.shell.sidebar-collapsed .sb-footer-row .sb-item {
+    flex: 1;
+}
+
+/* Tooltip ao hover quando colapsada */
+.shell.sidebar-collapsed .sb-item {
+    position: relative;
+}
+
+.shell.sidebar-collapsed .sb-item::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: calc(100% + 12px);
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 6px 10px;
+    background: var(--navy-deep);
+    color: white;
+    font-family: var(--ff-sans);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    border-radius: 6px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(11, 30, 54, 0.15);
+}
+
+.shell.sidebar-collapsed .sb-item:hover::after {
+    opacity: 1;
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   MOBILE
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 900px) {
+    /* Em mobile, sidebar sempre expandida (mesmo se colapsada no desktop) */
+    .shell.sidebar-collapsed .sb-group-label {
+        height: auto;
+        padding: 0 12px 8px;
+        margin: 0;
+        opacity: 1;
+    }
+
+    .shell.sidebar-collapsed .sb-item {
+        justify-content: flex-start;
+        padding: 9px 12px;
+    }
+
+    .shell.sidebar-collapsed .sb-item-label {
+        opacity: 1;
+        width: auto;
+    }
+
+    .shell.sidebar-collapsed .sb-item-badge {
+        display: inline-block;
+    }
+
+    .shell.sidebar-collapsed .sb-item::after {
+        display: none;
+    }
+
+    .shell.sidebar-collapsed .sb-pin-btn {
+        display: flex;
+    }
+}

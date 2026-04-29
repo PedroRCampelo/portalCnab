@@ -1,6 +1,6 @@
 package com.pedrocampelo.cnabportal.controller;
 
-import com.pedrocampelo.cnabportal.config.gate.RequireWhalletPlus;
+import com.pedrocampelo.cnabportal.config.gate.RequireWhalletPlusWrite;
 import com.pedrocampelo.cnabportal.dto.ClienteRequest;
 import com.pedrocampelo.cnabportal.dto.ClienteResponse;
 import com.pedrocampelo.cnabportal.model.Usuario;
@@ -21,7 +21,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/clientes")
-@RequireWhalletPlus
+@RequireWhalletPlusWrite
 @RequiredArgsConstructor
 @Slf4j
 public class ClienteController {
