@@ -1,139 +1,50 @@
 import { useState, useEffect, useCallback } from "react";
-import api from "../../services/api.js";
 import {
-    LuSettings, LuBuilding, LuLandmark, LuLoader, LuCircleCheck,
-    LuCircleAlert, LuInfo, LuPercent, LuLock, LuFileText,
+    LuBuilding, LuLandmark, LuLoader, LuCircleCheck,
+    LuTriangleAlert, LuInfo, LuPercent, LuLock, LuFileText,
+    LuSave,
 } from "react-icons/lu";
+import api from "../../services/api.js";
+import PageHeader from "../../components/shell/PageHeader.jsx";
+import Card       from "../../components/ui/Card.jsx";
+import {
+    REGIMES, CATEGORIAS_MEI,
+    fmtValor, mascaraMoeda, parseMoeda, formatarMoedaParaInput,
+    mascaraCnpj, cnpjEhValido,
+} from "./configuracoes/_helpers.js";
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Constantes — alinhado com enums do backend
-// ─────────────────────────────────────────────────────────────────────────────
-const REGIMES = [
-    {
-        value: "NENHUM",
-        label: "Pessoa Física / Sem regime",
-        descricao: "Quero apenas controlar gastos e recebimentos",
-        cobertura: "completa",
-    },
-    {
-        value: "MEI",
-        label: "MEI",
-        descricao: "Microempreendedor Individual (até R$ 81 mil/ano)",
-        cobertura: "completa",
-    },
-    {
-        value: "SIMPLES_NACIONAL",
-        label: "Simples Nacional (ME / EPP)",
-        descricao: "Microempresa ou Empresa de Pequeno Porte",
-        cobertura: "parcial",  // sem DAS automático ainda
-    },
-    {
-        value: "LUCRO_PRESUMIDO",
-        label: "Lucro Presumido",
-        descricao: "Empresas até R$ 78 milhões/ano",
-        cobertura: "limitada",
-    },
-    {
-        value: "LUCRO_REAL",
-        label: "Lucro Real",
-        descricao: "Empresas grandes ou setores específicos",
-        cobertura: "limitada",
-    },
-    {
-        value: "OUTRO",
-        label: "Outro",
-        descricao: "Cooperativas, casos especiais",
-        cobertura: "limitada",
-    },
-];
-
-const CATEGORIAS_MEI = [
-    { value: "COMERCIO_INDUSTRIA", label: "Comércio / Indústria",  valor: 76.90, descricao: "Paga ICMS" },
-    { value: "SERVICOS",           label: "Serviços",                valor: 80.90, descricao: "Paga ISS" },
-    { value: "AMBOS",              label: "Comércio + Serviços",     valor: 81.90, descricao: "Paga ICMS + ISS" },
-];
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────────────────────────────────────
-function fmtValor(v) {
-    if (v == null) return "—";
-    return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(v));
-}
-
-function mascaraMoeda(valor) {
-    const nums = String(valor).replace(/\D/g, "");
-    if (!nums) return "";
-    return new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-        .format(parseFloat(nums) / 100);
-}
-
-function parseMoeda(valor) {
-    if (!valor) return null;
-    const num = parseFloat(String(valor).replace(/\./g, "").replace(",", "."));
-    return isNaN(num) ? null : num;
-}
-
-function formatarMoedaParaInput(valor) {
-    if (valor == null) return "";
-    return new Intl.NumberFormat("pt-BR", {
-        minimumFractionDigits: 2, maximumFractionDigits: 2,
-    }).format(Number(valor));
-}
-
-function mascaraCnpj(valor) {
-    if (!valor) return "";
-    const d = String(valor).replace(/\D/g, "").slice(0, 14);
-    let r = d;
-    if (d.length > 2)  r = d.slice(0, 2) + "." + d.slice(2);
-    if (d.length > 5)  r = r.slice(0, 6) + "." + r.slice(6);
-    if (d.length > 8)  r = r.slice(0, 10) + "/" + r.slice(10);
-    if (d.length > 12) r = r.slice(0, 15) + "-" + r.slice(15);
-    return r;
-}
-
-function cnpjEhValido(cnpj) {
-    const d = String(cnpj).replace(/\D/g, "");
-    if (d.length !== 14) return false;
-    if (/^(\d)\1{13}$/.test(d)) return false;
-
-    const calcular = (digitos, pesos) => {
-        let soma = 0;
-        for (let i = 0; i < pesos.length; i++) {
-            soma += parseInt(digitos[i]) * pesos[i];
-        }
-        const resto = soma % 11;
-        return resto < 2 ? 0 : 11 - resto;
-    };
-
-    const peso1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
-    const peso2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
-
-    if (calcular(d, peso1) !== parseInt(d[12])) return false;
-    if (calcular(d, peso2) !== parseInt(d[13])) return false;
-    return true;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Página principal
-// ─────────────────────────────────────────────────────────────────────────────
+/**
+ * ConfiguracoesPage — Configurações da empresa
+ * Sprint A3.6.7 · Refatoração
+ *
+ * Seções (condicionais):
+ *  1. Empresa — Nome + CNPJ (CNPJ bloqueado depois de cadastrado)
+ *  2. Regime tributário — 6 opções (NENHUM / MEI / SN / LP / LR / OUTRO)
+ *  3. Limite anual — Aparece se regime != NENHUM
+ *  4. Controle DAS — Aparece se MEI (categoria + valor opcional)
+ *
+ * Endpoints:
+ *  - GET /api/empresa
+ *  - PUT /api/empresa (payload com nome, cnpj, regime, limite, dasAtivo, etc)
+ */
 export default function ConfiguracoesPage() {
-    const [empresa, setEmpresa]       = useState(null);
+    const [empresa,    setEmpresa]    = useState(null);
     const [carregando, setCarregando] = useState(true);
-    const [erro, setErro]             = useState("");
-    const [sucesso, setSucesso]       = useState("");
+    const [erro,       setErro]       = useState("");
+    const [sucesso,    setSucesso]    = useState("");
+    const [salvando,   setSalvando]   = useState(false);
 
     // Form values
-    const [nome, setNome]                       = useState("");
-    const [cnpj, setCnpj]                       = useState("");
-    const [regime, setRegime]                   = useState("NENHUM");
-    const [limiteAnual, setLimiteAnual]         = useState("");
-    const [dasAtivo, setDasAtivo]               = useState(false);
-    const [meiCategoria, setMeiCategoria]       = useState("");
-    const [dasValorCustom, setDasValorCustom]   = useState("");
+    const [nome,            setNome]            = useState("");
+    const [cnpj,            setCnpj]            = useState("");
+    const [regime,          setRegime]          = useState("NENHUM");
+    const [limiteAnual,     setLimiteAnual]     = useState("");
+    const [dasAtivo,        setDasAtivo]        = useState(false);
+    const [meiCategoria,    setMeiCategoria]    = useState("");
+    const [dasValorCustom,  setDasValorCustom]  = useState("");
     const [usarValorCustom, setUsarValorCustom] = useState(false);
 
-    const [salvando, setSalvando] = useState(false);
+    // ── Carregamento ────────────────────────────────────────────────────────
 
     const carregar = useCallback(async () => {
         setCarregando(true);
@@ -158,7 +69,8 @@ export default function ConfiguracoesPage() {
 
     useEffect(() => { carregar(); }, [carregar]);
 
-    // Quando troca o regime, sugere limite padrão se ainda não tem
+    // ── Handlers ───────────────────────────────────────────────────────────
+
     function trocarRegime(novoRegime) {
         setRegime(novoRegime);
 
@@ -178,30 +90,33 @@ export default function ConfiguracoesPage() {
     }
 
     // Estados derivados
-    const cnpjBloqueado     = empresa?.cnpj != null && empresa.cnpj.length > 0;
-    const temCnpj           = cnpjBloqueado;
-    const ehMei             = regime === "MEI";
+    const cnpjBloqueado            = empresa?.cnpj != null && empresa.cnpj.length > 0;
+    const temCnpj                  = cnpjBloqueado;
+    const ehMei                    = regime === "MEI";
     const seccoesFiscaisBloqueadas = !temCnpj || regime === "NENHUM";
-    const dasDisponivel     = ehMei && temCnpj;  // futuramente expande pra Simples
-    const temLimite         = regime !== "NENHUM";  // todos os regimes com CNPJ têm limite
-    const regimeInfo        = REGIMES.find(r => r.value === regime);
+    const dasDisponivel            = ehMei && temCnpj;
+    const temLimite                = regime !== "NENHUM";
+    const regimeInfo               = REGIMES.find(r => r.value === regime);
+    const categoriaInfo            = CATEGORIAS_MEI.find(c => c.value === meiCategoria);
+    const valorEfetivo             = dasAtivo
+        ? (usarValorCustom && parseMoeda(dasValorCustom) ? parseMoeda(dasValorCustom) : categoriaInfo?.valor ?? 0)
+        : null;
+
+    // ── Salvar ─────────────────────────────────────────────────────────────
 
     async function salvar() {
         setErro("");
         setSucesso("");
 
-        // Bloqueia DAS sem MEI
+        // Validações
         if (dasAtivo && !ehMei) {
             setErro("DAS automático disponível apenas para regime MEI nesta versão.");
             return;
         }
-
         if (dasAtivo && !meiCategoria) {
             setErro("Selecione a categoria MEI antes de ativar o DAS");
             return;
         }
-
-        // Limite obrigatório se regime exige
         if (temLimite && temCnpj) {
             const limiteNum = parseMoeda(limiteAnual);
             if (!limiteNum || limiteNum <= 0) {
@@ -209,8 +124,6 @@ export default function ConfiguracoesPage() {
                 return;
             }
         }
-
-        // Valida CNPJ se digitado e não bloqueado
         if (!cnpjBloqueado && cnpj && cnpj.replace(/\D/g, "").length > 0) {
             if (!cnpjEhValido(cnpj)) {
                 setErro("CNPJ inválido. Verifique os números.");
@@ -219,7 +132,6 @@ export default function ConfiguracoesPage() {
         }
 
         const valorCustomNum = usarValorCustom ? parseMoeda(dasValorCustom) : null;
-
         const payload = {
             nome: nome.trim(),
             cnpj: !cnpjBloqueado && cnpj && cnpj.replace(/\D/g, "").length > 0 ? cnpj : null,
@@ -245,420 +157,803 @@ export default function ConfiguracoesPage() {
         }
     }
 
+    // ── Render ──────────────────────────────────────────────────────────────
+
     if (carregando) {
         return (
-            <div style={containerStyle}>
-                <div style={{ padding: 60, textAlign: "center", color: "var(--text-dim)" }}>
-                    <LuLoader size={24} style={{ animation: "spin 1s linear infinite" }}/>
-                    <div style={{ marginTop: 8 }}>Carregando configurações...</div>
+            <>
+                <PageHeader title="Configurações"/>
+                <div className="cfg-loading">
+                    <LuLoader size={20} className="cfg-spin"/>
+                    <span>Carregando configurações...</span>
                 </div>
-                <style>{`@keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }`}</style>
-            </div>
+                <style>{COMPONENT_CSS}</style>
+            </>
         );
     }
 
-    const categoriaInfo = CATEGORIAS_MEI.find(c => c.value === meiCategoria);
-    const valorEfetivo = dasAtivo
-        ? (usarValorCustom && parseMoeda(dasValorCustom) ? parseMoeda(dasValorCustom) : categoriaInfo?.valor ?? 0)
-        : null;
-
     return (
-        <div style={containerStyle}>
-            {/* Cabeçalho */}
-            <div style={{ marginBottom: 24 }}>
-                <h1 style={{
-                    margin: 0, fontSize: 26, fontWeight: 700, color: "var(--text)",
-                    display: "flex", alignItems: "center", gap: 10,
-                }}>
-                    <LuSettings size={26} style={{ color: "var(--cyan-dark)" }}/>
-                    Configurações
-                </h1>
-                <p style={{ margin: "4px 0 0", color: "var(--text-muted)", fontSize: 14 }}>
-                    Personalize sua empresa, regime tributário e controle do DAS.
-                </p>
-            </div>
+        <div className="cfg-container">
+            <PageHeader
+                title="Configurações"
+                actions={
+                    <button
+                        className="ph-btn ph-btn--primary"
+                        onClick={salvar}
+                        disabled={salvando}
+                    >
+                        <LuSave size={14}/>
+                        {salvando ? "Salvando..." : "Salvar configurações"}
+                    </button>
+                }
+            />
+
+            <p className="cfg-subtitulo">
+                Personalize sua empresa, regime tributário e controle do DAS.
+            </p>
 
             {/* Mensagens globais */}
             {erro && (
-                <div style={erroBoxStyle}>
-                    <LuCircleAlert size={16} style={{ marginRight: 6, verticalAlign: "middle" }}/>
+                <div className="cfg-msg cfg-msg--erro">
+                    <LuTriangleAlert size={14}/>
                     {erro}
                 </div>
             )}
             {sucesso && (
-                <div style={sucessoBoxStyle}>
-                    <LuCircleCheck size={16} style={{ marginRight: 6, verticalAlign: "middle" }}/>
+                <div className="cfg-msg cfg-msg--sucesso">
+                    <LuCircleCheck size={14}/>
                     {sucesso}
                 </div>
             )}
 
-            {/* Seção: Empresa */}
-            <Section icon={<LuBuilding size={20}/>} titulo="Empresa">
-                <div style={{ marginBottom: 16 }}>
-                    <label style={labelStyle}>Nome da empresa</label>
-                    <input type="text" value={nome}
-                           onChange={e => setNome(e.target.value)}
-                           placeholder="ex: Pedro Campelo MEI"
-                           disabled={salvando} maxLength={150}/>
+            {/* ── Seção: Empresa ── */}
+            <Secao
+                icon={<LuBuilding size={14}/>}
+                title="Empresa"
+            >
+                <div className="cfg-field">
+                    <label className="cfg-label">Nome da empresa</label>
+                    <input
+                        type="text"
+                        className="cfg-input"
+                        value={nome}
+                        onChange={e => setNome(e.target.value)}
+                        placeholder="ex: Pedro Campelo MEI"
+                        disabled={salvando}
+                        maxLength={150}
+                    />
                 </div>
 
-                <div>
-                    <label style={labelStyle}>
+                <div className="cfg-field">
+                    <label className="cfg-label">
                         CNPJ
                         {cnpjBloqueado && (
-                            <span style={{
-                                display: "inline-flex", alignItems: "center", gap: 4,
-                                marginLeft: 8, color: "#94A3B8", fontSize: 10,
-                                fontWeight: 700, letterSpacing: "0.04em",
-                            }}>
-                                <LuLock size={11}/> bloqueado
+                            <span className="cfg-lock-badge">
+                                <LuLock size={10}/> Bloqueado
                             </span>
                         )}
                     </label>
                     <input
                         type="text"
+                        className={`cfg-input ${cnpjBloqueado ? "cfg-input--locked" : ""}`}
                         value={cnpjBloqueado ? empresa.cnpj : cnpj}
                         onChange={e => setCnpj(mascaraCnpj(e.target.value))}
                         placeholder="00.000.000/0000-00"
                         disabled={salvando || cnpjBloqueado}
                         maxLength={18}
-                        style={cnpjBloqueado ? {
-                            background: "var(--surface)",
-                            color: "var(--text-muted)",
-                            cursor: "not-allowed",
-                        } : {}}/>
-                    {cnpjBloqueado ? (
-                        <small style={{ color: "var(--text-dim)", fontSize: 11, display: "block", marginTop: 4 }}>
-                            <LuInfo size={11} style={{ verticalAlign: "middle", marginRight: 4 }}/>
-                            CNPJ não pode ser alterado depois de cadastrado. Para correção,
-                            entre em contato com o suporte.
-                        </small>
-                    ) : (
-                        <small style={{ color: "var(--text-dim)", fontSize: 11, display: "block", marginTop: 4 }}>
-                            Opcional. Adicione se você é MEI/empresa para desbloquear features fiscais.
-                        </small>
-                    )}
+                    />
+                    <small className="cfg-hint">
+                        <LuInfo size={11}/>
+                        {cnpjBloqueado
+                            ? "CNPJ não pode ser alterado depois de cadastrado. Pra correção, fale com o suporte."
+                            : "Opcional. Adicione se você é MEI/empresa pra desbloquear features fiscais."}
+                    </small>
                 </div>
-            </Section>
+            </Secao>
 
-            {/* Seção: Regime tributário */}
-            <Section icon={<LuFileText size={20}/>} titulo="Regime tributário">
-                <div style={infoBoxStyle}>
-                    <LuInfo size={14} style={{ marginRight: 6, verticalAlign: "middle", color: "var(--cyan-dark)" }}/>
-                    Define quais features fiscais ficam disponíveis (limite de faturamento, DAS, etc).
-                    {!temCnpj && " Adicione o CNPJ na seção Empresa para liberar regimes empresariais."}
+            {/* ── Seção: Regime tributário ── */}
+            <Secao
+                icon={<LuFileText size={14}/>}
+                title="Regime tributário"
+            >
+                <div className="cfg-info-box">
+                    <LuInfo size={13}/>
+                    <span>
+                        Define quais features fiscais ficam disponíveis (limite de faturamento, DAS, etc).
+                        {!temCnpj && " Adicione o CNPJ na seção Empresa pra liberar regimes empresariais."}
+                    </span>
                 </div>
 
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <div className="cfg-regime-list">
                     {REGIMES.map(r => (
                         <RegimeOption
                             key={r.value}
                             regime={r}
                             selecionado={regime === r.value}
                             disabled={salvando || (!temCnpj && r.value !== "NENHUM")}
-                            onSelecionar={() => trocarRegime(r.value)}/>
+                            onSelecionar={() => trocarRegime(r.value)}
+                        />
                     ))}
                 </div>
-            </Section>
+            </Secao>
 
-            {/* Seção: Limite anual de faturamento */}
+            {/* ── Seção: Limite anual de faturamento ── */}
             {regime !== "NENHUM" && (
-                <Section
-                    icon={<LuPercent size={20}/>}
-                    titulo="Limite anual de faturamento"
+                <Secao
+                    icon={<LuPercent size={14}/>}
+                    title="Limite anual de faturamento"
                     bloqueada={seccoesFiscaisBloqueadas}
-                    hintBloqueio="Adicione seu CNPJ na seção Empresa para usar.">
-
-                    <div style={infoBoxStyle}>
-                        <LuInfo size={14} style={{ marginRight: 6, verticalAlign: "middle", color: "var(--cyan-dark)" }}/>
-                        {regime === "MEI" && (
-                            <>Limite legal MEI: <strong>R$ 81.000,00 por ano</strong>. Ajuste se a regra mudar.</>
-                        )}
-                        {regime === "SIMPLES_NACIONAL" && (
-                            <>ME até R$ 360 mil/ano · EPP até R$ 4,8 milhões/ano. Ajuste conforme seu enquadramento.</>
-                        )}
-                        {(regime === "LUCRO_PRESUMIDO" || regime === "LUCRO_REAL" || regime === "OUTRO") && (
-                            <>Defina o limite que se aplica ao seu regime. Será usado para o termômetro de faturamento.</>
-                        )}
+                    hintBloqueio="Adicione seu CNPJ na seção Empresa pra usar."
+                >
+                    <div className="cfg-info-box">
+                        <LuInfo size={13}/>
+                        <span>
+                            {regime === "MEI" && (
+                                <>Limite legal MEI: <strong>R$ 81.000,00 por ano</strong>. Ajuste se a regra mudar.</>
+                            )}
+                            {regime === "SIMPLES_NACIONAL" && (
+                                <>ME até R$ 360 mil/ano · EPP até R$ 4,8 milhões/ano. Ajuste conforme seu enquadramento.</>
+                            )}
+                            {(regime === "LUCRO_PRESUMIDO" || regime === "LUCRO_REAL" || regime === "OUTRO") && (
+                                <>Defina o limite que se aplica ao seu regime. Será usado pro termômetro de faturamento.</>
+                            )}
+                        </span>
                     </div>
 
-                    <div>
-                        <label style={labelStyle}>Limite anual (R$)</label>
-                        <input type="text" value={limiteAnual}
-                               onChange={e => setLimiteAnual(mascaraMoeda(e.target.value))}
-                               placeholder="81.000,00"
-                               disabled={salvando || seccoesFiscaisBloqueadas}/>
+                    <div className="cfg-field">
+                        <label className="cfg-label">Limite anual (R$)</label>
+                        <input
+                            type="text"
+                            className="cfg-input"
+                            value={limiteAnual}
+                            onChange={e => setLimiteAnual(mascaraMoeda(e.target.value))}
+                            placeholder="81.000,00"
+                            disabled={salvando || seccoesFiscaisBloqueadas}
+                        />
                     </div>
-                </Section>
+                </Secao>
             )}
 
-            {/* Seção: DAS (só MEI por enquanto) */}
+            {/* ── Seção: DAS (só MEI) ── */}
             {ehMei && (
-                <Section
-                    icon={<LuLandmark size={20}/>}
-                    titulo="Controle do DAS"
+                <Secao
+                    icon={<LuLandmark size={14}/>}
+                    title="Controle do DAS"
                     bloqueada={!dasDisponivel}
-                    hintBloqueio="Adicione seu CNPJ na seção Empresa para usar.">
-
-                    <div style={infoBoxStyle}>
-                        <LuInfo size={14} style={{ marginRight: 6, verticalAlign: "middle", color: "var(--cyan-dark)" }}/>
-                        Ative pra acompanhar os DAS mensais (R$ 76,90 a R$ 81,90 dependendo da categoria).
-                        Quando ativar, o Whallet cria automaticamente os DAS pendentes do mês atual até dezembro.
+                    hintBloqueio="Adicione seu CNPJ na seção Empresa pra usar."
+                >
+                    <div className="cfg-info-box">
+                        <LuInfo size={13}/>
+                        <span>
+                            Ative pra acompanhar os DAS mensais (R$ 76,90 a R$ 81,90 dependendo da categoria).
+                            Quando ativar, o Whallet cria automaticamente os DAS pendentes do mês atual até dezembro.
+                        </span>
                     </div>
 
-                    <label style={{
-                        display: "flex", alignItems: "center", gap: 10,
-                        cursor: !dasDisponivel ? "not-allowed" : "pointer",
-                        padding: "12px 0",
-                        opacity: !dasDisponivel ? 0.6 : 1,
-                    }}>
-                        <input type="checkbox" checked={dasAtivo && dasDisponivel}
-                               onChange={e => setDasAtivo(e.target.checked)}
-                               disabled={salvando || !dasDisponivel}
-                               style={{ margin: 0, width: 18, height: 18 }}/>
-                        <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>
-                            Quero controlar o DAS no Whallet
-                        </span>
+                    <label className={`cfg-checkbox ${!dasDisponivel ? "cfg-checkbox--disabled" : ""}`}>
+                        <input
+                            type="checkbox"
+                            checked={dasAtivo && dasDisponivel}
+                            onChange={e => setDasAtivo(e.target.checked)}
+                            disabled={salvando || !dasDisponivel}
+                        />
+                        <span>Quero controlar o DAS no Whallet</span>
                     </label>
 
                     {dasAtivo && dasDisponivel && (
-                        <div style={{
-                            marginTop: 12, padding: 16, borderRadius: 10,
-                            background: "rgba(21,195,221,0.04)",
-                            border: "1px solid rgba(21,195,221,0.15)",
-                        }}>
-                            <label style={labelStyle}>Categoria do MEI *</label>
-                            <select value={meiCategoria}
+                        <div className="cfg-das-config">
+                            <div className="cfg-field">
+                                <label className="cfg-label">
+                                    Categoria do MEI
+                                    <span className="cfg-label-req">*</span>
+                                </label>
+                                <select
+                                    className="cfg-input"
+                                    value={meiCategoria}
                                     onChange={e => setMeiCategoria(e.target.value)}
                                     disabled={salvando}
-                                    style={{ marginBottom: 12 }}>
-                                <option value="">Selecione a categoria...</option>
-                                {CATEGORIAS_MEI.map(c => (
-                                    <option key={c.value} value={c.value}>
-                                        {c.label} — {fmtValor(c.valor)} ({c.descricao})
-                                    </option>
-                                ))}
-                            </select>
-                            {meiCategoria && (
-                                <small style={{ color: "var(--text-muted)", fontSize: 12, display: "block", marginBottom: 12 }}>
-                                    Valor padrão: <strong>{fmtValor(categoriaInfo?.valor)}</strong> · {categoriaInfo?.descricao}
-                                </small>
-                            )}
+                                >
+                                    <option value="">Selecione a categoria...</option>
+                                    {CATEGORIAS_MEI.map(c => (
+                                        <option key={c.value} value={c.value}>
+                                            {c.label} — {fmtValor(c.valor)} ({c.descricao})
+                                        </option>
+                                    ))}
+                                </select>
+                                {meiCategoria && (
+                                    <small className="cfg-hint">
+                                        Valor padrão: <strong>{fmtValor(categoriaInfo?.valor)}</strong> · {categoriaInfo?.descricao}
+                                    </small>
+                                )}
+                            </div>
 
-                            <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", marginTop: 8 }}>
-                                <input type="checkbox" checked={usarValorCustom}
-                                       onChange={e => setUsarValorCustom(e.target.checked)}
-                                       disabled={salvando}
-                                       style={{ margin: 0 }}/>
-                                <span style={{ fontSize: 13, color: "var(--text)" }}>
-                                    Meu município cobra valor diferente
-                                </span>
+                            <label className="cfg-checkbox">
+                                <input
+                                    type="checkbox"
+                                    checked={usarValorCustom}
+                                    onChange={e => setUsarValorCustom(e.target.checked)}
+                                    disabled={salvando}
+                                />
+                                <span>Meu município cobra valor diferente</span>
                             </label>
 
                             {usarValorCustom && (
-                                <div style={{ marginTop: 8 }}>
-                                    <input type="text" value={dasValorCustom}
-                                           onChange={e => setDasValorCustom(mascaraMoeda(e.target.value))}
-                                           placeholder={categoriaInfo ? formatarMoedaParaInput(categoriaInfo.valor) : "0,00"}
-                                           disabled={salvando}/>
-                                    <small style={{ color: "var(--text-dim)", fontSize: 11 }}>
+                                <div className="cfg-field">
+                                    <input
+                                        type="text"
+                                        className="cfg-input"
+                                        value={dasValorCustom}
+                                        onChange={e => setDasValorCustom(mascaraMoeda(e.target.value))}
+                                        placeholder={categoriaInfo ? formatarMoedaParaInput(categoriaInfo.valor) : "0,00"}
+                                        disabled={salvando}
+                                    />
+                                    <small className="cfg-hint">
+                                        <LuInfo size={11}/>
                                         Verifique no carnê do DAS ou no portal Simples Nacional.
                                     </small>
                                 </div>
                             )}
 
                             {valorEfetivo && (
-                                <div style={{
-                                    marginTop: 16, padding: "10px 14px", borderRadius: 8,
-                                    background: "rgba(16,185,129,0.06)",
-                                    border: "1px solid rgba(16,185,129,0.20)",
-                                    fontSize: 13,
-                                }}>
-                                    <strong style={{ color: "#10B981" }}>Valor mensal usado:</strong>{" "}
-                                    {fmtValor(valorEfetivo)}
+                                <div className="cfg-valor-efetivo">
+                                    <strong>Valor mensal usado:</strong> {fmtValor(valorEfetivo)}
                                 </div>
                             )}
                         </div>
                     )}
-                </Section>
+                </Secao>
             )}
 
             {/* Aviso pra Simples Nacional / outros regimes */}
             {regime !== "NENHUM" && regime !== "MEI" && temCnpj && (
-                <div style={{
-                    padding: "14px 16px", borderRadius: 10, marginBottom: 16,
-                    background: "rgba(212,160,23,0.06)",
-                    border: "1px solid rgba(212,160,23,0.20)",
-                    fontSize: 12, color: "#92400E", lineHeight: 1.6,
-                }}>
-                    <LuInfo size={14} style={{ marginRight: 6, verticalAlign: "middle" }}/>
-                    <strong>Em breve:</strong> features fiscais específicas para {regimeInfo?.label}
-                    {" "}(DAS percentual, alíquotas por anexo, etc). Por enquanto, você pode usar
-                    todas as features de gestão financeira normalmente.
+                <div className="cfg-msg cfg-msg--info">
+                    <LuInfo size={14}/>
+                    <span>
+                        <strong>Em breve:</strong> features fiscais específicas para {regimeInfo?.label}
+                        {" "}(DAS percentual, alíquotas por anexo, etc). Por enquanto, você pode usar
+                        todas as features de gestão financeira normalmente.
+                    </span>
                 </div>
             )}
 
-            {/* Botão salvar */}
-            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 24 }}>
-                <button onClick={salvar} className="auth-box-btn" disabled={salvando}
-                        style={{ width: "auto", padding: "12px 32px", fontSize: 14 }}>
+            {/* Footer com botão sticky em mobile */}
+            <div className="cfg-footer">
+                <button
+                    className="ph-btn ph-btn--primary"
+                    onClick={salvar}
+                    disabled={salvando}
+                >
+                    <LuSave size={14}/>
                     {salvando ? "Salvando..." : "Salvar configurações"}
                 </button>
             </div>
 
-            <style>{`
-                @keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
-            `}</style>
+            <style>{COMPONENT_CSS}</style>
         </div>
     );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Componente: opção de regime (radio card)
-// ─────────────────────────────────────────────────────────────────────────────
-function RegimeOption({ regime, selecionado, disabled, onSelecionar }) {
-    return (
-        <div
-            onClick={!disabled ? onSelecionar : undefined}
-            style={{
-                padding: "12px 14px", borderRadius: 10,
-                border: "2px solid",
-                borderColor: selecionado ? "var(--cyan-deep)" : "var(--border)",
-                background: selecionado ? "rgba(21,195,221,0.05)" : "var(--bg)",
-                cursor: disabled ? "not-allowed" : "pointer",
-                opacity: disabled ? 0.5 : 1,
-                transition: "all 0.15s",
-                display: "flex", alignItems: "flex-start", gap: 10,
-            }}>
-            <div style={{
-                width: 18, height: 18, borderRadius: "50%", flexShrink: 0, marginTop: 2,
-                border: "2px solid",
-                borderColor: selecionado ? "var(--cyan-deep)" : "var(--border)",
-                background: selecionado ? "var(--cyan-deep)" : "transparent",
-                position: "relative",
-            }}>
-                {selecionado && (
-                    <div style={{
-                        position: "absolute", top: "50%", left: "50%",
-                        transform: "translate(-50%, -50%)",
-                        width: 6, height: 6, borderRadius: "50%", background: "white",
-                    }}/>
-                )}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{
-                    display: "flex", alignItems: "center", gap: 8, marginBottom: 2,
-                    flexWrap: "wrap",
-                }}>
-                    <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>
-                        {regime.label}
-                    </span>
-                    {regime.cobertura === "parcial" && (
-                        <span style={{
-                            padding: "1px 6px", borderRadius: 4,
-                            fontSize: 9, fontWeight: 700,
-                            background: "rgba(212,160,23,0.10)",
-                            border: "1px solid rgba(212,160,23,0.25)",
-                            color: "#D4A017",
-                            textTransform: "uppercase", letterSpacing: "0.04em",
-                        }}>
-                            DAS em breve
-                        </span>
-                    )}
-                    {regime.cobertura === "limitada" && (
-                        <span style={{
-                            padding: "1px 6px", borderRadius: 4,
-                            fontSize: 9, fontWeight: 700,
-                            background: "rgba(148,163,184,0.10)",
-                            border: "1px solid rgba(148,163,184,0.25)",
-                            color: "#64748B",
-                            textTransform: "uppercase", letterSpacing: "0.04em",
-                        }}>
-                            básico
-                        </span>
-                    )}
-                </div>
-                <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{regime.descricao}</div>
-            </div>
-        </div>
-    );
-}
+/* ═════════════════════════════════════════════════════════════════════════════
+   Secao — bloco visual com header (ícone + título) e suporte a bloqueio
+   ═════════════════════════════════════════════════════════════════════════════ */
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Componente: Section (com suporte a bloqueio)
-// ─────────────────────────────────────────────────────────────────────────────
-function Section({ icon, titulo, children, bloqueada = false, hintBloqueio }) {
+function Secao({ icon, title, children, bloqueada = false, hintBloqueio }) {
     return (
-        <div style={{
-            padding: 20, borderRadius: 12, marginBottom: 16,
-            background: "var(--surface)",
-            border: "1px solid var(--border)",
-            opacity: bloqueada ? 0.65 : 1,
-            position: "relative",
-        }}>
-            <div style={{
-                display: "flex", alignItems: "center", gap: 8, marginBottom: 16,
-                paddingBottom: 12, borderBottom: "1px solid var(--border)",
-                justifyContent: "space-between",
-            }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ color: "var(--cyan-dark)", lineHeight: 0 }}>{icon}</span>
-                    <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "var(--text)" }}>{titulo}</h2>
+        <Card>
+            <Card.Header>
+                <div className="cfg-secao-head">
+                    <span className="cfg-secao-icon">{icon}</span>
+                    <Card.Title>{title}</Card.Title>
                 </div>
 
                 {bloqueada && (
-                    <span style={{
-                        display: "inline-flex", alignItems: "center", gap: 4,
-                        padding: "3px 8px", borderRadius: 999, fontSize: 10, fontWeight: 700,
-                        background: "rgba(148,163,184,0.10)",
-                        border: "1px solid rgba(148,163,184,0.25)",
-                        color: "#64748B",
-                        letterSpacing: "0.04em",
-                    }}>
-                        <LuLock size={11}/> BLOQUEADO
+                    <span className="cfg-secao-lock">
+                        <LuLock size={10}/> Bloqueado
                     </span>
                 )}
+            </Card.Header>
+
+            <Card.Body>
+                {bloqueada && hintBloqueio && (
+                    <div className="cfg-hint-bloqueio">
+                        <LuInfo size={13}/>
+                        <span>{hintBloqueio}</span>
+                    </div>
+                )}
+
+                <div className={bloqueada ? "cfg-secao-content cfg-secao-content--bloqueada" : "cfg-secao-content"}>
+                    {children}
+                </div>
+            </Card.Body>
+        </Card>
+    );
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   RegimeOption — radio card (label + descricao + badge de cobertura)
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+function RegimeOption({ regime, selecionado, disabled, onSelecionar }) {
+    return (
+        <div
+            className={`cfg-regime ${selecionado ? "cfg-regime--selected" : ""} ${disabled ? "cfg-regime--disabled" : ""}`}
+            onClick={!disabled ? onSelecionar : undefined}
+        >
+            <div className={`cfg-regime-radio ${selecionado ? "cfg-regime-radio--selected" : ""}`}>
+                {selecionado && <div className="cfg-regime-radio-inner"/>}
             </div>
 
-            {bloqueada && hintBloqueio && (
-                <div style={{
-                    padding: "10px 14px", borderRadius: 8, marginBottom: 16,
-                    background: "rgba(148,163,184,0.06)",
-                    border: "1px solid rgba(148,163,184,0.20)",
-                    fontSize: 12, color: "#64748B",
-                    display: "flex", alignItems: "center", gap: 6,
-                }}>
-                    <LuInfo size={13} style={{ flexShrink: 0 }}/>
-                    {hintBloqueio}
+            <div className="cfg-regime-text">
+                <div className="cfg-regime-head">
+                    <span className="cfg-regime-label">{regime.label}</span>
+                    {regime.cobertura === "parcial" && (
+                        <span className="cfg-regime-tag cfg-regime-tag--warning">DAS em breve</span>
+                    )}
+                    {regime.cobertura === "limitada" && (
+                        <span className="cfg-regime-tag cfg-regime-tag--neutral">Básico</span>
+                    )}
                 </div>
-            )}
-
-            {children}
+                <div className="cfg-regime-desc">{regime.descricao}</div>
+            </div>
         </div>
     );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Estilos
-// ─────────────────────────────────────────────────────────────────────────────
-const containerStyle = { maxWidth: 760, margin: "0 auto", padding: "32px 24px" };
-const labelStyle = {
-    display: "block", fontSize: 12, fontWeight: 600, color: "var(--text-dim)",
-    marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.04em",
-};
-const infoBoxStyle = {
-    padding: "10px 14px", borderRadius: 8, marginBottom: 16,
-    background: "rgba(21,195,221,0.04)",
-    border: "1px solid rgba(21,195,221,0.15)",
-    fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6,
-};
-const erroBoxStyle = {
-    padding: "10px 14px", borderRadius: 8, marginBottom: 16,
-    background: "rgba(220,38,38,0.06)", border: "1px solid rgba(220,38,38,0.20)",
-    color: "#DC2626", fontSize: 13,
-};
-const sucessoBoxStyle = {
-    padding: "10px 14px", borderRadius: 8, marginBottom: 16,
-    background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.20)",
-    color: "#10B981", fontSize: 13,
-};
+/* ═════════════════════════════════════════════════════════════════════════════
+   ESTILOS LOCAIS — escopo .cfg-*
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+const COMPONENT_CSS = `
+.cfg-container {
+    max-width: 760px;
+    padding-bottom: 80px;
+}
+
+.cfg-subtitulo {
+    margin: 0 0 20px;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--text-muted);
+    letter-spacing: -0.005em;
+}
+
+.cfg-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 80px 20px;
+    color: var(--text-dim);
+    font-size: 14px;
+}
+
+.cfg-spin {
+    animation: cfg-spin 1s linear infinite;
+}
+
+@keyframes cfg-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* ── Mensagens globais ───────────────────────────────────────────────── */
+
+.cfg-msg {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.cfg-msg svg {
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.cfg-msg--erro {
+    background: var(--error-bg);
+    border: 1px solid rgba(229, 72, 77, 0.2);
+    color: var(--error);
+}
+
+.cfg-msg--sucesso {
+    background: var(--success-bg);
+    border: 1px solid rgba(24, 178, 107, 0.25);
+    color: var(--success);
+}
+
+.cfg-msg--info {
+    background: var(--warning-bg);
+    border: 1px solid rgba(230, 162, 60, 0.25);
+    color: var(--ink-2);
+}
+
+.cfg-msg--info svg {
+    color: var(--warning);
+}
+
+.cfg-msg--info strong {
+    color: var(--warning);
+    font-weight: 700;
+}
+
+/* ── Section header (dentro do Card) ─────────────────────────────────── */
+
+.cfg-secao-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cfg-secao-icon {
+    color: var(--cyan-dark);
+    display: inline-flex;
+    line-height: 0;
+}
+
+.cfg-secao-lock {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 100px;
+    background: var(--bg);
+    border: 1px solid var(--hair);
+    font-family: var(--ff-mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+}
+
+.cfg-secao-content--bloqueada {
+    opacity: 0.55;
+    pointer-events: none;
+}
+
+.cfg-hint-bloqueio {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    background: var(--bg);
+    border: 1px solid var(--hair);
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--text-muted);
+}
+
+.cfg-hint-bloqueio svg {
+    flex-shrink: 0;
+    margin-top: 1px;
+    color: var(--text-dim);
+}
+
+/* ── Info box (dentro de seções) ─────────────────────────────────────── */
+
+.cfg-info-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    background: var(--cyan-soft);
+    border: 1px solid rgba(21, 195, 221, 0.15);
+    font-size: 12px;
+    line-height: 1.55;
+    color: var(--ink-2);
+}
+
+.cfg-info-box svg {
+    color: var(--cyan-dark);
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.cfg-info-box strong {
+    color: var(--navy-deep);
+    font-weight: 700;
+}
+
+/* ── Fields ──────────────────────────────────────────────────────────── */
+
+.cfg-field {
+    margin-bottom: 14px;
+}
+
+.cfg-field:last-child {
+    margin-bottom: 0;
+}
+
+.cfg-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    color: var(--ink-2);
+}
+
+.cfg-label-req {
+    color: var(--warning);
+    font-weight: 700;
+}
+
+.cfg-lock-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 100px;
+    background: var(--bg);
+    color: var(--text-dim);
+    font-family: var(--ff-mono);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.cfg-input {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1.5px solid var(--hair);
+    background: var(--surface);
+    color: var(--text);
+    font-family: var(--ff-sans);
+    font-size: 14px;
+    letter-spacing: -0.005em;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    box-sizing: border-box;
+}
+
+.cfg-input:focus {
+    border-color: var(--cyan);
+    box-shadow: 0 0 0 3px rgba(21, 195, 221, 0.1);
+}
+
+.cfg-input:disabled {
+    background: var(--bg);
+    color: var(--text-dim);
+    cursor: not-allowed;
+}
+
+.cfg-input--locked {
+    background: var(--bg);
+    color: var(--text-muted);
+    cursor: not-allowed;
+}
+
+.cfg-hint {
+    display: flex;
+    align-items: flex-start;
+    gap: 5px;
+    margin-top: 6px;
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--text-dim);
+}
+
+.cfg-hint svg {
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.cfg-hint strong {
+    color: var(--ink-2);
+    font-weight: 600;
+}
+
+/* ── Checkbox ────────────────────────────────────────────────────────── */
+
+.cfg-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--ink-2);
+    letter-spacing: -0.005em;
+}
+
+.cfg-checkbox input {
+    margin: 0;
+    width: 16px;
+    height: 16px;
+    accent-color: var(--cyan);
+    cursor: pointer;
+}
+
+.cfg-checkbox input:disabled {
+    cursor: not-allowed;
+}
+
+.cfg-checkbox--disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ── Regime cards ────────────────────────────────────────────────────── */
+
+.cfg-regime-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.cfg-regime {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1.5px solid var(--hair);
+    background: var(--surface);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.cfg-regime:hover:not(.cfg-regime--disabled) {
+    border-color: var(--text-dim);
+    background: var(--bg);
+}
+
+.cfg-regime--selected {
+    border-color: var(--cyan) !important;
+    background: var(--cyan-soft) !important;
+}
+
+.cfg-regime--disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.cfg-regime-radio {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 2px;
+    border: 2px solid var(--hair);
+    background: var(--surface);
+    position: relative;
+    transition: all 0.15s;
+}
+
+.cfg-regime-radio--selected {
+    border-color: var(--cyan);
+    background: var(--cyan);
+}
+
+.cfg-regime-radio-inner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: white;
+}
+
+.cfg-regime-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.cfg-regime-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 2px;
+}
+
+.cfg-regime-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--navy-deep);
+    letter-spacing: -0.005em;
+}
+
+.cfg-regime-tag {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: var(--ff-mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.cfg-regime-tag--warning {
+    background: var(--warning-bg);
+    color: var(--warning);
+}
+
+.cfg-regime-tag--neutral {
+    background: var(--bg);
+    color: var(--text-dim);
+}
+
+.cfg-regime-desc {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--text-muted);
+}
+
+/* ── DAS config (sub-bloco interno) ──────────────────────────────────── */
+
+.cfg-das-config {
+    margin-top: 12px;
+    padding: 16px;
+    border-radius: 10px;
+    background: var(--cyan-soft);
+    border: 1px solid rgba(21, 195, 221, 0.18);
+}
+
+.cfg-valor-efetivo {
+    margin-top: 14px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: var(--success-bg);
+    border: 1px solid rgba(24, 178, 107, 0.25);
+    font-size: 13px;
+    color: var(--ink-2);
+}
+
+.cfg-valor-efetivo strong {
+    color: var(--success);
+    font-weight: 700;
+}
+
+/* ── Footer com botão salvar ─────────────────────────────────────────── */
+
+.cfg-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--hair);
+}
+
+/* ── Responsivo ──────────────────────────────────────────────────────── */
+
+@media (max-width: 600px) {
+    .cfg-container {
+        padding-bottom: 100px;
+    }
+
+    .cfg-regime-head {
+        gap: 6px;
+    }
+
+    .cfg-footer {
+        position: sticky;
+        bottom: 0;
+        margin: 0 -20px -20px;
+        padding: 14px 20px;
+        background: var(--surface);
+        border-top: 1px solid var(--hair);
+        z-index: 10;
+    }
+
+    .cfg-footer .ph-btn {
+        flex: 1;
+        justify-content: center;
+    }
+}
+`;
