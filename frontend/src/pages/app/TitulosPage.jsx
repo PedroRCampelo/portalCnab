@@ -393,7 +393,7 @@ export default function TitulosPage() {
                         />
                         <button
                             className="ph-btn ph-btn--ghost"
-                            onClick={() => navigate("/relatorios-titulos")}
+                            onClick={() => navigate("/relatorios")}
                         >
                             <FaFileAlt size={14}/>
                             Relatórios
