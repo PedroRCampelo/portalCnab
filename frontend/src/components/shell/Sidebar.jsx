@@ -50,8 +50,8 @@ const MENU = [
     {
         label: "Relatórios",
         items: [
-            { to: "/relatorios-titulos", icon: LuFileText,        label: "Relatórios" },
-            { to: "/historico",          icon: LuClipboardList,   label: "Histórico CNAB" },
+            { to: "/relatorios", icon: LuFileText,      label: "Relatórios" },
+            { to: "/historico",  icon: LuClipboardList, label: "Histórico CNAB" },
         ],
     },
     {

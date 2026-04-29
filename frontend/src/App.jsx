@@ -28,7 +28,12 @@ import TitulosPage               from "./pages/app/TitulosPage.jsx";
 import TiposGastoPage            from "./pages/app/TiposGastoPage.jsx";
 import PreferenciasAlertaPage    from "./pages/app/PreferenciasAlertaPage.jsx";
 import GestaFinanceiraPage       from "./pages/app/GestaoFinanceiraPage.jsx";
-import RelatoriosTitulosPage     from "./pages/app/RelatoriosTitulosPage.jsx";
+
+import RelatoriosPage            from "./pages/app/RelatoriosPage.jsx";
+import AgingPagarPage            from "./pages/app/relatorios/AgingPagarPage.jsx";
+import PorTipoGastoPage          from "./pages/app/relatorios/PorTipoGastoPage.jsx";
+import PorFornecedorPage         from "./pages/app/relatorios/PorFornecedorPage.jsx";
+
 import HistoricoPage             from "./pages/app/HistoricoPage.jsx";
 import AssistenteCnabPage        from "./pages/app/AssistenteCnabPage.jsx";
 import CnabChatPage              from "./pages/app/CnabChatPage.jsx";
@@ -93,7 +98,16 @@ function AppShell() {
                         <Route path="/configuracoes"       element={<ProtectedRoute><ConfiguracoesPage/></ProtectedRoute>}/>
                         <Route path="/titulos"             element={<ProtectedRoute><TitulosPage/></ProtectedRoute>}/>
                         <Route path="/tipos-gasto"         element={<ProtectedRoute><TiposGastoPage/></ProtectedRoute>}/>
-                        <Route path="/relatorios-titulos"  element={<ProtectedRoute><RelatoriosTitulosPage/></ProtectedRoute>}/>
+
+                        {/* Central de Relatórios */}
+                        <Route path="/relatorios"                   element={<ProtectedRoute><RelatoriosPage/></ProtectedRoute>}/>
+                        <Route path="/relatorios/aging-pagar"       element={<ProtectedRoute><AgingPagarPage/></ProtectedRoute>}/>
+                        <Route path="/relatorios/por-tipo-gasto"    element={<ProtectedRoute><PorTipoGastoPage/></ProtectedRoute>}/>
+                        <Route path="/relatorios/por-fornecedor"    element={<ProtectedRoute><PorFornecedorPage/></ProtectedRoute>}/>
+
+                        {/* Rota legada redirecionando pra nova */}
+                        <Route path="/relatorios-titulos"   element={<ProtectedRoute><AgingPagarPage/></ProtectedRoute>}/>
+                        
                         <Route path="/preferencias-alerta" element={<ProtectedRoute><PreferenciasAlertaPage/></ProtectedRoute>}/>
                         <Route path="/historico"           element={<ProtectedRoute><HistoricoPage/></ProtectedRoute>}/>
                         <Route path="/gestao-financeira"   element={<GestaFinanceiraPage/>}/>
