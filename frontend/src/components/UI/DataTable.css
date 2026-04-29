@@ -1,0 +1,199 @@
+/* ═════════════════════════════════════════════════════════════════════════════
+   DataTable — Tabela densa pra listagens
+   Sprint A3.4 · Componentes base
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+.ui-table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--hair);
+    border-radius: 12px;
+    overflow: hidden;
+    overflow-x: auto;
+}
+
+.ui-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--ff-sans);
+    color: var(--ink-2);
+}
+
+/* ─── Cabeçalho ───────────────────────────────────────────────────────────── */
+
+.ui-table thead th {
+    background: var(--bg);
+    border-bottom: 1px solid var(--hair);
+    font-family: var(--ff-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    text-align: left;
+    vertical-align: middle;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.ui-table-th-content {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ui-table-sort-icon {
+    display: inline-flex;
+    align-items: center;
+    color: var(--text-dim);
+    opacity: 0.5;
+    transition: opacity 0.15s, color 0.15s;
+}
+
+.ui-table thead th:hover .ui-table-sort-icon {
+    opacity: 1;
+    color: var(--cyan-dark);
+}
+
+/* ─── Corpo ───────────────────────────────────────────────────────────────── */
+
+.ui-table tbody td {
+    border-bottom: 1px solid var(--hair);
+    vertical-align: middle;
+    font-size: 13px;
+    color: var(--navy-deep);
+    letter-spacing: -0.005em;
+}
+
+.ui-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Hover row */
+.ui-table.ui-table--hover tbody tr:hover {
+    background: var(--bg);
+}
+
+/* Click row */
+.ui-table-row--clickable {
+    cursor: pointer;
+}
+
+.ui-table-row--clickable:hover {
+    background: var(--cyan-soft) !important;
+}
+
+/* ─── Densidade ───────────────────────────────────────────────────────────── */
+
+.ui-table--default thead th { padding: 12px 16px; }
+.ui-table--default tbody td { padding: 14px 16px; }
+
+.ui-table--compact thead th { padding: 10px 14px; }
+.ui-table--compact tbody td { padding: 10px 14px; }
+
+.ui-table--comfortable thead th { padding: 14px 20px; }
+.ui-table--comfortable tbody td { padding: 18px 20px; }
+
+/* ─── Numbers tabulares ───────────────────────────────────────────────────── */
+
+.ui-table td:has(.ui-table-num),
+.ui-table .ui-table-num {
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+}
+
+/* ─── Skeleton (loading) ──────────────────────────────────────────────────── */
+
+.ui-table-skeleton {
+    height: 14px;
+    width: 70%;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--bg) 25%, var(--hair) 50%, var(--bg) 75%);
+    background-size: 200% 100%;
+    animation: skeletonShimmer 1.4s infinite;
+}
+
+@keyframes skeletonShimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   HELPERS — Componentes auxiliares pra usar dentro das células
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+/* Badge inline (usar com classes) */
+.ui-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 100px;
+    font-family: var(--ff-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+}
+
+.ui-badge--default { background: var(--cyan-soft); color: var(--cyan-dark); }
+.ui-badge--success { background: var(--success-bg); color: var(--success); }
+.ui-badge--warning { background: var(--warning-bg); color: var(--warning); }
+.ui-badge--error   { background: var(--error-bg);   color: var(--error); }
+.ui-badge--neutral { background: var(--bg);         color: var(--text-dim); }
+
+/* Avatar simples nas células */
+.ui-cell-avatar {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ui-cell-avatar-img {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--navy-deep);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    flex-shrink: 0;
+}
+
+.ui-cell-avatar-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.ui-cell-avatar-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--navy-deep);
+    letter-spacing: -0.005em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ui-cell-avatar-sub {
+    font-family: var(--ff-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 1px;
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   RESPONSIVO
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+    .ui-table--default thead th { padding: 10px 12px; }
+    .ui-table--default tbody td { padding: 12px; }
+
+    /* Em telas pequenas, tabela mantém scroll horizontal */
+    .ui-table-wrap { -webkit-overflow-scrolling: touch; }
+}

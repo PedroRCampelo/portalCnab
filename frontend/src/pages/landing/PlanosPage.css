@@ -1,0 +1,1046 @@
+/* ═════════════════════════════════════════════════════════════════════════════
+   PlanosPage — Whallet Pricing
+   Sprint A2.5 · Refatoração de planos
+
+   Estrutura:
+   - Hero com kicker mono
+   - Tabela comparativa (Free × Whallet+) com features agrupadas
+   - Banner "Whallet+ Time/Empresa em breve" (waitlist)
+   - FAQ (4-6 perguntas)
+   - CTA final
+   - Painel de assinatura (só pra logados)
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+.pp {
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 80px;
+}
+
+.pp-container {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 32px;
+}
+
+@media (max-width: 600px) {
+    .pp-container { padding: 0 20px; }
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   HERO
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+.pp-hero {
+    padding: 140px 0 60px;
+    position: relative;
+    text-align: center;
+}
+
+.pp-hero::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 1400px;
+    height: 100%;
+    background-image:
+            linear-gradient(rgba(11, 30, 54, 0.025) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(11, 30, 54, 0.025) 1px, transparent 1px);
+    background-size: 40px 40px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black, transparent);
+    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black, transparent);
+    pointer-events: none;
+}
+
+.pp-hero-inner {
+    position: relative;
+    z-index: 2;
+}
+
+.pp-hero-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--ff-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--cyan-dark);
+    margin-bottom: 28px;
+}
+
+.pp-hero-kicker::before,
+.pp-hero-kicker::after {
+    content: "";
+    width: 24px;
+    height: 1px;
+    background: var(--cyan-dark);
+}
+
+.pp-hero-title {
+    margin: 0 0 16px;
+    font-family: var(--ff-sans);
+    font-size: clamp(32px, 5vw, 56px);
+    font-weight: 500;
+    line-height: 1.05;
+    letter-spacing: -0.035em;
+    color: var(--navy-deep);
+}
+
+.pp-hero-title em {
+    font-family: var(--ff-serif);
+    font-style: italic;
+    color: var(--cyan-dark);
+    font-weight: 400;
+}
+
+.pp-hero-sub {
+    margin: 0 auto 0;
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--text-muted);
+    max-width: 540px;
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   TABELA COMPARATIVA
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+.pp-table-wrap {
+    margin: 60px 0 80px;
+    border: 1px solid var(--hair);
+    border-radius: 20px;
+    background: var(--surface);
+    overflow: hidden;
+    box-shadow: 0 16px 48px rgba(11, 30, 54, 0.04);
+}
+
+/* Header da tabela com colunas dos planos */
+.pp-table-header {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr;
+    border-bottom: 1px solid var(--hair);
+    position: relative;
+}
+
+.pp-table-header-cell {
+    padding: 32px 28px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    position: relative;
+}
+
+.pp-table-header-cell:not(:last-child) {
+    border-right: 1px solid var(--hair);
+}
+
+/* Coluna Whallet+ destacada */
+.pp-table-header-cell.featured {
+    background: linear-gradient(180deg, rgba(21, 195, 221, 0.04), transparent);
+}
+
+.pp-plan-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    align-self: flex-start;
+    padding: 4px 10px;
+    border-radius: 100px;
+    background: var(--cyan-dark);
+    color: white;
+    font-family: var(--ff-mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.pp-plan-name {
+    font-family: var(--ff-sans);
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--navy-deep);
+    letter-spacing: -0.02em;
+    margin: 0;
+}
+
+.pp-plan-price {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    margin-top: 4px;
+}
+
+.pp-plan-price-value {
+    font-family: var(--ff-sans);
+    font-size: 36px;
+    font-weight: 600;
+    color: var(--navy-deep);
+    letter-spacing: -0.03em;
+    line-height: 1;
+}
+
+.pp-plan-price-period {
+    font-family: var(--ff-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.04em;
+}
+
+.pp-plan-trial {
+    font-family: var(--ff-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--cyan-dark);
+    margin-top: 6px;
+}
+
+.pp-plan-cta {
+    margin-top: 16px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: none;
+    font-family: var(--ff-sans);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+    text-align: center;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.pp-plan-cta--primary {
+    background: var(--navy-deep);
+    color: white;
+}
+.pp-plan-cta--primary:hover:not(:disabled) {
+    background: var(--navy);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(11, 30, 54, 0.2);
+}
+
+.pp-plan-cta--ghost {
+    background: var(--surface);
+    color: var(--navy-deep);
+    border: 1.5px solid var(--hair);
+}
+.pp-plan-cta--ghost:hover:not(:disabled) {
+    border-color: var(--navy-deep);
+    background: var(--bg);
+}
+
+.pp-plan-cta--current {
+    background: var(--cyan-soft);
+    color: var(--cyan-dark);
+    cursor: default;
+    pointer-events: none;
+}
+
+.pp-plan-cta:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Body da tabela com features agrupadas */
+.pp-table-body {
+    /* Sem padding — o grid abaixo cuida disso */
+}
+
+.pp-feature-group-title {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr;
+    background: var(--bg);
+    border-top: 1px solid var(--hair);
+}
+
+.pp-feature-group-title:first-child { border-top: none; }
+
+.pp-feature-group-title-cell {
+    padding: 14px 28px;
+    font-family: var(--ff-mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--cyan-dark);
+    font-weight: 600;
+}
+
+.pp-feature-group-title-cell:not(:last-child) {
+    border-right: 1px solid var(--hair);
+}
+
+.pp-feature-row {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr;
+    border-top: 1px solid var(--hair);
+    transition: background 0.15s;
+}
+
+.pp-feature-row:hover {
+    background: rgba(21, 195, 221, 0.02);
+}
+
+.pp-feature-cell {
+    padding: 14px 28px;
+    font-size: 14px;
+    color: var(--ink-2);
+    line-height: 1.5;
+    display: flex;
+    align-items: center;
+}
+
+.pp-feature-cell:not(:last-child) {
+    border-right: 1px solid var(--hair);
+}
+
+.pp-feature-cell.feature-name {
+    color: var(--navy-deep);
+    font-weight: 500;
+}
+
+.pp-feature-cell.feature-name small {
+    color: var(--text-dim);
+    font-weight: 400;
+    font-size: 12px;
+    margin-left: 8px;
+}
+
+.pp-feature-cell.value {
+    font-family: var(--ff-mono);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    justify-content: center;
+}
+
+.pp-feature-cell.value.included {
+    color: var(--success);
+}
+
+.pp-feature-cell.value.excluded {
+    color: var(--text-dim);
+}
+
+.pp-feature-cell.value.featured {
+    background: linear-gradient(180deg, rgba(21, 195, 221, 0.02), transparent);
+}
+
+.pp-icon-check {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(24, 178, 107, 0.1);
+    color: var(--success);
+    font-weight: 700;
+    font-size: 11px;
+}
+
+.pp-icon-x {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--surface-2);
+    color: var(--text-dim);
+    font-size: 11px;
+}
+
+/* Tabela em mobile: stack vertical (cards) */
+@media (max-width: 800px) {
+    .pp-table-wrap {
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+        margin: 40px -20px 60px;
+    }
+
+    .pp-table-header,
+    .pp-feature-group-title,
+    .pp-feature-row {
+        grid-template-columns: 1fr;
+    }
+
+    .pp-table-header-cell,
+    .pp-feature-group-title-cell,
+    .pp-feature-cell {
+        border-right: none !important;
+        border-bottom: 1px solid var(--hair);
+    }
+
+    /* Em mobile, esconde primeira coluna (nome da feature) e duplica
+       plano em cima de cada bloco — UX simplificada de pricing mobile */
+    .pp-table-header-cell:first-child {
+        display: none;
+    }
+
+    .pp-feature-row .pp-feature-cell.feature-name {
+        background: var(--bg);
+        font-weight: 600;
+        font-size: 13px;
+        padding: 10px 28px;
+    }
+
+    .pp-feature-row .pp-feature-cell.value {
+        justify-content: flex-start;
+        padding: 8px 28px;
+        font-size: 13px;
+    }
+
+    .pp-feature-row .pp-feature-cell.value::before {
+        content: attr(data-plan);
+        font-family: var(--ff-mono);
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--text-dim);
+        margin-right: 12px;
+        min-width: 70px;
+    }
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   WAITLIST — Time / Empresa
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+.pp-waitlist {
+    margin: 0 0 80px;
+    padding: 48px;
+    border-radius: 20px;
+    background: var(--navy-deep);
+    color: white;
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: center;
+}
+
+.pp-waitlist::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+            linear-gradient(rgba(21, 195, 221, 0.04) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(21, 195, 221, 0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+}
+
+.pp-waitlist::after {
+    content: "";
+    position: absolute;
+    bottom: -100px;
+    right: -100px;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(21, 195, 221, 0.15), transparent 60%);
+    pointer-events: none;
+}
+
+.pp-waitlist-content {
+    position: relative;
+    z-index: 2;
+}
+
+.pp-waitlist-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--ff-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 20px;
+}
+
+.pp-waitlist-eyebrow::before {
+    content: "";
+    width: 24px;
+    height: 1px;
+    background: var(--cyan);
+}
+
+.pp-waitlist-title {
+    font-family: var(--ff-sans);
+    font-size: clamp(24px, 3vw, 32px);
+    font-weight: 500;
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+    color: white;
+    margin: 0 0 14px;
+}
+
+.pp-waitlist-title em {
+    font-family: var(--ff-serif);
+    font-style: italic;
+    color: var(--cyan);
+    font-weight: 400;
+}
+
+.pp-waitlist-desc {
+    font-size: 15px;
+    line-height: 1.55;
+    color: rgba(255, 255, 255, 0.65);
+    margin: 0 0 24px;
+}
+
+.pp-waitlist-tiers {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 0;
+}
+
+.pp-waitlist-tier {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.pp-waitlist-tier-num {
+    font-family: var(--ff-mono);
+    font-size: 11px;
+    color: var(--cyan);
+    letter-spacing: 0.08em;
+    min-width: 50px;
+}
+
+.pp-waitlist-tier strong {
+    font-weight: 600;
+    color: white;
+    margin-right: 4px;
+}
+
+.pp-waitlist-tier-meta {
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 12px;
+}
+
+/* Form de waitlist */
+.pp-waitlist-form {
+    position: relative;
+    z-index: 2;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 28px;
+    backdrop-filter: blur(8px);
+}
+
+.pp-waitlist-form-label {
+    font-family: var(--ff-mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 12px;
+    display: block;
+}
+
+.pp-waitlist-form-row {
+    display: flex;
+    gap: 8px;
+}
+
+.pp-waitlist-form-input {
+    flex: 1;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1.5px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+    font-family: var(--ff-sans);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.pp-waitlist-form-input:focus {
+    border-color: var(--cyan);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.pp-waitlist-form-input::placeholder {
+    color: rgba(255, 255, 255, 0.35);
+}
+
+.pp-waitlist-form-button {
+    padding: 12px 20px;
+    border-radius: 10px;
+    border: none;
+    background: var(--cyan);
+    color: var(--navy-deep);
+    font-family: var(--ff-sans);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.15s;
+    white-space: nowrap;
+}
+
+.pp-waitlist-form-button:hover:not(:disabled) {
+    background: var(--cyan-light);
+    transform: translateY(-1px);
+}
+
+.pp-waitlist-form-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pp-waitlist-form-success {
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: rgba(24, 178, 107, 0.1);
+    border: 1px solid rgba(24, 178, 107, 0.25);
+    color: var(--success);
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pp-waitlist-form-meta {
+    margin-top: 10px;
+    font-family: var(--ff-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+@media (max-width: 800px) {
+    .pp-waitlist {
+        grid-template-columns: 1fr;
+        padding: 36px 28px;
+        gap: 32px;
+    }
+}
+
+@media (max-width: 480px) {
+    .pp-waitlist-form-row {
+        flex-direction: column;
+    }
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   FAQ
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+.pp-faq {
+    margin: 0 0 80px;
+}
+
+.pp-faq-head {
+    text-align: center;
+    margin-bottom: 48px;
+}
+
+.pp-faq-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--ff-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--cyan-dark);
+    margin-bottom: 16px;
+}
+
+.pp-faq-eyebrow::before,
+.pp-faq-eyebrow::after {
+    content: "";
+    width: 24px;
+    height: 1px;
+    background: var(--cyan-dark);
+}
+
+.pp-faq-title {
+    font-family: var(--ff-sans);
+    font-size: clamp(28px, 4vw, 40px);
+    font-weight: 500;
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+    color: var(--navy-deep);
+    margin: 0;
+}
+
+.pp-faq-title em {
+    font-family: var(--ff-serif);
+    font-style: italic;
+    color: var(--cyan-dark);
+    font-weight: 400;
+}
+
+.pp-faq-list {
+    max-width: 760px;
+    margin: 0 auto;
+}
+
+.pp-faq-item {
+    border-bottom: 1px solid var(--hair);
+    padding: 0;
+}
+
+.pp-faq-item:first-child {
+    border-top: 1px solid var(--hair);
+}
+
+.pp-faq-button {
+    width: 100%;
+    padding: 24px 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+    font-family: var(--ff-sans);
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--navy-deep);
+    text-align: left;
+    transition: color 0.15s;
+}
+
+.pp-faq-button:hover {
+    color: var(--cyan-dark);
+}
+
+.pp-faq-icon {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1.5px solid var(--hair);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text-muted);
+    transition: transform 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.pp-faq-item.open .pp-faq-icon {
+    transform: rotate(45deg);
+    border-color: var(--cyan-dark);
+    color: var(--cyan-dark);
+}
+
+.pp-faq-answer {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+}
+
+.pp-faq-item.open .pp-faq-answer {
+    max-height: 400px;
+    padding: 0 0 24px;
+}
+
+.pp-faq-answer p {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text-muted);
+    max-width: 640px;
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   PAINEL DE ASSINATURA (só pra logado com Whallet+)
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+.pp-billing {
+    margin: 80px 0 0;
+    padding: 32px;
+    border-radius: 16px;
+    background: var(--surface);
+    border: 1px solid var(--hair);
+}
+
+.pp-billing-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 24px;
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--hair);
+    flex-wrap: wrap;
+}
+
+.pp-billing-title {
+    font-family: var(--ff-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--cyan-dark);
+    margin: 0 0 4px;
+}
+
+.pp-billing-name {
+    font-family: var(--ff-sans);
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--navy-deep);
+    margin: 0;
+}
+
+.pp-billing-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 100px;
+    font-family: var(--ff-mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.pp-billing-status.active {
+    background: rgba(24, 178, 107, 0.1);
+    color: var(--success);
+}
+
+.pp-billing-status.cancelling {
+    background: var(--warning-bg);
+    color: var(--warning);
+}
+
+.pp-billing-info {
+    padding: 14px 16px;
+    border-radius: 10px;
+    background: var(--bg);
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+}
+
+.pp-billing-info strong {
+    color: var(--navy-deep);
+    font-weight: 600;
+}
+
+.pp-billing-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.pp-billing-btn {
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-family: var(--ff-sans);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: 1.5px solid;
+    background: transparent;
+}
+
+.pp-billing-btn--ghost {
+    border-color: var(--hair);
+    color: var(--text-muted);
+}
+.pp-billing-btn--ghost:hover:not(:disabled) {
+    border-color: var(--text-dim);
+    color: var(--navy-deep);
+}
+
+.pp-billing-btn--danger {
+    border-color: rgba(229, 72, 77, 0.25);
+    color: var(--error);
+}
+.pp-billing-btn--danger:hover:not(:disabled) {
+    border-color: var(--error);
+    background: var(--error-bg);
+}
+
+/* Histórico de pagamentos */
+.pp-billing-history {
+    margin-top: 24px;
+}
+
+.pp-billing-history-title {
+    font-family: var(--ff-mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+}
+
+.pp-billing-history-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.pp-billing-history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--hair);
+    font-size: 13px;
+}
+
+.pp-billing-history-item:last-child {
+    border-bottom: none;
+}
+
+.pp-billing-history-date {
+    color: var(--text-muted);
+    font-family: var(--ff-mono);
+    font-size: 12px;
+}
+
+.pp-billing-history-value {
+    font-weight: 600;
+    color: var(--navy-deep);
+    font-variant-numeric: tabular-nums;
+}
+
+.pp-billing-history-status {
+    font-family: var(--ff-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--success);
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   MODAL CANCELAMENTO
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+.pp-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(11, 30, 54, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.pp-modal {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 440px;
+    width: 100%;
+    box-shadow: 0 32px 64px rgba(0, 0, 0, 0.2);
+}
+
+.pp-modal-title {
+    font-family: var(--ff-sans);
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--navy-deep);
+    margin: 0 0 12px;
+    letter-spacing: -0.02em;
+}
+
+.pp-modal-desc {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-muted);
+    margin: 0 0 24px;
+}
+
+.pp-modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   CTA FINAL
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+.pp-cta-final {
+    margin: 80px 0 0;
+    padding: 60px 32px;
+    text-align: center;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(21, 195, 221, 0.06), rgba(21, 195, 221, 0.02));
+    border: 1px solid rgba(21, 195, 221, 0.18);
+}
+
+.pp-cta-final-title {
+    font-family: var(--ff-sans);
+    font-size: clamp(24px, 3.5vw, 36px);
+    font-weight: 500;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+    color: var(--navy-deep);
+    margin: 0 0 24px;
+}
+
+.pp-cta-final-title em {
+    font-family: var(--ff-serif);
+    font-style: italic;
+    color: var(--cyan-dark);
+    font-weight: 400;
+}
+
+.pp-cta-final-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 32px;
+    border-radius: 100px;
+    border: none;
+    background: var(--navy-deep);
+    color: white;
+    font-family: var(--ff-sans);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.pp-cta-final-button:hover {
+    background: var(--navy);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(11, 30, 54, 0.2);
+}
+
+.pp-cta-final-meta {
+    margin-top: 14px;
+    font-family: var(--ff-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+}

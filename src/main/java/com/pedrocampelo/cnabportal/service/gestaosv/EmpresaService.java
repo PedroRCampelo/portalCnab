@@ -2,7 +2,9 @@ package com.pedrocampelo.cnabportal.service.gestaosv;
 
 import com.pedrocampelo.cnabportal.dto.EmpresaDtos.EmpresaResponse;
 import com.pedrocampelo.cnabportal.dto.EmpresaDtos.EmpresaUpdateRequest;
+import com.pedrocampelo.cnabportal.model.CategoriaMei;
 import com.pedrocampelo.cnabportal.model.Empresa;
+import com.pedrocampelo.cnabportal.model.RegimeTributario;
 import com.pedrocampelo.cnabportal.model.Usuario;
 import com.pedrocampelo.cnabportal.repository.EmpresaRepository;
 import com.pedrocampelo.cnabportal.util.CnpjValidator;
@@ -18,11 +20,15 @@ import java.util.Optional;
 /**
  * Service de gestão da empresa (tenant) do MEI.
  *
- * Sprint 2.2-A1.3: validação de CNPJ + regra de imutabilidade
- *   - CNPJ pode ser cadastrado livremente (1ª vez)
- *   - Depois de cadastrado, NÃO pode ser alterado pelo MEI
- *     (evita quebrar boletos/notas com CNPJ trocado)
- *   - Bloqueia duplicidade: 1 CNPJ = 1 Empresa
+ * Sprint 2.2-A1.5: refatorado pra regime tributário escalável.
+ *
+ * Regras por regime:
+ *   - NENHUM            → só nome + CNPJ; sem limite, sem DAS
+ *   - MEI               → limite=81000 sugerido, DAS opcional, categoria obrigatória se DAS ativo
+ *   - SIMPLES_NACIONAL  → limite=360000/4800000 (futuro)
+ *   - LUCRO_PRESUMIDO   → futuro
+ *   - LUCRO_REAL        → futuro
+ *   - OUTRO             → MEI configura manualmente
  */
 @Service
 @RequiredArgsConstructor
@@ -31,10 +37,10 @@ public class EmpresaService {
 
     private final EmpresaRepository empresaRepository;
 
-    // Valores padrão de DAS por categoria
-    private static final BigDecimal DAS_COMERCIO_INDUSTRIA = new BigDecimal("76.90");
-    private static final BigDecimal DAS_SERVICOS           = new BigDecimal("80.90");
-    private static final BigDecimal DAS_AMBOS              = new BigDecimal("81.90");
+    // Limites legais por regime (referência 2025/2026)
+    private static final BigDecimal LIMITE_MEI                = new BigDecimal("81000.00");
+    private static final BigDecimal LIMITE_SIMPLES_NACIONAL_ME  = new BigDecimal("360000.00");
+    // EPP = 4.800.000 — não usado ainda
 
     @Transactional(readOnly = true)
     public EmpresaResponse buscarMinha(Usuario usuario) {
@@ -53,20 +59,17 @@ public class EmpresaService {
             empresa.setNome(request.nome().trim());
         }
 
-        // ── CNPJ ──────────────────────────────────────────────────────────────
+        // ── CNPJ (regra de imutabilidade — A1.3) ──────────────────────────────
         if (request.cnpj() != null) {
             String cnpjLimpo = CnpjValidator.apenasDigitos(request.cnpj());
 
             if (cnpjLimpo.isEmpty()) {
-                // MEI mandou CNPJ vazio explicitamente
                 if (empresa.getCnpj() != null) {
                     throw new IllegalArgumentException(
                             "CNPJ não pode ser removido. Para alterar, entre em contato com o suporte."
                     );
                 }
-                // Se já era null, ignora (sem mudança)
             } else {
-                // Tem CNPJ pra validar/salvar
                 String cnpjFormatado;
                 try {
                     cnpjFormatado = CnpjValidator.normalizar(cnpjLimpo);
@@ -74,7 +77,6 @@ public class EmpresaService {
                     throw new IllegalArgumentException("CNPJ inválido: " + e.getMessage());
                 }
 
-                // REGRA: se empresa já tem CNPJ, NÃO permite mudar
                 if (empresa.getCnpj() != null && !empresa.getCnpj().equals(cnpjFormatado)) {
                     throw new IllegalArgumentException(
                             "CNPJ já cadastrado não pode ser alterado. " +
@@ -82,9 +84,7 @@ public class EmpresaService {
                     );
                 }
 
-                // 1ª vez cadastrando OU mesmo CNPJ (idempotente)
                 if (empresa.getCnpj() == null) {
-                    // Verifica duplicidade SÓ na primeira vez
                     Optional<Empresa> existente = empresaRepository.findByCnpj(cnpjFormatado);
                     if (existente.isPresent() && !existente.get().getId().equals(empresa.getId())) {
                         throw new IllegalArgumentException(
@@ -97,50 +97,78 @@ public class EmpresaService {
             }
         }
 
-        // ── Limite anual MEI ──────────────────────────────────────────────────
-        if (request.limiteAnualMei() != null) {
-            if (request.limiteAnualMei().compareTo(BigDecimal.ZERO) <= 0) {
-                throw new IllegalArgumentException("Limite anual MEI deve ser maior que zero");
+        // ── Regime tributário ─────────────────────────────────────────────────
+        if (request.regimeTributario() != null) {
+            RegimeTributario novoRegime = request.regimeTributario();
+            RegimeTributario regimeAnterior = empresa.getRegimeTributario();
+
+            empresa.setRegimeTributario(novoRegime);
+
+            // Se mudou de MEI pra outro regime, limpa sub-campos MEI
+            if (regimeAnterior == RegimeTributario.MEI && novoRegime != RegimeTributario.MEI) {
+                empresa.setMeiCategoria(null);
+                empresa.setMeiValorDasMensal(null);
+                empresa.setDasAtivo(false);  // DAS atual é só MEI
+                log.info("Empresa {} mudou de MEI pra {}: limpando sub-campos MEI",
+                        empresa.getId(), novoRegime);
             }
-            empresa.setLimiteAnualMei(request.limiteAnualMei());
+
+            // Sugere limite default ao trocar pra regime conhecido
+            if (empresa.getLimiteFaturamentoAnual() == null) {
+                BigDecimal sugerido = limitePadraoRegime(novoRegime);
+                if (sugerido != null) {
+                    empresa.setLimiteFaturamentoAnual(sugerido);
+                }
+            }
         }
 
-        // ── DAS — toggle e categoria ──────────────────────────────────────────
+        // ── Limite faturamento anual ──────────────────────────────────────────
+        if (request.limiteFaturamentoAnual() != null) {
+            if (request.limiteFaturamentoAnual().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException("Limite anual deve ser maior que zero");
+            }
+            empresa.setLimiteFaturamentoAnual(request.limiteFaturamentoAnual());
+        }
+
+        // ── Sub-campos MEI ────────────────────────────────────────────────────
+        if (empresa.getRegimeTributario() == RegimeTributario.MEI) {
+            // Categoria MEI
+            if (request.meiCategoria() != null) {
+                empresa.setMeiCategoria(request.meiCategoria());
+            }
+
+            // Valor DAS manual (override)
+            if (Boolean.TRUE.equals(request.meiValorDasMensalEditado())) {
+                empresa.setMeiValorDasMensal(request.meiValorDasMensal());  // pode ser null
+            }
+        }
+
+        // ── DAS toggle ────────────────────────────────────────────────────────
         if (request.dasAtivo() != null) {
             boolean novoDasAtivo = request.dasAtivo();
 
             if (novoDasAtivo) {
-                String cat = request.dasCategoria();
-                if (cat == null || cat.isBlank()) {
+                // Hoje, só MEI tem DAS implementado
+                if (empresa.getRegimeTributario() != RegimeTributario.MEI) {
                     throw new IllegalArgumentException(
-                            "Categoria do DAS é obrigatória ao ativar o controle (COMERCIO_INDUSTRIA, SERVICOS ou AMBOS)"
+                            "DAS automático disponível apenas para regime MEI nesta versão. " +
+                                    "Suporte a Simples Nacional em breve."
                     );
                 }
-                if (!isCategoriaValida(cat)) {
+                if (empresa.getMeiCategoria() == null) {
                     throw new IllegalArgumentException(
-                            "Categoria DAS inválida. Use COMERCIO_INDUSTRIA, SERVICOS ou AMBOS"
+                            "Selecione a categoria MEI antes de ativar o DAS"
                     );
                 }
                 empresa.setDasAtivo(true);
-                empresa.setDasCategoria(cat);
             } else {
                 empresa.setDasAtivo(false);
             }
-        } else if (request.dasCategoria() != null) {
-            if (!isCategoriaValida(request.dasCategoria())) {
-                throw new IllegalArgumentException("Categoria DAS inválida");
-            }
-            empresa.setDasCategoria(request.dasCategoria());
-        }
-
-        // ── Valor DAS manual ──────────────────────────────────────────────────
-        if (request.dasValorMensalEditado() != null && request.dasValorMensalEditado()) {
-            empresa.setDasValorMensal(request.dasValorMensal());
         }
 
         Empresa salva = empresaRepository.save(empresa);
-        log.info("Empresa atualizada: {} (cnpj={}, dasAtivo={}, limite={})",
-                salva.getId(), salva.getCnpj(), salva.getDasAtivo(), salva.getLimiteAnualMei());
+        log.info("Empresa atualizada: {} (regime={}, dasAtivo={})",
+                salva.getId(), salva.getRegimeTributario(), salva.getDasAtivo());
 
         return EmpresaResponse.from(salva, valorDasEfetivo(salva));
     }
@@ -149,25 +177,36 @@ public class EmpresaService {
     // Helpers
     // ─────────────────────────────────────────────────────────────────────────
 
+    /**
+     * Calcula valor efetivo do DAS:
+     *   - DAS desativado: null
+     *   - MEI com override manual: usa o override
+     *   - MEI sem override: usa valor padrão da categoria
+     *   - Outros regimes: null por enquanto (DAS percentual fica pra futuro)
+     */
     public BigDecimal valorDasEfetivo(Empresa empresa) {
         if (!Boolean.TRUE.equals(empresa.getDasAtivo())) return null;
-        if (empresa.getDasValorMensal() != null) return empresa.getDasValorMensal();
-        return valorPadraoCategoria(empresa.getDasCategoria());
+        if (empresa.getRegimeTributario() != RegimeTributario.MEI) return null;
+
+        if (empresa.getMeiValorDasMensal() != null) {
+            return empresa.getMeiValorDasMensal();
+        }
+
+        CategoriaMei cat = empresa.getMeiCategoria();
+        return cat != null ? cat.getValorDasPadrao() : null;
     }
 
-    public BigDecimal valorPadraoCategoria(String categoria) {
-        if (categoria == null) return null;
-        return switch (categoria) {
-            case "COMERCIO_INDUSTRIA" -> DAS_COMERCIO_INDUSTRIA;
-            case "SERVICOS"           -> DAS_SERVICOS;
-            case "AMBOS"              -> DAS_AMBOS;
-            default                   -> null;
+    /**
+     * Limite anual padrão do regime (referência 2025/2026).
+     */
+    public BigDecimal limitePadraoRegime(RegimeTributario regime) {
+        if (regime == null) return null;
+        return switch (regime) {
+            case MEI                -> LIMITE_MEI;
+            case SIMPLES_NACIONAL   -> LIMITE_SIMPLES_NACIONAL_ME;  // ME default
+            // Lucro Presumido/Real não tem limite legal universal — fica null
+            // OUTRO/NENHUM também null
+            default                 -> null;
         };
-    }
-
-    private boolean isCategoriaValida(String cat) {
-        return "COMERCIO_INDUSTRIA".equals(cat)
-                || "SERVICOS".equals(cat)
-                || "AMBOS".equals(cat);
     }
 }
