@@ -1,80 +1,140 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import BankForm from "../../components/BankForm.jsx";
+import { LuFileText } from "react-icons/lu";
+import BankForm      from "../../components/BankForm.jsx";
 import BannerAnonimo from "../../components/BannerAnonimo.jsx";
-import { LuLightbulb, LuCircleCheck } from "react-icons/lu";
-import { IcoPdf, IcoBack } from "../../components/icons.jsx";
-import { useAuth } from "../../context/AuthContext.jsx";
+import { useAuth }   from "../../context/AuthContext.jsx";
 
+import ToolLayout                          from "./_ToolLayout.jsx";
+import { FormCard, InfoCard, InfoTip }     from "./_shared.jsx";
+import ConversionCta                       from "./_ConversionCta.jsx";
+import { useSeo, useSchemaMarkup, SCHEMA_BASE_APP } from "./_seo.jsx";
+
+/**
+ * PdfPage — Geração de relatório PDF analítico do CNAB
+ * Sprint A3.6.14 + A3.6.15 · Refatoração + SEO/Marketing
+ */
 export default function PdfPage() {
-  const [bloqueado, setBloqueado] = useState(false);
-  const { autenticado } = useAuth();
+    const [bloqueado, setBloqueado] = useState(false);
+    const { autenticado } = useAuth();
 
-  useEffect(() => {
-    document.title = "Relatório PDF analítico CNAB — Whallet Portal CNAB";
-    document.querySelector('meta[name="description"]')
-        ?.setAttribute("content",
+    /* ─── SEO ─────────────────────────────────────────────────────────── */
+
+    useSeo({
+        title: "Relatório PDF analítico de CNAB grátis · Whallet",
+        description:
             "Gere relatórios PDF analíticos de arquivos CNAB com resumo executivo, " +
-            "alertas automáticos de inconsistências, distribuição mensal e top favorecidos.");
-  }, []);
+            "9 categorias de alertas automáticos, distribuição mensal, top favorecidos " +
+            "e KPIs financeiros. Grátis, sem cadastro pra começar.",
+        keywords: [
+            "relatorio cnab",
+            "analise cnab",
+            "pdf cnab",
+            "alertas cnab",
+            "cnab 240",
+            "cnab 400",
+            "auditoria cnab",
+        ],
+        canonical: "/pdf",
+    });
 
-  return (
-      <div className="tool-page">
-        <div className="tool-page-header">
-          <Link to="/" className="back-btn">
-            <IcoBack/> Voltar
-          </Link>
-          <div className="tool-page-title">
-            <div className="tool-page-icon tool-page-icon--pdf"><IcoPdf/></div>
-            <div>
-              <h1>Relatório PDF analítico</h1>
-              <p>Análise completa da remessa com alertas e resumo executivo</p>
+    useSchemaMarkup({
+        ...SCHEMA_BASE_APP,
+        name: "Gerador de Relatório PDF para CNAB",
+        description: "Ferramenta gratuita para gerar análise PDF de arquivos CNAB",
+        url: "https://whallet.com.br/pdf",
+        featureList: [
+            "Resumo executivo com KPIs",
+            "9 categorias de alertas automáticos",
+            "Distribuição por segmento",
+            "Linha do tempo mensal",
+            "Top favorecidos e sacados",
+        ],
+    });
+
+    /* ─── Render ──────────────────────────────────────────────────────── */
+
+    return (
+        <ToolLayout
+            icon={<LuFileText size={26}/>}
+            iconColor="pdf"
+            title="Relatório PDF analítico"
+            subtitle="Análise completa da remessa com alertas automáticos e resumo executivo"
+        >
+            <div className="pdf-layout">
+
+                {/* Coluna 1: Form */}
+                <div>
+                    {!autenticado && (
+                        <BannerAnonimo onLimiteBloqueado={() => setBloqueado(true)}/>
+                    )}
+
+                    <FormCard>
+                        <BankForm toolMode="pdf" desabilitado={bloqueado}/>
+                    </FormCard>
+                </div>
+
+                {/* Coluna 2: Info */}
+                <aside className="pdf-info">
+                    <InfoCard
+                        title="Seções do relatório"
+                        items={[
+                            "Capa com logo, empresa e metadados",
+                            "Resumo executivo — valor total, médias, KPIs",
+                            "Distribuição por segmento com proporção",
+                            "Linha do tempo mensal",
+                            "Alertas automáticos por severidade",
+                            "Top favorecidos / sacados",
+                        ]}
+                    />
+
+                    <InfoCard
+                        title="Alertas detectados automaticamente"
+                        items={[
+                            { severity: "critico", severityLabel: "Crítico", text: "Nosso Número duplicado" },
+                            { severity: "critico", severityLabel: "Crítico", text: "Datas inválidas" },
+                            { severity: "atencao", severityLabel: "Atenção", text: "Vencimentos no passado" },
+                            { severity: "atencao", severityLabel: "Atenção", text: "Valores discrepantes" },
+                            { severity: "atencao", severityLabel: "Atenção", text: "Valor zero" },
+                            { severity: "info",    severityLabel: "Info",    text: "Ocorrências no retorno" },
+                        ]}
+                    />
+
+                    <InfoTip>
+                        Prefere uma planilha para edição?{" "}
+                        <Link to="/excel">Exportar para Excel</Link>.
+                    </InfoTip>
+                </aside>
             </div>
-          </div>
-        </div>
 
-        <div className="tool-page-body">
-          <div className="tool-page-form">
+            {/* CTA pós-conversão (auto-aparece após sucesso) */}
+            <ConversionCta/>
 
-            {!autenticado &&
-                <BannerAnonimo onLimiteBloqueado={() => setBloqueado(true)}/>
-            }
-
-            <BankForm toolMode="pdf" desabilitado={bloqueado}/>
-          </div>
-
-          <div className="tool-page-info">
-            <div className="info-card">
-              <h3>Seções do relatório</h3>
-              <ul className="info-list">
-                <li><span className="info-check"><LuCircleCheck size={12}/></span> Capa com logo, empresa e metadados</li>
-                <li><span className="info-check"><LuCircleCheck size={12}/></span> Resumo executivo — valor total, médias, KPIs</li>
-                <li><span className="info-check"><LuCircleCheck size={12}/></span> Distribuição por segmento com proporção</li>
-                <li><span className="info-check"><LuCircleCheck size={12}/></span> Linha do tempo mensal</li>
-                <li><span className="info-check"><LuCircleCheck size={12}/></span> Alertas automáticos por severidade</li>
-                <li><span className="info-check"><LuCircleCheck size={12}/></span> Top favorecidos / sacados</li>
-              </ul>
-            </div>
-            <div className="info-card info-card--alerts">
-              <h3>Alertas detectados automaticamente</h3>
-              <ul className="info-list">
-                <li><span className="sev sev--critico">CRÍTICO</span> Nosso Número duplicado</li>
-                <li><span className="sev sev--critico">CRÍTICO</span> Datas inválidas</li>
-                <li><span className="sev sev--atencao">ATENÇÃO</span> Vencimentos no passado</li>
-                <li><span className="sev sev--atencao">ATENÇÃO</span> Valores discrepantes</li>
-                <li><span className="sev sev--atencao">ATENÇÃO</span> Valor zero</li>
-                <li><span className="sev sev--info">INFO</span> Ocorrências no retorno</li>
-              </ul>
-            </div>
-            <div className="info-tip">
-              <span className="info-tip-icon"><LuLightbulb size={16}/></span>
-              <span>
-              Prefere uma planilha para edição?{" "}
-                <Link to="/excel" className="link-btn">Exportar Excel</Link>.
-            </span>
-            </div>
-          </div>
-        </div>
-      </div>
-  );
+            <style>{COMPONENT_CSS}</style>
+        </ToolLayout>
+    );
 }
+
+const COMPONENT_CSS = `
+.pdf-layout {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 24px;
+    align-items: start;
+}
+
+.pdf-info {
+    position: sticky;
+    top: 24px;
+}
+
+@media (max-width: 900px) {
+    .pdf-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .pdf-info {
+        position: static;
+    }
+}
+`;
