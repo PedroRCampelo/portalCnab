@@ -11,6 +11,9 @@ import BannerEmailPendente       from "./components/BannerEmailPendente.jsx";
 
 // ── Landing (marketing) ──────────────────────────────────────────────────────
 import HomePage                  from "./pages/landing/HomePage.jsx";
+import PrivacidadePage           from "./pages/landing/PrivacidadePage.jsx";
+import TermosPage                from "./pages/landing/TermosPage.jsx";
+import ContatoPage               from "./pages/landing/ContatoPage.jsx";
 import LoginPage                 from "./pages/landing/LoginPage.jsx";
 import CadastroPage              from "./pages/landing/CadastroPage.jsx";
 import VerificarEmailPage        from "./pages/landing/VerificarEmailPage.jsx";
@@ -37,8 +40,6 @@ import PorFornecedorPage         from "./pages/app/relatorios/PorFornecedorPage.
 import HistoricoPage             from "./pages/app/HistoricoPage.jsx";
 import AssistenteCnabPage        from "./pages/app/AssistenteCnabPage.jsx";
 import CnabChatPage              from "./pages/app/CnabChatPage.jsx";
-import UpgradePage               from "./pages/app/UpgradePage.jsx";
-import { UpgradeSucessoPage, UpgradeCanceladoPage } from "./pages/app/UpgradePages.jsx";
 
 // ── Admin (envolvido em AppLayout) ───────────────────────────────────────────
 import AdminUsuariosPage         from "./pages/admin/AdminUsuariosPage.jsx";
@@ -52,10 +53,11 @@ import ValidaCnabPage            from "./pages/tools/ValidaCnabPage.jsx";
 // ─────────────────────────────────────────────────────────────────────────────
 // Sprint A3.1 · App Shell
 //
-// Rotas dividas em 3 grupos:
+// Rotas dividas em 4 grupos:
 //   1. LANDING_ROUTES — sem sidebar nem topbar (HomePage, Login, Cadastro, Planos, etc)
 //   2. APP_ROUTES     — dentro de <AppLayout/> (TopBar + Sidebar)
 //   3. PUBLIC_TOOLS   — sem shell, página standalone (ValidaCnab, Excel, Pdf)
+//   4. PUBLIC_LEGAL   — sem shell, páginas legais (Privacidade, Termos, Contato)
 // ─────────────────────────────────────────────────────────────────────────────
 
 const AUTH_ROUTES = ["/verificar-email", "/cadastro"];
@@ -67,17 +69,19 @@ const LANDING_ROUTES = [
     "/redefinir-senha",
     "/planos",
 ];
-const PUBLIC_TOOL_ROUTES = ["/valida-cnab", "/excel", "/pdf"];
+const PUBLIC_TOOL_ROUTES  = ["/valida-cnab", "/excel", "/pdf"];
+const PUBLIC_LEGAL_ROUTES = ["/privacidade", "/termos", "/contato"];
 
 function AppShell() {
     const { pathname } = useLocation();
     const isAuth    = AUTH_ROUTES.some(r => pathname.startsWith(r));
     const isLanding = LANDING_ROUTES.includes(pathname);
     const isTool    = PUBLIC_TOOL_ROUTES.some(r => pathname.startsWith(r));
+    const isLegal   = PUBLIC_LEGAL_ROUTES.some(r => pathname.startsWith(r));
 
     // Rotas que usam o shell ERP (com AppLayout):
-    //   tudo que NÃO é landing nem tool nem auth
-    const useAppShell = !isLanding && !isAuth && !isTool;
+    //   tudo que NÃO é landing nem tool nem auth nem legal
+    const useAppShell = !isLanding && !isAuth && !isTool && !isLegal;
 
     // Em rotas legacy (não-shell), aplicar classe antiga
     const shellClass = isLanding
@@ -107,16 +111,11 @@ function AppShell() {
 
                         {/* Rota legada redirecionando pra nova */}
                         <Route path="/relatorios-titulos"   element={<ProtectedRoute><AgingPagarPage/></ProtectedRoute>}/>
-                        
+
                         <Route path="/preferencias-alerta" element={<ProtectedRoute><PreferenciasAlertaPage/></ProtectedRoute>}/>
                         <Route path="/historico"           element={<ProtectedRoute><HistoricoPage/></ProtectedRoute>}/>
                         <Route path="/gestao-financeira"   element={<GestaFinanceiraPage/>}/>
                         <Route path="/paywall"             element={<ProtectedRoute><PaywallPage/></ProtectedRoute>}/>
-
-                        {/* Upgrade */}
-                        <Route path="/upgrade"             element={<ProtectedRoute><UpgradePage/></ProtectedRoute>}/>
-                        <Route path="/upgrade/sucesso"     element={<ProtectedRoute><UpgradeSucessoPage/></ProtectedRoute>}/>
-                        <Route path="/upgrade/cancelado"   element={<ProtectedRoute><UpgradeCanceladoPage/></ProtectedRoute>}/>
 
                         {/* IA */}
                         <Route path="/assistente-cnab"     element={<AssistenteCnabPage/>}/>
@@ -131,11 +130,11 @@ function AppShell() {
         );
     }
 
-    /* ── Caso 2: rotas legacy (landing, auth, tools) ──────────────────────── */
+    /* ── Caso 2: rotas legacy (landing, auth, tools, legal) ───────────────── */
     return (
         <div className={shellClass}>
-            {!isLanding && !isTool && <div className="bg-orb bg-orb--2" aria-hidden="true"/>}
-            {!isLanding && !isTool && <BannerEmailPendente/>}
+            {!isLanding && !isTool && !isLegal && <div className="bg-orb bg-orb--2" aria-hidden="true"/>}
+            {!isLanding && !isTool && !isLegal && <BannerEmailPendente/>}
 
             <ScrollToTop/>
 
@@ -148,6 +147,11 @@ function AppShell() {
                 <Route path="/esqueci-senha"    element={<EsqueciSenhaPage/>}/>
                 <Route path="/redefinir-senha"  element={<RedefinirSenhaPage/>}/>
                 <Route path="/planos"           element={<PlanosPage/>}/>
+
+                {/* Páginas legais públicas */}
+                <Route path="/privacidade"      element={<PrivacidadePage/>}/>
+                <Route path="/termos"           element={<TermosPage/>}/>
+                <Route path="/contato"          element={<ContatoPage/>}/>
 
                 {/* Tools públicas */}
                 <Route path="/valida-cnab"      element={<ValidaCnabPage/>}/>

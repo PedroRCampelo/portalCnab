@@ -1,20 +1,34 @@
 import { useState, useRef, useEffect } from "react";
-import { LuSend, LuPaperclip, LuX, LuChevronDown, LuBot, LuUser, LuFileText, LuSparkles } from "react-icons/lu";
+import {
+    LuSend, LuPaperclip, LuX, LuChevronDown, LuBot, LuUser,
+    LuFileText, LuSparkles,
+} from "react-icons/lu";
 import api from "../../services/api.js";
-
 import elvisImg from "../../assets/bots/elvis.png";
+
+/* ─── Constantes ─────────────────────────────────────────────────────────── */
 
 const BOT = {
     nome:   "Elvis",
     slogan: "Especialista em CNAB · Seu assistente bancário",
-    cor:    "#0891A8",
-    grad:   "linear-gradient(135deg, #15C3DD, #0891A8)",
 };
 
-const BANCOS   = ["", "itau", "bradesco", "bb", "caixa"];
-const TIPOS    = ["", "cnab240", "cnab400"];
-const LABEL_BANCO = { "": "Todos os bancos", itau: "Itaú", bradesco: "Bradesco", bb: "Banco do Brasil", caixa: "Caixa" };
-const LABEL_TIPO  = { "": "CNAB 240 e 400", cnab240: "CNAB 240", cnab400: "CNAB 400" };
+const BANCOS = ["", "itau", "bradesco", "bb", "caixa"];
+const TIPOS  = ["", "cnab240", "cnab400"];
+
+const LABEL_BANCO = {
+    "":         "Todos os bancos",
+    itau:       "Itaú",
+    bradesco:   "Bradesco",
+    bb:         "Banco do Brasil",
+    caixa:      "Caixa",
+};
+
+const LABEL_TIPO = {
+    "":       "CNAB 240 e 400",
+    cnab240:  "CNAB 240",
+    cnab400:  "CNAB 400",
+};
 
 const SUGESTOES = [
     "O que é o segmento A no CNAB 240?",
@@ -23,6 +37,26 @@ const SUGESTOES = [
     "Quais campos são obrigatórios no registro de detalhe?",
 ];
 
+const EXTS_PERMITIDAS = ["txt", "rem", "ret", "cnab"];
+const TAMANHO_MAX_KB  = 500;
+
+/**
+ * CnabChatPage — Chat com o Elvis (especialista em CNAB)
+ * Sprint A3.6.13 · Refatoração
+ *
+ * Funcionalidades preservadas:
+ *  - Chat em tempo real com IA
+ *  - Filtros de banco e versão CNAB
+ *  - Anexar arquivo de remessa como contexto
+ *  - Markdown rendering nas respostas
+ *  - Fontes expansíveis (RAG)
+ *  - Sugestões de perguntas iniciais
+ *
+ * Endpoint:
+ *  - POST /api/cnab/chat (multipart com pergunta + filtros + arquivo opcional)
+ *
+ * Renderizado pelo AssistenteCnabPage quando user tem Whallet+ ou é admin.
+ */
 export default function CnabChatPage() {
     const [mensagens,    setMensagens]    = useState([]);
     const [input,        setInput]        = useState("");
@@ -31,12 +65,12 @@ export default function CnabChatPage() {
     const [arquivo,      setArquivo]      = useState(null);
     const [usarArquivo,  setUsarArquivo]  = useState(false);
     const [enviando,     setEnviando]     = useState(false);
-    const [configAberta, setConfigAberta] = useState(false);
 
-    const inputRef   = useRef(null);
-    const fileRef    = useRef(null);
-    const bottomRef  = useRef(null);
+    const inputRef  = useRef(null);
+    const fileRef   = useRef(null);
+    const bottomRef = useRef(null);
 
+    // Auto-scroll quando chega resposta
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [mensagens, enviando]);
@@ -45,16 +79,15 @@ export default function CnabChatPage() {
         const texto = (pergunta ?? input).trim();
         if (!texto || enviando) return;
 
-        const novaMensagem = { role: "user", content: texto };
-        setMensagens(prev => [...prev, novaMensagem]);
+        setMensagens(prev => [...prev, { role: "user", content: texto }]);
         setInput("");
         setEnviando(true);
 
         try {
             const form = new FormData();
             form.append("pergunta", texto);
-            if (banco)  form.append("banco", banco);
-            if (tipo)   form.append("tipo", tipo);
+            if (banco) form.append("banco", banco);
+            if (tipo)  form.append("tipo", tipo);
             form.append("usarArquivoAtualComoContexto", usarArquivo && arquivo ? "true" : "false");
             if (usarArquivo && arquivo) form.append("arquivoCnab", arquivo);
 
@@ -64,9 +97,9 @@ export default function CnabChatPage() {
             });
 
             setMensagens(prev => [...prev, {
-                role: "assistant",
+                role:    "assistant",
                 content: data.resposta,
-                fontes: data.fontes,
+                fontes:  data.fontes,
             }]);
         } catch (err) {
             setMensagens(prev => [...prev, {
@@ -82,7 +115,29 @@ export default function CnabChatPage() {
     }
 
     function handleKey(e) {
-        if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); enviar(); }
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            enviar();
+        }
+    }
+
+    function handleFileChange(e) {
+        const f = e.target.files[0];
+        if (!f) return;
+
+        const ext = f.name.split(".").pop().toLowerCase();
+        if (!EXTS_PERMITIDAS.includes(ext)) {
+            alert("Apenas arquivos de remessa CNAB são permitidos (.txt, .rem, .ret, .cnab)");
+            e.target.value = "";
+            return;
+        }
+        if (f.size > TAMANHO_MAX_KB * 1024) {
+            alert(`Arquivo muito grande. O limite é ${TAMANHO_MAX_KB}KB para arquivos de remessa.`);
+            e.target.value = "";
+            return;
+        }
+        setArquivo(f);
+        setUsarArquivo(true);
     }
 
     function removerArquivo() {
@@ -93,71 +148,78 @@ export default function CnabChatPage() {
 
     const temFiltro = banco || tipo;
 
-    return (
-        <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 64px)", maxWidth: 860, margin: "0 auto", padding: "0 16px" }}>
+    // ── Render ──────────────────────────────────────────────────────────────
 
-            {/* ── Header ── */}
-            <div style={{ padding: "20px 0 0", flexShrink: 0 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-                    <img src={elvisImg} alt="Elvis" style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(21,195,221,0.25)", flexShrink: 0 }}/>
-                    <div>
-                        <h1 style={{ fontSize: 18, fontWeight: 800, color: "var(--text)", margin: 0, letterSpacing: "-0.02em" }}>{BOT.nome}</h1>
-                        <p style={{ fontSize: 12, color: "var(--text-dim)", margin: 0 }}>{BOT.slogan}</p>
+    return (
+        <div className="cc-container">
+
+            {/* ── Header com Elvis + filtros ── */}
+            <div className="cc-header">
+                <div className="cc-header-row">
+                    <img src={elvisImg} alt="Elvis" className="cc-header-avatar"/>
+                    <div className="cc-header-text">
+                        <h1 className="cc-header-name">{BOT.nome}</h1>
+                        <p className="cc-header-slogan">{BOT.slogan}</p>
                     </div>
 
-                    {/* Filtros */}
-                    <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
+                    <div className="cc-filtros">
                         <FiltroSelect
                             value={banco}
                             onChange={e => setBanco(e.target.value)}
                             options={BANCOS.map(b => ({ value: b, label: LABEL_BANCO[b] }))}
-                            placeholder="Banco"
                         />
                         <FiltroSelect
                             value={tipo}
                             onChange={e => setTipo(e.target.value)}
                             options={TIPOS.map(t => ({ value: t, label: LABEL_TIPO[t] }))}
-                            placeholder="Versão"
                         />
                     </div>
                 </div>
 
-                {/* Aviso de filtro ativo */}
+                {/* Banner de filtros ativos */}
                 {temFiltro && (
-                    <div style={{ marginBottom: 12, padding: "6px 12px", borderRadius: 8, background: "rgba(21,195,221,0.07)", border: "1px solid rgba(21,195,221,0.18)", fontSize: 12, color: "var(--cyan-dark)", display: "flex", alignItems: "center", gap: 6 }}>
+                    <div className="cc-filtro-ativo">
                         <LuSparkles size={12}/>
-                        Buscando em: {[banco && LABEL_BANCO[banco], tipo && LABEL_TIPO[tipo]].filter(Boolean).join(" · ")}
-                        <button onClick={() => { setBanco(""); setTipo(""); }} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "var(--cyan-dark)", fontSize: 11, fontWeight: 600 }}>Limpar</button>
+                        <span>
+                            Buscando em: {[banco && LABEL_BANCO[banco], tipo && LABEL_TIPO[tipo]].filter(Boolean).join(" · ")}
+                        </span>
+                        <button
+                            className="cc-filtro-limpar"
+                            onClick={() => { setBanco(""); setTipo(""); }}
+                        >
+                            Limpar
+                        </button>
                     </div>
                 )}
             </div>
 
-            {/* ── Área de mensagens ── */}
-            <div style={{ flex: 1, overflowY: "auto", paddingBottom: 8 }}>
+            {/* ── Área de mensagens (scrollável) ── */}
+            <div className="cc-mensagens">
                 {mensagens.length === 0 ? (
-                    <div style={{ padding: "32px 0" }}>
-                        <div style={{ textAlign: "center", marginBottom: 32 }}>
-                            <img src={elvisImg} alt="Elvis" style={{ width: 64, height: 64, borderRadius: "50%", objectFit: "cover", margin: "0 auto 14px", display: "block", border: "2px solid rgba(21,195,221,0.25)" }}/>
-                            <p style={{ fontSize: 14, color: "var(--text-muted)", maxWidth: 380, margin: "0 auto", lineHeight: 1.7 }}>
-                                Olá! Sou o <strong>Elvis</strong>, especialista em layouts CNAB. Faça uma pergunta sobre CNAB 240 ou 400, segmentos, campos ou regras bancárias.
+                    <div className="cc-empty">
+                        <div className="cc-empty-hero">
+                            <img src={elvisImg} alt="Elvis" className="cc-empty-avatar"/>
+                            <p className="cc-empty-text">
+                                Olá! Sou o <strong>Elvis</strong>, especialista em layouts CNAB.
+                                Faça uma pergunta sobre CNAB 240 ou 400, segmentos, campos ou
+                                regras bancárias.
                             </p>
                         </div>
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }} className="chat-suggestions">
+
+                        <div className="cc-sugestoes">
                             {SUGESTOES.map(s => (
-                                <button key={s} onClick={() => enviar(s)} style={{
-                                    padding: "12px 14px", borderRadius: 12, cursor: "pointer",
-                                    border: "1px solid rgba(26,43,66,0.1)", background: "#fff",
-                                    color: "var(--text-muted)", fontSize: 13, textAlign: "left", lineHeight: 1.5,
-                                    transition: "all 0.15s",
-                                }}
-                                        onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(21,195,221,0.35)"; e.currentTarget.style.color = "var(--text)"; }}
-                                        onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(26,43,66,0.1)"; e.currentTarget.style.color = "var(--text-muted)"; }}
-                                >{s}</button>
+                                <button
+                                    key={s}
+                                    className="cc-sugestao"
+                                    onClick={() => enviar(s)}
+                                >
+                                    {s}
+                                </button>
                             ))}
                         </div>
                     </div>
                 ) : (
-                    <div style={{ display: "flex", flexDirection: "column", gap: 16, padding: "16px 0" }}>
+                    <div className="cc-mensagens-lista">
                         {mensagens.map((msg, i) => (
                             <Mensagem key={i} msg={msg}/>
                         ))}
@@ -168,48 +230,47 @@ export default function CnabChatPage() {
             </div>
 
             {/* ── Input area ── */}
-            <div style={{ flexShrink: 0, paddingBottom: 20 }}>
-                {/* Arquivo selecionado */}
+            <div className="cc-input-area">
+                {/* Arquivo anexado */}
                 {arquivo && (
-                    <div style={{ marginBottom: 8, display: "flex", alignItems: "center", gap: 8, padding: "7px 12px", borderRadius: 8, background: "rgba(21,195,221,0.07)", border: "1px solid rgba(21,195,221,0.2)" }}>
-                        <LuFileText size={13} style={{ color: "var(--cyan)", flexShrink: 0 }}/>
-                        <span style={{ fontSize: 12, color: "var(--text)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{arquivo.name}</span>
-                        <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, cursor: "pointer", color: "var(--cyan-dark)" }}>
-                            <input type="checkbox" checked={usarArquivo} onChange={e => setUsarArquivo(e.target.checked)} style={{ width: 13, height: 13 }}/>
-                            Usar como contexto
+                    <div className="cc-arquivo">
+                        <LuFileText size={13} className="cc-arquivo-icon"/>
+                        <span className="cc-arquivo-nome">{arquivo.name}</span>
+                        <label className="cc-arquivo-toggle">
+                            <input
+                                type="checkbox"
+                                checked={usarArquivo}
+                                onChange={e => setUsarArquivo(e.target.checked)}
+                            />
+                            <span>Usar como contexto</span>
                         </label>
-                        <button onClick={removerArquivo} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-dim)", display: "flex", padding: 2 }}>
+                        <button
+                            className="cc-arquivo-remover"
+                            onClick={removerArquivo}
+                            title="Remover anexo"
+                        >
                             <LuX size={13}/>
                         </button>
                     </div>
                 )}
 
-                <div style={{ display: "flex", gap: 8, alignItems: "flex-end", background: "#fff", border: "1.5px solid rgba(26,43,66,0.12)", borderRadius: 14, padding: "10px 10px 10px 14px", boxShadow: "0 2px 12px rgba(26,43,66,0.06)" }}>
-                    {/* Botão anexar */}
-                    <button onClick={() => fileRef.current?.click()} title="Anexar arquivo CNAB" style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-dim)", padding: "4px", display: "flex", alignItems: "center", flexShrink: 0 }}>
+                {/* Input principal */}
+                <div className="cc-input-box">
+                    <button
+                        className="cc-anexar"
+                        onClick={() => fileRef.current?.click()}
+                        title="Anexar arquivo CNAB"
+                    >
                         <LuPaperclip size={18}/>
                     </button>
-                    <input ref={fileRef} type="file" style={{ display: "none" }}
-                           accept=".txt,.rem,.ret,.cnab"
-                           onChange={e => {
-                               const f = e.target.files[0];
-                               if (!f) return;
-                               // Só arquivos de remessa/retorno CNAB
-                               const ext = f.name.split(".").pop().toLowerCase();
-                               if (!["txt","rem","ret","cnab"].includes(ext)) {
-                                   alert("Apenas arquivos de remessa CNAB são permitidos (.txt, .rem, .ret, .cnab)");
-                                   e.target.value = "";
-                                   return;
-                               }
-                               // Limite de 500KB — arquivos CNAB reais são pequenos
-                               if (f.size > 500 * 1024) {
-                                   alert("Arquivo muito grande. O limite é 500KB para arquivos de remessa.");
-                                   e.target.value = "";
-                                   return;
-                               }
-                               setArquivo(f);
-                               setUsarArquivo(true);
-                           }}/>
+
+                    <input
+                        ref={fileRef}
+                        type="file"
+                        style={{ display: "none" }}
+                        accept=".txt,.rem,.ret,.cnab"
+                        onChange={handleFileChange}
+                    />
 
                     <textarea
                         ref={inputRef}
@@ -218,12 +279,7 @@ export default function CnabChatPage() {
                         onKeyDown={handleKey}
                         placeholder="Pergunte sobre CNAB 240, segmentos, campos, bancos..."
                         rows={1}
-                        style={{
-                            flex: 1, resize: "none", border: "none", outline: "none",
-                            fontSize: 14, color: "var(--text)", background: "transparent",
-                            lineHeight: 1.6, maxHeight: 120, overflowY: "auto",
-                            fontFamily: "inherit",
-                        }}
+                        className="cc-textarea"
                         onInput={e => {
                             e.target.style.height = "auto";
                             e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
@@ -231,31 +287,27 @@ export default function CnabChatPage() {
                     />
 
                     <button
+                        className="cc-enviar"
                         onClick={() => enviar()}
                         disabled={!input.trim() || enviando}
-                        style={{
-                            width: 36, height: 36, borderRadius: 10, border: "none", flexShrink: 0,
-                            background: input.trim() && !enviando ? "var(--grad)" : "rgba(26,43,66,0.08)",
-                            color: input.trim() && !enviando ? "#0B1E36" : "var(--text-dim)",
-                            cursor: input.trim() && !enviando ? "pointer" : "not-allowed",
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                            transition: "all 0.15s",
-                        }}
                     >
                         <LuSend size={15}/>
                     </button>
                 </div>
-                <p style={{ fontSize: 11, color: "var(--text-dim)", textAlign: "center", marginTop: 8 }}>
+
+                <p className="cc-disclaimer">
                     Respostas baseadas em documentação CNAB ingerida · Não substitui consulta aos manuais oficiais
                 </p>
             </div>
 
-            <style>{`
-                @media (max-width: 600px) { .chat-suggestions { grid-template-columns: 1fr !important; } }
-            `}</style>
+            <style>{COMPONENT_CSS}</style>
         </div>
     );
 }
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   Mensagem — bubble individual de cada mensagem
+   ═════════════════════════════════════════════════════════════════════════════ */
 
 function Mensagem({ msg }) {
     const [fonteAberta, setFonteAberta] = useState(false);
@@ -263,59 +315,53 @@ function Mensagem({ msg }) {
     const isError = msg.role === "error";
 
     return (
-        <div style={{ display: "flex", gap: 10, alignItems: "flex-start", flexDirection: isUser ? "row-reverse" : "row" }}>
-            {/* Avatar */}
-            <div style={{
-                width: 30, height: 30, borderRadius: 8, flexShrink: 0,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                background: isUser ? "var(--text)" : isError ? "rgba(220,38,38,0.1)" : "rgba(21,195,221,0.1)",
-            }}>
-                {isUser
-                    ? <LuUser size={14} style={{ color: "#fff" }}/>
-                    : isError
-                        ? <LuBot size={14} style={{ color: "var(--error)" }}/>
-                        : <img src={elvisImg} alt="Elvis" style={{ width: 30, height: 30, borderRadius: 8, objectFit: "cover" }}/>
-                }
+        <div className={`cc-msg ${isUser ? "cc-msg--user" : ""}`}>
+            <div className={`cc-msg-avatar ${isUser ? "cc-msg-avatar--user" : isError ? "cc-msg-avatar--error" : "cc-msg-avatar--elvis"}`}>
+                {isUser ? (
+                    <LuUser size={14}/>
+                ) : isError ? (
+                    <LuBot size={14}/>
+                ) : (
+                    <img src={elvisImg} alt="Elvis"/>
+                )}
             </div>
 
-            <div style={{ maxWidth: "80%", display: "flex", flexDirection: "column", gap: 4 }}>
-                <div style={{
-                    padding: "12px 16px",
-                    borderRadius: isUser ? "14px 4px 14px 14px" : "4px 14px 14px 14px",
-                    background: isUser ? "var(--text)" : isError ? "rgba(220,38,38,0.06)" : "#fff",
-                    border: isUser ? "none" : `1px solid ${isError ? "rgba(220,38,38,0.15)" : "rgba(26,43,66,0.1)"}`,
-                    color: isUser ? "#fff" : isError ? "var(--error)" : "var(--text)",
-                }}>
-                    {isUser || isError
-                        ? <span style={{ fontSize: 14, lineHeight: 1.75, whiteSpace: "pre-wrap" }}>{msg.content}</span>
-                        : <MarkdownRenderer content={msg.content}/>
-                    }
+            <div className="cc-msg-body">
+                <div className={`cc-msg-bubble ${isUser ? "cc-msg-bubble--user" : isError ? "cc-msg-bubble--error" : "cc-msg-bubble--elvis"}`}>
+                    {isUser || isError ? (
+                        <span className="cc-msg-text">{msg.content}</span>
+                    ) : (
+                        <MarkdownRenderer content={msg.content}/>
+                    )}
                 </div>
 
-                {/* Fontes */}
+                {/* Fontes expansíveis */}
                 {msg.fontes && msg.fontes.length > 0 && (
-                    <div style={{ marginTop: 4 }}>
-                        <button onClick={() => setFonteAberta(o => !o)} style={{
-                            display: "flex", alignItems: "center", gap: 5, background: "none", border: "none",
-                            cursor: "pointer", fontSize: 11, color: "var(--text-dim)", padding: 0, fontWeight: 600,
-                        }}>
+                    <div className="cc-fontes">
+                        <button
+                            className="cc-fontes-toggle"
+                            onClick={() => setFonteAberta(o => !o)}
+                        >
                             <LuFileText size={11}/>
-                            {msg.fontes.length} fonte{msg.fontes.length > 1 ? "s" : ""} consultada{msg.fontes.length > 1 ? "s" : ""}
-                            <LuChevronDown size={11} style={{ transform: fonteAberta ? "rotate(180deg)" : "none", transition: "transform 0.15s" }}/>
+                            {msg.fontes.length} {msg.fontes.length > 1 ? "fontes consultadas" : "fonte consultada"}
+                            <LuChevronDown
+                                size={11}
+                                className="cc-fontes-arrow"
+                                style={{ transform: fonteAberta ? "rotate(180deg)" : "none" }}
+                            />
                         </button>
+
                         {fonteAberta && (
-                            <div style={{ marginTop: 6, display: "flex", flexDirection: "column", gap: 6 }}>
+                            <div className="cc-fontes-lista">
                                 {msg.fontes.map((f, i) => (
-                                    <div key={i} style={{ padding: "8px 12px", borderRadius: 8, background: "rgba(26,43,66,0.03)", border: "1px solid rgba(26,43,66,0.08)", fontSize: 11 }}>
-                                        <div style={{ display: "flex", gap: 6, marginBottom: 4, flexWrap: "wrap", alignItems: "center" }}>
-                                            <span style={{ fontWeight: 600, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 200 }}>{f.sourceName}</span>
+                                    <div key={i} className="cc-fonte">
+                                        <div className="cc-fonte-head">
+                                            <span className="cc-fonte-nome">{f.sourceName}</span>
                                             {f.bankCode  && <Tag>{f.bankCode.toUpperCase()}</Tag>}
                                             {f.cnabType  && <Tag>{f.cnabType.toUpperCase()}</Tag>}
                                             {f.similarity && <Tag muted>{(f.similarity * 100).toFixed(0)}% similar</Tag>}
                                         </div>
-                                        <p style={{ color: "var(--text-dim)", margin: 0, lineHeight: 1.5, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
-                                            {f.content}
-                                        </p>
+                                        <p className="cc-fonte-texto">{f.content}</p>
                                     </div>
                                 ))}
                             </div>
@@ -327,7 +373,61 @@ function Mensagem({ msg }) {
     );
 }
 
-// ── Renderizador de Markdown simples (sem dependência externa) ─────────────────
+/* ═════════════════════════════════════════════════════════════════════════════
+   TypingIndicator — 3 bolinhas pulsando
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+function TypingIndicator() {
+    return (
+        <div className="cc-typing">
+            <img src={elvisImg} alt="Elvis" className="cc-typing-avatar"/>
+            <div className="cc-typing-bubble">
+                {[0, 1, 2].map(i => (
+                    <div
+                        key={i}
+                        className="cc-typing-dot"
+                        style={{ animationDelay: `${i * 0.2}s` }}
+                    />
+                ))}
+            </div>
+        </div>
+    );
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   FiltroSelect — dropdown de filtro de banco/versão
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+function FiltroSelect({ value, onChange, options }) {
+    return (
+        <select
+            value={value}
+            onChange={onChange}
+            className={`cc-filtro-select ${value ? "active" : ""}`}
+        >
+            {options.map(o => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+        </select>
+    );
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   Tag — pequeno badge usado nas fontes
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+function Tag({ children, muted }) {
+    return (
+        <span className={`cc-tag ${muted ? "cc-tag--muted" : ""}`}>
+            {children}
+        </span>
+    );
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   MarkdownRenderer — renderização de markdown sem dependência externa
+   ═════════════════════════════════════════════════════════════════════════════ */
+
 function MarkdownRenderer({ content }) {
     const lines = content.split("\n");
     const elements = [];
@@ -338,7 +438,6 @@ function MarkdownRenderer({ content }) {
 
         // Bloco de código
         if (line.startsWith("```")) {
-            const lang = line.slice(3).trim();
             const codeLines = [];
             i++;
             while (i < lines.length && !lines[i].startsWith("```")) {
@@ -346,25 +445,35 @@ function MarkdownRenderer({ content }) {
                 i++;
             }
             elements.push(
-                <pre key={i} style={{ background: "rgba(26,43,66,0.05)", border: "1px solid rgba(26,43,66,0.1)", borderRadius: 8, padding: "10px 12px", overflowX: "auto", fontSize: 12, lineHeight: 1.6, margin: "8px 0" }}>
-                    <code style={{ color: "var(--text)", fontFamily: "monospace" }}>{codeLines.join("\n")}</code>
+                <pre key={i} className="cc-md-code">
+                    <code>{codeLines.join("\n")}</code>
                 </pre>
             );
-            i++; continue;
+            i++;
+            continue;
         }
 
         // Headings
-        if (line.startsWith("### ")) { elements.push(<h3 key={i} style={{ fontSize: 14, fontWeight: 700, color: "var(--text)", margin: "12px 0 4px" }}>{renderInline(line.slice(4))}</h3>); i++; continue; }
-        if (line.startsWith("## "))  { elements.push(<h2 key={i} style={{ fontSize: 15, fontWeight: 700, color: "var(--text)", margin: "14px 0 6px" }}>{renderInline(line.slice(3))}</h2>); i++; continue; }
-        if (line.startsWith("# "))   { elements.push(<h1 key={i} style={{ fontSize: 16, fontWeight: 800, color: "var(--text)", margin: "14px 0 6px" }}>{renderInline(line.slice(2))}</h1>); i++; continue; }
-
-        // Linha horizontal
-        if (line.trim() === "---" || line.trim() === "***") {
-            elements.push(<hr key={i} style={{ border: "none", borderTop: "1px solid rgba(26,43,66,0.1)", margin: "10px 0" }}/>);
+        if (line.startsWith("### ")) {
+            elements.push(<h3 key={i} className="cc-md-h3">{renderInline(line.slice(4))}</h3>);
+            i++; continue;
+        }
+        if (line.startsWith("## ")) {
+            elements.push(<h2 key={i} className="cc-md-h2">{renderInline(line.slice(3))}</h2>);
+            i++; continue;
+        }
+        if (line.startsWith("# ")) {
+            elements.push(<h1 key={i} className="cc-md-h1">{renderInline(line.slice(2))}</h1>);
             i++; continue;
         }
 
-        // Lista não-ordenada (com suporte a sub-itens indentados)
+        // Linha horizontal
+        if (line.trim() === "---" || line.trim() === "***") {
+            elements.push(<hr key={i} className="cc-md-hr"/>);
+            i++; continue;
+        }
+
+        // Lista não-ordenada
         if (line.match(/^(\s*)[-*] /)) {
             const listItems = [];
             const startKey = i;
@@ -372,61 +481,58 @@ function MarkdownRenderer({ content }) {
                 const indent = lines[i].match(/^(\s*)/)[1].length;
                 const text = lines[i].replace(/^\s*[-*] /, "");
                 listItems.push(
-                    <li key={i} style={{ marginBottom: 3, marginLeft: indent > 0 ? 16 : 0 }}>
+                    <li key={i} style={{ marginLeft: indent > 0 ? 16 : 0 }}>
                         {renderInline(text)}
                     </li>
                 );
                 i++;
             }
-            elements.push(<ul key={`ul-${startKey}`} style={{ margin: "4px 0", paddingLeft: 20, fontSize: 14, lineHeight: 1.7, color: "var(--text)" }}>{listItems}</ul>);
+            elements.push(<ul key={`ul-${startKey}`} className="cc-md-ul">{listItems}</ul>);
             continue;
         }
 
-        // Lista ordenada (suporte a numeração real e reinício)
+        // Lista ordenada
         if (line.match(/^\d+\. /)) {
             const items = [];
             const startKey = i;
-            let counter = 1;
             while (i < lines.length && (lines[i].match(/^\d+\. /) || lines[i].match(/^   [-*] /))) {
                 if (lines[i].match(/^\d+\. /)) {
                     const text = lines[i].replace(/^\d+\. /, "");
-                    items.push(<li key={i} style={{ marginBottom: 4 }}>{renderInline(text)}</li>);
+                    items.push(<li key={i}>{renderInline(text)}</li>);
                 } else {
-                    // Sub-item dentro de lista ordenada
                     const text = lines[i].replace(/^\s*[-*] /, "");
-                    items.push(<li key={i} style={{ marginBottom: 3, listStyle: "disc", marginLeft: 16 }}>{renderInline(text)}</li>);
+                    items.push(<li key={i} style={{ listStyle: "disc", marginLeft: 16 }}>{renderInline(text)}</li>);
                 }
                 i++;
             }
-            elements.push(<ol key={`ol-${startKey}`} style={{ margin: "4px 0", paddingLeft: 20, fontSize: 14, lineHeight: 1.7, color: "var(--text)" }}>{items}</ol>);
+            elements.push(<ol key={`ol-${startKey}`} className="cc-md-ol">{items}</ol>);
             continue;
         }
 
         // Linha em branco
-        if (line.trim() === "") { elements.push(<div key={i} style={{ height: 6 }}/>); i++; continue; }
+        if (line.trim() === "") {
+            elements.push(<div key={i} style={{ height: 6 }}/>);
+            i++; continue;
+        }
 
-        // "Fonte real usada:" — destaque especial
+        // "Fonte real usada:" — destaque cyan
         if (line.startsWith("Fonte real usada:") || line.startsWith("Fonte utilizada:")) {
             elements.push(
-                <div key={i} style={{ marginTop: 12, padding: "8px 12px", borderRadius: 8, background: "rgba(21,195,221,0.06)", border: "1px solid rgba(21,195,221,0.15)", fontSize: 12, color: "var(--text-muted)" }}>
-                    {renderInline(line)}
-                </div>
+                <div key={i} className="cc-md-fonte">{renderInline(line)}</div>
             );
             i++; continue;
         }
 
-        // "Limitações:" — destaque em cinza
+        // "Limitações:" — italic cinza
         if (line.startsWith("Limitações:")) {
             elements.push(
-                <div key={i} style={{ marginTop: 6, fontSize: 12, color: "var(--text-dim)", fontStyle: "italic" }}>
-                    {renderInline(line)}
-                </div>
+                <div key={i} className="cc-md-limit">{renderInline(line)}</div>
             );
             i++; continue;
         }
 
         // Parágrafo normal
-        elements.push(<p key={i} style={{ fontSize: 14, lineHeight: 1.75, margin: "4px 0", color: "var(--text)" }}>{renderInline(line)}</p>);
+        elements.push(<p key={i} className="cc-md-p">{renderInline(line)}</p>);
         i++;
     }
 
@@ -434,55 +540,679 @@ function MarkdownRenderer({ content }) {
 }
 
 function renderInline(text) {
-    // Bold + italic + código inline
     const parts = text.split(/(\*\*\*[^*]+\*\*\*|\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g);
     return parts.map((part, i) => {
         if (part.startsWith("***") && part.endsWith("***"))
             return <strong key={i}><em>{part.slice(3, -3)}</em></strong>;
         if (part.startsWith("**") && part.endsWith("**"))
-            return <strong key={i} style={{ fontWeight: 700 }}>{part.slice(2, -2)}</strong>;
+            return <strong key={i}>{part.slice(2, -2)}</strong>;
         if (part.startsWith("*") && part.endsWith("*"))
             return <em key={i}>{part.slice(1, -1)}</em>;
         if (part.startsWith("`") && part.endsWith("`"))
-            return <code key={i} style={{ background: "rgba(26,43,66,0.08)", borderRadius: 4, padding: "1px 5px", fontSize: 12, fontFamily: "monospace", color: "var(--cyan-dark)" }}>{part.slice(1, -1)}</code>;
+            return <code key={i} className="cc-md-inline-code">{part.slice(1, -1)}</code>;
         return part;
     });
 }
 
-function TypingIndicator() {
-    return (
-        <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-            <img src={elvisImg} alt="Elvis" style={{ width: 30, height: 30, borderRadius: 8, objectFit: "cover", flexShrink: 0 }}/>
-            <div style={{ padding: "12px 16px", borderRadius: "4px 14px 14px 14px", background: "#fff", border: "1px solid rgba(26,43,66,0.1)", display: "flex", gap: 5, alignItems: "center" }}>
-                {[0, 1, 2].map(i => (
-                    <div key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--text-dim)", animation: `chatDot 1.2s ease-in-out ${i * 0.2}s infinite` }}/>
-                ))}
-            </div>
-            <style>{`@keyframes chatDot { 0%,60%,100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-5px); opacity: 1; } }`}</style>
-        </div>
-    );
+/* ═════════════════════════════════════════════════════════════════════════════
+   ESTILOS — escopo .cc-*
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+const COMPONENT_CSS = `
+/* ── Container principal: fica dentro do AppLayout (que já tem padding) ─ */
+
+.cc-container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 64px);
+    max-width: 860px;
+    margin: 0 auto;
+    margin-top: -20px;
+    margin-bottom: -20px;
+    padding: 0 16px;
 }
 
-function FiltroSelect({ value, onChange, options }) {
-    return (
-        <select value={value} onChange={onChange} style={{
-            padding: "6px 10px", borderRadius: 8, fontSize: 12, fontWeight: 500,
-            border: value ? "1.5px solid rgba(21,195,221,0.4)" : "1px solid rgba(26,43,66,0.12)",
-            background: value ? "rgba(21,195,221,0.06)" : "#fff",
-            color: value ? "var(--cyan-dark)" : "var(--text-muted)", cursor: "pointer",
-        }}>
-            {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </select>
-    );
+/* ── Header ──────────────────────────────────────────────────────────── */
+
+.cc-header {
+    flex-shrink: 0;
+    padding-top: 20px;
 }
 
-function Tag({ children, muted }) {
-    return (
-        <span style={{
-            fontSize: 10, fontWeight: 600, padding: "1px 6px", borderRadius: 20,
-            background: muted ? "rgba(26,43,66,0.05)" : "rgba(21,195,221,0.08)",
-            border: muted ? "1px solid rgba(26,43,66,0.1)" : "1px solid rgba(21,195,221,0.18)",
-            color: muted ? "var(--text-dim)" : "var(--cyan-dark)",
-        }}>{children}</span>
-    );
+.cc-header-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
 }
+
+.cc-header-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(21, 195, 221, 0.25);
+    flex-shrink: 0;
+}
+
+.cc-header-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.cc-header-name {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--navy-deep);
+    letter-spacing: -0.02em;
+}
+
+.cc-header-slogan {
+    margin: 0;
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: -0.005em;
+}
+
+.cc-filtros {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.cc-filtro-select {
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-family: var(--ff-sans);
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid var(--hair);
+    background: var(--surface);
+    color: var(--text-muted);
+    cursor: pointer;
+    letter-spacing: -0.005em;
+}
+
+.cc-filtro-select.active {
+    border: 1.5px solid var(--cyan);
+    background: var(--cyan-soft);
+    color: var(--cyan-dark);
+}
+
+.cc-filtro-ativo {
+    margin-bottom: 12px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    background: var(--cyan-soft);
+    border: 1px solid rgba(21, 195, 221, 0.18);
+    font-size: 12px;
+    color: var(--cyan-dark);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    letter-spacing: -0.005em;
+}
+
+.cc-filtro-limpar {
+    margin-left: auto;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--cyan-dark);
+    font-family: var(--ff-sans);
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.cc-filtro-limpar:hover {
+    text-decoration: underline;
+}
+
+/* ── Área de mensagens ───────────────────────────────────────────────── */
+
+.cc-mensagens {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 8px;
+}
+
+/* Empty state */
+
+.cc-empty {
+    padding: 32px 0;
+}
+
+.cc-empty-hero {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.cc-empty-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin: 0 auto 14px;
+    display: block;
+    border: 2px solid rgba(21, 195, 221, 0.25);
+}
+
+.cc-empty-text {
+    font-size: 14px;
+    color: var(--text-muted);
+    max-width: 380px;
+    margin: 0 auto;
+    line-height: 1.7;
+    letter-spacing: -0.005em;
+}
+
+.cc-empty-text strong {
+    color: var(--navy-deep);
+    font-weight: 700;
+}
+
+/* Sugestões */
+
+.cc-sugestoes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.cc-sugestao {
+    padding: 12px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    border: 1px solid var(--hair);
+    background: var(--surface);
+    color: var(--text-muted);
+    font-family: var(--ff-sans);
+    font-size: 13px;
+    text-align: left;
+    line-height: 1.5;
+    letter-spacing: -0.005em;
+    transition: all 0.15s;
+}
+
+.cc-sugestao:hover {
+    border-color: rgba(21, 195, 221, 0.35);
+    color: var(--navy-deep);
+    background: var(--bg);
+}
+
+/* Lista de mensagens */
+
+.cc-mensagens-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px 0;
+}
+
+/* ── Mensagem individual ─────────────────────────────────────────────── */
+
+.cc-msg {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.cc-msg--user {
+    flex-direction: row-reverse;
+}
+
+.cc-msg-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.cc-msg-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.cc-msg-avatar--user {
+    background: var(--navy-deep);
+    color: white;
+}
+
+.cc-msg-avatar--elvis {
+    background: var(--cyan-soft);
+}
+
+.cc-msg-avatar--error {
+    background: var(--error-bg);
+    color: var(--error);
+}
+
+.cc-msg-body {
+    max-width: 80%;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.cc-msg-bubble {
+    padding: 12px 16px;
+    font-size: 14px;
+    line-height: 1.75;
+    letter-spacing: -0.005em;
+}
+
+.cc-msg-bubble--user {
+    border-radius: 14px 4px 14px 14px;
+    background: var(--navy-deep);
+    color: white;
+}
+
+.cc-msg-bubble--elvis {
+    border-radius: 4px 14px 14px 14px;
+    background: var(--surface);
+    border: 1px solid var(--hair);
+    color: var(--text);
+}
+
+.cc-msg-bubble--error {
+    border-radius: 4px 14px 14px 14px;
+    background: var(--error-bg);
+    border: 1px solid rgba(229, 72, 77, 0.2);
+    color: var(--error);
+}
+
+.cc-msg-text {
+    white-space: pre-wrap;
+}
+
+/* Markdown styles */
+
+.cc-md-h1 { font-size: 16px; font-weight: 800; color: var(--navy-deep); margin: 14px 0 6px; }
+.cc-md-h2 { font-size: 15px; font-weight: 700; color: var(--navy-deep); margin: 14px 0 6px; }
+.cc-md-h3 { font-size: 14px; font-weight: 700; color: var(--navy-deep); margin: 12px 0 4px; }
+
+.cc-md-hr {
+    border: none;
+    border-top: 1px solid var(--hair);
+    margin: 10px 0;
+}
+
+.cc-md-ul, .cc-md-ol {
+    margin: 4px 0;
+    padding-left: 20px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text);
+}
+
+.cc-md-ul li, .cc-md-ol li {
+    margin-bottom: 4px;
+}
+
+.cc-md-code {
+    background: var(--bg);
+    border: 1px solid var(--hair);
+    border-radius: 8px;
+    padding: 10px 12px;
+    overflow-x: auto;
+    font-size: 12px;
+    line-height: 1.6;
+    margin: 8px 0;
+}
+
+.cc-md-code code {
+    color: var(--navy-deep);
+    font-family: var(--ff-mono);
+}
+
+.cc-md-inline-code {
+    background: rgba(21, 195, 221, 0.1);
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-size: 12px;
+    font-family: var(--ff-mono);
+    color: var(--cyan-dark);
+}
+
+.cc-md-fonte {
+    margin-top: 12px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: var(--cyan-soft);
+    border: 1px solid rgba(21, 195, 221, 0.15);
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.cc-md-limit {
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--text-dim);
+    font-style: italic;
+}
+
+.cc-md-p {
+    font-size: 14px;
+    line-height: 1.75;
+    margin: 4px 0;
+    color: var(--text);
+}
+
+/* ── Fontes (acordeon) ───────────────────────────────────────────────── */
+
+.cc-fontes {
+    margin-top: 4px;
+}
+
+.cc-fontes-toggle {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: var(--ff-sans);
+    font-size: 11px;
+    color: var(--text-dim);
+    padding: 4px 0;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+}
+
+.cc-fontes-toggle:hover {
+    color: var(--navy-deep);
+}
+
+.cc-fontes-arrow {
+    transition: transform 0.15s;
+}
+
+.cc-fontes-lista {
+    margin-top: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.cc-fonte {
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: var(--bg);
+    border: 1px solid var(--hair);
+    font-size: 11px;
+}
+
+.cc-fonte-head {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.cc-fonte-nome {
+    font-weight: 600;
+    color: var(--navy-deep);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 200px;
+}
+
+.cc-fonte-texto {
+    color: var(--text-muted);
+    margin: 0;
+    line-height: 1.5;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+/* ── Tag ─────────────────────────────────────────────────────────────── */
+
+.cc-tag {
+    font-family: var(--ff-mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    padding: 2px 7px;
+    border-radius: 100px;
+    background: var(--cyan-soft);
+    border: 1px solid rgba(21, 195, 221, 0.18);
+    color: var(--cyan-dark);
+    text-transform: uppercase;
+}
+
+.cc-tag--muted {
+    background: var(--bg);
+    border-color: var(--hair);
+    color: var(--text-dim);
+}
+
+/* ── Typing Indicator ────────────────────────────────────────────────── */
+
+.cc-typing {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.cc-typing-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.cc-typing-bubble {
+    padding: 12px 16px;
+    border-radius: 4px 14px 14px 14px;
+    background: var(--surface);
+    border: 1px solid var(--hair);
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.cc-typing-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--text-dim);
+    animation: cc-typing-anim 1.2s ease-in-out infinite;
+}
+
+@keyframes cc-typing-anim {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30%           { transform: translateY(-5px); opacity: 1; }
+}
+
+/* ── Input area ──────────────────────────────────────────────────────── */
+
+.cc-input-area {
+    flex-shrink: 0;
+    padding-bottom: 20px;
+}
+
+.cc-arquivo {
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    border-radius: 8px;
+    background: var(--cyan-soft);
+    border: 1px solid rgba(21, 195, 221, 0.2);
+}
+
+.cc-arquivo-icon {
+    color: var(--cyan-dark);
+    flex-shrink: 0;
+}
+
+.cc-arquivo-nome {
+    font-size: 12px;
+    color: var(--text);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    letter-spacing: -0.005em;
+}
+
+.cc-arquivo-toggle {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--cyan-dark);
+    letter-spacing: -0.005em;
+}
+
+.cc-arquivo-toggle input {
+    width: 13px;
+    height: 13px;
+    cursor: pointer;
+    accent-color: var(--cyan);
+}
+
+.cc-arquivo-remover {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-dim);
+    display: flex;
+    padding: 2px;
+    border-radius: 4px;
+    transition: color 0.15s, background 0.15s;
+}
+
+.cc-arquivo-remover:hover {
+    color: var(--error);
+    background: var(--error-bg);
+}
+
+.cc-input-box {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+    background: var(--surface);
+    border: 1.5px solid var(--hair);
+    border-radius: 14px;
+    padding: 10px 10px 10px 14px;
+    box-shadow: 0 2px 12px rgba(11, 30, 54, 0.06);
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.cc-input-box:focus-within {
+    border-color: var(--cyan);
+    box-shadow: 0 2px 12px rgba(21, 195, 221, 0.15);
+}
+
+.cc-anexar {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-dim);
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    border-radius: 6px;
+    transition: color 0.15s, background 0.15s;
+}
+
+.cc-anexar:hover {
+    color: var(--cyan-dark);
+    background: var(--cyan-soft);
+}
+
+.cc-textarea {
+    flex: 1;
+    resize: none;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    color: var(--text);
+    background: transparent;
+    line-height: 1.6;
+    max-height: 120px;
+    overflow-y: auto;
+    font-family: var(--ff-sans);
+    letter-spacing: -0.005em;
+}
+
+.cc-textarea::placeholder {
+    color: var(--text-dim);
+}
+
+.cc-enviar {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: none;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #15C3DD, #0891A8);
+    color: #0B1E36;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.15s, opacity 0.15s;
+}
+
+.cc-enviar:hover:not(:disabled) {
+    transform: translateY(-1px);
+}
+
+.cc-enviar:disabled {
+    background: var(--bg);
+    color: var(--text-dim);
+    cursor: not-allowed;
+}
+
+.cc-disclaimer {
+    font-size: 11px;
+    color: var(--text-dim);
+    text-align: center;
+    margin: 8px 0 0;
+    letter-spacing: -0.005em;
+}
+
+/* ── Responsivo ──────────────────────────────────────────────────────── */
+
+@media (max-width: 700px) {
+    .cc-header-row {
+        flex-wrap: wrap;
+    }
+
+    .cc-filtros {
+        width: 100%;
+        margin-top: 8px;
+    }
+
+    .cc-filtro-select {
+        flex: 1;
+    }
+
+    .cc-sugestoes {
+        grid-template-columns: 1fr;
+    }
+
+    .cc-msg-body {
+        max-width: 88%;
+    }
+}
+`;

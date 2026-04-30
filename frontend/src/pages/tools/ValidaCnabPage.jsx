@@ -1,152 +1,220 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import BankForm from "../../components/BankForm.jsx";
-import ProtheusForm from "../../components/ProtheusForm.jsx";
-import BannerAnonimo from "../../components/BannerAnonimo.jsx";
-import ElvisMiniChat from "../../components/ElvisMiniChat.jsx";
-import { IcoExcel, IcoPdf, IcoBack } from "../../components/icons.jsx";
-import { useAuth } from "../../context/AuthContext.jsx";
+import { LuFileSpreadsheet, LuFileText } from "react-icons/lu";
+import BankForm       from "../../components/BankForm.jsx";
+import ProtheusForm   from "../../components/ProtheusForm.jsx";
+import BannerAnonimo  from "../../components/BannerAnonimo.jsx";
+import ElvisMiniChat  from "../../components/ElvisMiniChat.jsx";
+import { useAuth }    from "../../context/AuthContext.jsx";
 
+import ToolLayout                              from "./_ToolLayout.jsx";
+import { FormCard, SourceTabs, InfoCard, InfoTip } from "./_shared.jsx";
+import ConversionCta                           from "./_ConversionCta.jsx";
+import { useSeo, useSchemaMarkup, SCHEMA_BASE_APP } from "./_seo.jsx";
+
+/**
+ * ValidaCnabPage — Hub unificado das ferramentas (Excel + PDF)
+ * Sprint A3.6.14 + A3.6.15 · Refatoração + SEO/Marketing
+ *
+ * É a versão "tudo num lugar só":
+ *  - Tabs no topo: Excel | PDF
+ *  - Form correspondente
+ *  - Elvis Mini Chat na lateral (atrai pra Whallet+)
+ */
 export default function ValidaCnabPage() {
     const [ferramenta, setFerramenta] = useState("excel");
-    const [source, setSource]         = useState("bank");
+    const [source,     setSource]     = useState("bank");
     const { autenticado } = useAuth();
 
-    return (
-        <div className="tool-page">
-            <div className="tool-page-header">
-                <Link to="/" className="back-btn">
-                    <IcoBack/> Voltar
-                </Link>
+    /* ─── SEO ─────────────────────────────────────────────────────────── */
 
-                {/* Seletor de ferramenta */}
-                <div style={{ display: "flex", gap: 8, marginBottom: 24 }}>
-                    <button
-                        onClick={() => setFerramenta("excel")}
-                        style={{
-                            display: "flex", alignItems: "center", gap: 8,
-                            padding: "10px 20px", borderRadius: 10, cursor: "pointer",
-                            fontWeight: 700, fontSize: 14,
-                            background: ferramenta === "excel" ? "var(--grad)" : "var(--surface)",
-                            border: ferramenta === "excel" ? "none" : "1px solid var(--border)",
-                            color: ferramenta === "excel" ? "#0B1E36" : "var(--text-muted)",
-                        }}>
-                        <IcoExcel/> Exportar Excel
-                    </button>
-                    <button
-                        onClick={() => setFerramenta("pdf")}
-                        style={{
-                            display: "flex", alignItems: "center", gap: 8,
-                            padding: "10px 20px", borderRadius: 10, cursor: "pointer",
-                            fontWeight: 700, fontSize: 14,
-                            background: ferramenta === "pdf" ? "var(--grad)" : "var(--surface)",
-                            border: ferramenta === "pdf" ? "none" : "1px solid var(--border)",
-                            color: ferramenta === "pdf" ? "#0B1E36" : "var(--text-muted)",
-                        }}>
-                        <IcoPdf/> Relatório PDF
-                    </button>
-                </div>
+    useSeo({
+        title: "Validar e converter CNAB grátis · Whallet",
+        description:
+            "Converta CNAB para Excel ou gere relatórios PDF analíticos. " +
+            "Suporta Itaú, Bradesco, Banco do Brasil, Caixa e Layout Protheus. " +
+            "Grátis, sem cadastro pra começar.",
+        keywords: [
+            "validar cnab",
+            "converter cnab",
+            "cnab 240",
+            "cnab 400",
+            "remessa cnab",
+            "retorno cnab",
+            "ferramenta cnab gratuita",
+        ],
+        canonical: "/valida-cnab",
+    });
 
-                <div className="tool-page-title">
-                    {ferramenta === "excel" ? (
-                        <>
-                            <div className="tool-page-icon tool-page-icon--excel"><IcoExcel/></div>
-                            <div>
-                                <h1>Exportar para Excel</h1>
-                                <p>Converta sua remessa CNAB em planilha estruturada</p>
-                            </div>
-                        </>
-                    ) : (
-                        <>
-                            <div className="tool-page-icon tool-page-icon--pdf"><IcoPdf/></div>
-                            <div>
-                                <h1>Relatório PDF analítico</h1>
-                                <p>Análise completa da remessa com alertas e resumo executivo</p>
-                            </div>
-                        </>
-                    )}
-                </div>
-            </div>
+    useSchemaMarkup({
+        ...SCHEMA_BASE_APP,
+        name: "Conversor CNAB · Whallet",
+        description: "Ferramenta gratuita para converter e validar arquivos CNAB",
+        url: "https://whallet.com.br/valida-cnab",
+        featureList: [
+            "Converter CNAB para Excel",
+            "Gerar relatório PDF analítico",
+            "Suporte a Itaú, Bradesco, BB, Caixa",
+            "CNAB 240 e CNAB 400",
+            "Layout Protheus customizado",
+            "Detecção automática de inconsistências",
+        ],
+    });
 
-            <BannerAnonimo/>
+    /* ─── Render ──────────────────────────────────────────────────────── */
 
-            {/* Layout principal com chat do Elvis na lateral */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 24, alignItems: "start" }} className="valida-main-grid">
+    const ehExcel = ferramenta === "excel";
 
-                {/* Ferramenta CNAB */}
-                <div>
-                    {ferramenta === "excel" ? (
-                        <div className="tool-page-body" style={{ display: "block" }}>
-                            <div className="tool-page-form">
-                                <div className="source-tabs">
-                                    <button
-                                        className={`source-tab ${source === "bank" ? "source-tab--active" : ""}`}
-                                        onClick={() => setSource("bank")}>
-                                        🏦 Layout bancário
-                                    </button>
-                                    <button
-                                        className={`source-tab ${source === "protheus" ? "source-tab--active" : ""}`}
-                                        onClick={() => setSource("protheus")}>
-                                        🔄 Protheus
-                                    </button>
-                                </div>
-                                {source === "bank"
-                                    ? <BankForm toolMode="excel" desabilitado={false}/>
-                                    : <ProtheusForm mode="excel"/>
-                                }
-                            </div>
-                            <div className="tool-page-info" style={{ marginTop: 20 }}>
-                                <InfoCard/>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="tool-page-body" style={{ display: "block" }}>
-                            <div className="tool-page-form">
-                                <BankForm toolMode="pdf" desabilitado={false}/>
-                            </div>
-                            <div className="tool-page-info" style={{ marginTop: 20 }}>
-                                <InfoCard pdf/>
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Elvis Mini Chat */}
-                <div style={{ position: "sticky", top: 84 }}>
-                    <ElvisMiniChat/>
-                </div>
-            </div>
-
-            <style>{`
-                @media (max-width: 900px) {
-                    .valida-main-grid { grid-template-columns: 1fr !important; }
-                }
-            `}</style>
+    // Toolbar com tabs Excel/PDF
+    const toolbar = (
+        <div className="vcn-tool-tabs">
+            <button
+                type="button"
+                className={`vcn-tab ${ehExcel ? "active" : ""}`}
+                onClick={() => setFerramenta("excel")}
+            >
+                <LuFileSpreadsheet size={14}/>
+                Exportar Excel
+            </button>
+            <button
+                type="button"
+                className={`vcn-tab ${!ehExcel ? "active" : ""}`}
+                onClick={() => setFerramenta("pdf")}
+            >
+                <LuFileText size={14}/>
+                Relatório PDF
+            </button>
         </div>
+    );
+
+    const rightAside = <ElvisMiniChat/>;
+
+    return (
+        <ToolLayout
+            icon={ehExcel ? <LuFileSpreadsheet size={26}/> : <LuFileText size={26}/>}
+            iconColor={ehExcel ? "excel" : "pdf"}
+            title={ehExcel ? "Exportar para Excel" : "Relatório PDF analítico"}
+            subtitle={
+                ehExcel
+                    ? "Converta sua remessa CNAB em planilha estruturada"
+                    : "Análise completa da remessa com alertas e resumo executivo"
+            }
+            toolbar={toolbar}
+            rightAside={rightAside}
+        >
+            {!autenticado && <BannerAnonimo/>}
+
+            <FormCard>
+                {ehExcel ? (
+                    <>
+                        <SourceTabs value={source} onChange={setSource}/>
+                        {source === "bank"
+                            ? <BankForm toolMode="excel" desabilitado={false}/>
+                            : <ProtheusForm mode="excel"/>}
+                    </>
+                ) : (
+                    <BankForm toolMode="pdf" desabilitado={false}/>
+                )}
+            </FormCard>
+
+            {/* InfoCard contextual */}
+            <div className="vcn-info-wrap">
+                {ehExcel ? (
+                    <>
+                        <InfoCard
+                            title="Bancos suportados"
+                            items={[
+                                "Itaú CNAB 240 e 400",
+                                "Bradesco CNAB 240 e 400",
+                                "Banco do Brasil CNAB 240",
+                                "Caixa CNAB 240",
+                                "Layout 400 Protheus",
+                            ]}
+                        />
+                        <InfoTip>
+                            Quer uma análise executiva?{" "}
+                            <Link to="/pdf">Gerar Relatório PDF</Link>.
+                        </InfoTip>
+                    </>
+                ) : (
+                    <>
+                        <InfoCard
+                            title="Sobre o relatório PDF"
+                            items={[
+                                "Resumo executivo com KPIs",
+                                "9 categorias de alertas automáticos",
+                                "Distribuição por segmento",
+                                "Top favorecidos e sacados",
+                                "Compatível com CNAB 240 e 400",
+                            ]}
+                        />
+                        <InfoTip>
+                            Prefere uma planilha pra edição?{" "}
+                            <Link to="/excel">Exportar Excel</Link>.
+                        </InfoTip>
+                    </>
+                )}
+            </div>
+
+            {/* CTA pós-conversão (auto-aparece após sucesso) */}
+            <ConversionCta/>
+
+            <style>{COMPONENT_CSS}</style>
+        </ToolLayout>
     );
 }
 
-function InfoCard({ pdf }) {
-    return (
-        <div className="info-card">
-            <h3>{pdf ? "Sobre o relatório PDF" : "Bancos suportados"}</h3>
-            {pdf ? (
-                <ul className="info-list">
-                    {["Resumo executivo com KPIs", "9 categorias de alertas automáticos",
-                        "Distribuição por segmento", "Top favorecidos e sacados",
-                        "Compatível com CNAB 240 e 400"].map(i => (
-                        <li key={i}><span className="info-check">✓</span>{i}</li>
-                    ))}
-                </ul>
-            ) : (
-                <ul className="info-list">
-                    {["Itaú CNAB 240 e 400", "Bradesco CNAB 240 e 400",
-                        "Banco do Brasil CNAB 240", "Caixa CNAB 240",
-                        "Layout 400 Protheus"].map(i => (
-                        <li key={i}><span className="info-check">✓</span>{i}</li>
-                    ))}
-                </ul>
-            )}
-        </div>
-    );
+const COMPONENT_CSS = `
+.vcn-tool-tabs {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
 }
+
+.vcn-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 18px;
+    border-radius: 10px;
+    border: 1px solid var(--hair);
+    background: var(--surface);
+    color: var(--text-muted);
+    font-family: var(--ff-sans);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.vcn-tab:hover {
+    border-color: var(--text-dim);
+    color: var(--navy-deep);
+    background: var(--bg);
+}
+
+.vcn-tab.active {
+    border-color: var(--cyan);
+    background: linear-gradient(135deg, #15C3DD 0%, #0891A8 100%);
+    color: white;
+    box-shadow: 0 2px 12px rgba(21, 195, 221, 0.25);
+}
+
+.vcn-tab.active:hover {
+    background: linear-gradient(135deg, #15C3DD 0%, #0891A8 100%);
+    color: white;
+}
+
+.vcn-info-wrap {
+    margin-top: 20px;
+}
+
+@media (max-width: 600px) {
+    .vcn-tab {
+        flex: 1;
+        justify-content: center;
+        padding: 10px 14px;
+    }
+}
+`;

@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import "./HomePage.css";
 
@@ -6,7 +6,7 @@ import "./HomePage.css";
  * HomePage — Landing pública do Whallet
  * Sprint A2 + revisão · Hero com mockup ao lado
  *
- * Posicionamento: "O fim do Excel pra controlar seu dinheiro"
+ * Posicionamento: "O dinheiro do seu negócio merece mais que uma planilha"
  * Público: autônomo / MEI / pequena empresa
  */
 export default function HomePage() {
@@ -82,8 +82,8 @@ export default function HomePage() {
                             </div>
 
                             <h1 className="lp-hero-title">
-                                O fim do Excel<br/>
-                                pra controlar seu <em>dinheiro.</em>
+                                O dinheiro do seu negócio<br/>
+                                merece mais que uma <em>planilha.</em>
                             </h1>
 
                             <p className="lp-hero-sub">
@@ -479,10 +479,10 @@ export default function HomePage() {
                         <span>© 2026 · Whallet Tecnologia</span>
                     </div>
                     <div className="lp-footer-links">
-                        <button className="lp-footer-link" onClick={irParaPlanos}>Preços</button>
-                        <button className="lp-footer-link">Privacidade</button>
-                        <button className="lp-footer-link">Termos</button>
-                        <button className="lp-footer-link">Contato</button>
+                        <button className="lp-footer-link" onClick={irParaPlanos}>PREÇOS</button>
+                        <Link to="/privacidade" className="lp-footer-link">Privacidade</Link>
+                        <Link to="/termos"      className="lp-footer-link">Termos</Link>
+                        <Link to="/contato"     className="lp-footer-link">Contato</Link>
                     </div>
                 </div>
             </footer>
