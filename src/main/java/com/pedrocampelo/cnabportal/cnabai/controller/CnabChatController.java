@@ -7,13 +7,13 @@ import com.pedrocampelo.cnabportal.cnabai.dto.CnabKnowledgeIngestRequestDTO;
 import com.pedrocampelo.cnabportal.cnabai.service.CnabChatService;
 import com.pedrocampelo.cnabportal.cnabai.service.CnabKnowledgeAdminService;
 import com.pedrocampelo.cnabportal.cnabai.service.DocumentIngestionService;
+import com.pedrocampelo.cnabportal.config.gate.RequireElvisQuota;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -27,11 +27,25 @@ public class CnabChatController {
     private final DocumentIngestionService documentIngestionService;
     private final CnabKnowledgeAdminService cnabKnowledgeAdminService;
 
+    /**
+     * Endpoint principal do Elvis (chat com IA do CNAB).
+     *
+     * Sprint A3.9 · @RequireElvisQuota aplica gate de uso por plano:
+     *   - Free      → 5 perguntas/mês
+     *   - Whallet+  → ilimitado
+     *   - Admin     → ilimitado
+     *   - Anônimo   → passa direto (sem consumir quota — não rastreado)
+     *
+     * Comportamento ao exceder limite:
+     *   - HTTP 429 Too Many Requests
+     *   - Body: { codigo, mensagem, usadas, limite, anoMes, upgradePara }
+     */
     @PostMapping(
             value = "/chat",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
+    @RequireElvisQuota
     public CnabChatResponseDTO chat(@ModelAttribute @Valid CnabChatRequestDTO request) {
         // Valida arquivo se enviado
         if (request.getArquivoCnab() != null && !request.getArquivoCnab().isEmpty()) {

@@ -76,8 +76,11 @@ public class PlanoGuard {
     /**
      * Verifica se a assinatura do usuário está ativa.
      * Status válidos: "ATIVA" ou "CANCELANDO" (paga mas vai cancelar no fim do ciclo).
+     *
+     * Sprint A3.9: visibilidade alterada de private → public
+     * pra ser usado pelo ElvisQuotaService.
      */
-    private boolean assinaturaAtiva(Usuario usuario) {
+    public boolean assinaturaAtiva(Usuario usuario) {
         String status = usuario.getAssinaturaStatus();
         if (status == null || "SEM_ASSINATURA".equals(status)) return false;
         if ("EXPIRADA".equals(status)) return false;

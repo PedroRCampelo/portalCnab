@@ -269,12 +269,16 @@ public class StripeService {
 
             case "customer.subscription.updated" -> {
                 // Detecta upgrade via subscription update (Pro→Plus)
-                // e também detecta reativação de cancelamento
+                // e também detecta reativação de cancelamento (quando user remove o cancel agendado)
                 try {
                     String subscriptionJson = event.getData().getObject().toJson();
                     String subscriptionId   = extractId(subscriptionJson);
                     String customerId       = extrairCampo(subscriptionJson, "customer");
-                    boolean cancelAtEnd     = subscriptionJson.contains("\"cancel_at_period_end\":true");
+
+                    // FIX A3.8.2: parsing robusto que tolera espaços no JSON
+                    // (.contains() falhava quando Stripe enviava com espaço após dois-pontos)
+                    boolean cancelAtEnd     = extrairBoolean(subscriptionJson, "cancel_at_period_end");
+                    String stripeStatus     = extrairCampo(subscriptionJson, "status");
 
                     if (subscriptionId == null) break;
 
@@ -291,7 +295,9 @@ public class StripeService {
                     }
 
                     // Reativação de cancelamento
-                    if (!cancelAtEnd) {
+                    // FIX A3.8.2: só reverte se status do Stripe = "active" E cancel_at_period_end=false
+                    // (evita reverter durante webhooks fantasmas após o cancelamento)
+                    if (!cancelAtEnd && "active".equals(stripeStatus)) {
                         usuarioRepository.findByStripeSubscriptionId(subscriptionId).ifPresent(u -> {
                             if ("CANCELANDO".equals(u.getAssinaturaStatus())) {
                                 u.setAssinaturaStatus("ATIVA");
@@ -394,13 +400,15 @@ public class StripeService {
 
     private String extrairCampo(String json, String campo) {
         try {
-            String search = "\"" + campo + "\":\"";
-            int idx = json.indexOf(search);
-            if (idx < 0) return null;
-            int start = idx + search.length();
-            int end   = json.indexOf("\"", start);
-            return json.substring(start, end);
-        } catch (Exception e) { return null; }
+            // Tolera espaços: "campo":"valor" ou "campo": "valor"
+            java.util.regex.Pattern p = java.util.regex.Pattern.compile(
+                    "\"" + java.util.regex.Pattern.quote(campo) + "\"\\s*:\\s*\"([^\"]+)\""
+            );
+            java.util.regex.Matcher m = p.matcher(json);
+            return m.find() ? m.group(1) : null;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private String extrairMetadata(String json, String chave) {
@@ -416,5 +424,32 @@ public class StripeService {
             int end   = json.indexOf("\"", start);
             return json.substring(start, end);
         } catch (Exception e) { return null; }
+    }
+
+    /**
+     * Extrai um campo boolean do JSON do Stripe de forma robusta.
+     * Tolera espaços, quebras de linha e diferentes formatações.
+     *
+     * Exemplos que funcionam:
+     *   "cancel_at_period_end":true
+     *   "cancel_at_period_end": true
+     *   "cancel_at_period_end" : true
+     *
+     * Adicionado em A3.8.2 — fix do bug de cancelamento sobrescrito por webhook.
+     */
+    private boolean extrairBoolean(String json, String campo) {
+        try {
+            java.util.regex.Pattern p = java.util.regex.Pattern.compile(
+                    "\"" + java.util.regex.Pattern.quote(campo) + "\"\\s*:\\s*(true|false)"
+            );
+            java.util.regex.Matcher m = p.matcher(json);
+            if (m.find()) {
+                return Boolean.parseBoolean(m.group(1));
+            }
+            return false;
+        } catch (Exception e) {
+            log.warn("Erro ao extrair boolean '{}': {}", campo, e.getMessage());
+            return false;
+        }
     }
 }

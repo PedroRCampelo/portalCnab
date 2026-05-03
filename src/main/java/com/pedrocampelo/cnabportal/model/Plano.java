@@ -12,6 +12,8 @@ import java.util.UUID;
  * Entidade que representa a tabela 'planos'.
  *
  * Sprint 2.2-A1.4: criada pra suportar PlanoGuard.
+ * Sprint A3.9: adiciona elvisQuotaMensal pro gate da IA.
+ *
  * Slugs estáveis usados pelo código:
  *   - "gratuito"
  *   - "pro"
@@ -59,4 +61,22 @@ public class Plano {
     @CreationTimestamp
     @Column(name = "criado_em", nullable = false, updatable = false)
     private LocalDateTime criadoEm;
+
+    /**
+     * Limite mensal de perguntas ao Elvis (IA do CNAB).
+     * Adicionado em V28 (Sprint A3.9).
+     *
+     * Valores:
+     *   - NULL    = ilimitado (Whallet+)
+     *   - INTEGER = limite mensal (Free: 5)
+     */
+    @Column(name = "elvis_quota_mensal")
+    private Integer elvisQuotaMensal;
+
+    /**
+     * Helper: indica se este plano tem uso ilimitado do Elvis.
+     */
+    public boolean elvisIlimitado() {
+        return elvisQuotaMensal == null;
+    }
 }

@@ -41,6 +41,9 @@ import HistoricoPage             from "./pages/app/HistoricoPage.jsx";
 import AssistenteCnabPage        from "./pages/app/AssistenteCnabPage.jsx";
 import CnabChatPage              from "./pages/app/CnabChatPage.jsx";
 
+// Páginas de retorno do checkout Stripe
+import { UpgradeSucessoPage, UpgradeCanceladoPage } from "./pages/app/UpgradePages.jsx";
+
 // ── Admin (envolvido em AppLayout) ───────────────────────────────────────────
 import AdminUsuariosPage         from "./pages/admin/AdminUsuariosPage.jsx";
 import CnabKnowledgePage         from "./pages/admin/CnabKnowledgePage.jsx";
@@ -53,11 +56,12 @@ import ValidaCnabPage            from "./pages/tools/ValidaCnabPage.jsx";
 // ─────────────────────────────────────────────────────────────────────────────
 // Sprint A3.1 · App Shell
 //
-// Rotas dividas em 4 grupos:
+// Rotas dividas em 5 grupos:
 //   1. LANDING_ROUTES — sem sidebar nem topbar (HomePage, Login, Cadastro, Planos, etc)
 //   2. APP_ROUTES     — dentro de <AppLayout/> (TopBar + Sidebar)
 //   3. PUBLIC_TOOLS   — sem shell, página standalone (ValidaCnab, Excel, Pdf)
 //   4. PUBLIC_LEGAL   — sem shell, páginas legais (Privacidade, Termos, Contato)
+//   5. UPGRADE        — retorno do Stripe pós-checkout (Sucesso, Cancelado)
 // ─────────────────────────────────────────────────────────────────────────────
 
 const AUTH_ROUTES = ["/verificar-email", "/cadastro"];
@@ -71,17 +75,19 @@ const LANDING_ROUTES = [
 ];
 const PUBLIC_TOOL_ROUTES  = ["/valida-cnab", "/excel", "/pdf"];
 const PUBLIC_LEGAL_ROUTES = ["/privacidade", "/termos", "/contato"];
+const UPGRADE_ROUTES      = ["/upgrade/sucesso", "/upgrade/cancelado"];
 
 function AppShell() {
     const { pathname } = useLocation();
-    const isAuth    = AUTH_ROUTES.some(r => pathname.startsWith(r));
-    const isLanding = LANDING_ROUTES.includes(pathname);
-    const isTool    = PUBLIC_TOOL_ROUTES.some(r => pathname.startsWith(r));
-    const isLegal   = PUBLIC_LEGAL_ROUTES.some(r => pathname.startsWith(r));
+    const isAuth     = AUTH_ROUTES.some(r => pathname.startsWith(r));
+    const isLanding  = LANDING_ROUTES.includes(pathname);
+    const isTool     = PUBLIC_TOOL_ROUTES.some(r => pathname.startsWith(r));
+    const isLegal    = PUBLIC_LEGAL_ROUTES.some(r => pathname.startsWith(r));
+    const isUpgrade  = UPGRADE_ROUTES.some(r => pathname.startsWith(r));
 
     // Rotas que usam o shell ERP (com AppLayout):
-    //   tudo que NÃO é landing nem tool nem auth nem legal
-    const useAppShell = !isLanding && !isAuth && !isTool && !isLegal;
+    //   tudo que NÃO é landing nem tool nem auth nem legal nem upgrade
+    const useAppShell = !isLanding && !isAuth && !isTool && !isLegal && !isUpgrade;
 
     // Em rotas legacy (não-shell), aplicar classe antiga
     const shellClass = isLanding
@@ -130,11 +136,11 @@ function AppShell() {
         );
     }
 
-    /* ── Caso 2: rotas legacy (landing, auth, tools, legal) ───────────────── */
+    /* ── Caso 2: rotas legacy (landing, auth, tools, legal, upgrade) ──────── */
     return (
         <div className={shellClass}>
-            {!isLanding && !isTool && !isLegal && <div className="bg-orb bg-orb--2" aria-hidden="true"/>}
-            {!isLanding && !isTool && !isLegal && <BannerEmailPendente/>}
+            {!isLanding && !isTool && !isLegal && !isUpgrade && <div className="bg-orb bg-orb--2" aria-hidden="true"/>}
+            {!isLanding && !isTool && !isLegal && !isUpgrade && <BannerEmailPendente/>}
 
             <ScrollToTop/>
 
@@ -157,6 +163,10 @@ function AppShell() {
                 <Route path="/valida-cnab"      element={<ValidaCnabPage/>}/>
                 <Route path="/excel"            element={<ExcelPage/>}/>
                 <Route path="/pdf"              element={<PdfPage/>}/>
+
+                {/* Retorno do Stripe pós-checkout */}
+                <Route path="/upgrade/sucesso"   element={<UpgradeSucessoPage/>}/>
+                <Route path="/upgrade/cancelado" element={<UpgradeCanceladoPage/>}/>
             </Routes>
         </div>
     );
