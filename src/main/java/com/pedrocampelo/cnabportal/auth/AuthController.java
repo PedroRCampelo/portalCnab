@@ -8,6 +8,7 @@ import com.pedrocampelo.cnabportal.auth.dto.RegisterRequest;
 import com.pedrocampelo.cnabportal.config.LoginRateLimiter;
 import com.pedrocampelo.cnabportal.model.Empresa;
 import com.pedrocampelo.cnabportal.model.Usuario;
+import com.pedrocampelo.cnabportal.model.Usuario.PapelEmpresa;
 import com.pedrocampelo.cnabportal.model.Usuario.PerfilUsuario;
 import com.pedrocampelo.cnabportal.repository.EmpresaRepository;
 import com.pedrocampelo.cnabportal.repository.UsuarioRepository;
@@ -16,7 +17,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,6 +26,7 @@ import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -46,11 +47,7 @@ public class AuthController {
     private final LoginRateLimiter      rateLimiter;
     private final GoogleTokenVerifier   googleTokenVerifier;
 
-    // UUID fixo da empresa padrao — todos os auto-cadastros pertencem a ela
-    @Value("${app.empresa-padrao-id:00000000-0000-0000-0000-000000000001}")
-    private String empresaPadraoId;
-
-    // ── Login ─────────────────────────────────────────────────────────────────
+    // ── Login (email/senha) ───────────────────────────────────────────────────
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody AuthRequest request,
@@ -69,7 +66,7 @@ public class AuthController {
 
             Usuario usuario = (Usuario) auth.getPrincipal();
 
-            rateLimiter.registrarSucesso(ip); // reseta o contador apos sucesso
+            rateLimiter.registrarSucesso(ip);
             usuarioRepository.atualizarUltimoAcesso(usuario.getId(), LocalDateTime.now());
 
             String token    = jwtService.generateToken(usuario);
@@ -106,13 +103,12 @@ public class AuthController {
                                          HttpServletRequest httpRequest) {
         String ip = obterIp(httpRequest);
 
-        // Aplica o mesmo rate limit do login normal
         if (!rateLimiter.permitir(ip)) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                     .body(new ErroResponse("Muitas tentativas. Aguarde 1 minuto e tente novamente."));
         }
 
-        // 1. Valida o ID Token com o Google (assinatura + audience + expiração)
+        // 1. Valida o ID Token com o Google
         com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload payload;
         try {
             payload = googleTokenVerifier.verificar(request.idToken());
@@ -122,24 +118,22 @@ public class AuthController {
                     .body(new ErroResponse("Token Google inválido"));
         }
 
-        String googleId = payload.getSubject();          // ID permanente da conta Google
+        String googleId = payload.getSubject();
         String email    = payload.getEmail().toLowerCase().trim();
         String nome     = (String) payload.get("name");
         String fotoUrl  = (String) payload.get("picture");
 
-        // 2. Resolve usuário: busca por google_id, depois por email; se não existir, cria
+        // 2. Resolve usuário: por google_id, depois email; cria se não existir
         Usuario usuario = usuarioRepository.findByGoogleId(googleId)
                 .or(() -> usuarioRepository.findByEmail(email))
                 .map(existente -> vincularGoogle(existente, googleId, fotoUrl))
                 .orElseGet(() -> criarUsuarioGoogle(googleId, email, nome, fotoUrl));
 
-        // 3. Valida que o usuário está ativo
         if (!Boolean.TRUE.equals(usuario.getAtivo())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(new ErroResponse("Conta desativada. Entre em contato com o suporte."));
         }
 
-        // 4. Sucesso: gera JWT do Whallet (mesmo formato do login normal)
         rateLimiter.registrarSucesso(ip);
         usuarioRepository.atualizarUltimoAcesso(usuario.getId(), LocalDateTime.now());
 
@@ -161,21 +155,14 @@ public class AuthController {
         ));
     }
 
-    /**
-     * Vincula uma conta Google a um usuário existente (cadastrado por email/senha).
-     * Idempotente: chamadas subsequentes não fazem nada.
-     */
     private Usuario vincularGoogle(Usuario existente, String googleId, String fotoUrl) {
         boolean precisaSalvar = false;
 
         if (existente.getGoogleId() == null) {
             existente.setGoogleId(googleId);
-            // Se o usuário não tinha senha local, marca como GOOGLE.
-            // Se tinha, mantém LOCAL — pode logar pelos dois métodos.
             if (existente.getSenhaHash() == null) {
                 existente.setProvedorAuth("GOOGLE");
             }
-            // Email vindo do Google já é verificado
             if (!Boolean.TRUE.equals(existente.getEmailVerificado())) {
                 existente.setEmailVerificado(true);
                 existente.setTokenVerificacao(null);
@@ -194,33 +181,52 @@ public class AuthController {
 
     /**
      * Cria novo usuário a partir de login Google (auto-cadastro silencioso).
-     * Vai pra empresa padrão, igual ao /cadastro normal.
+     *
+     * MUDANÇA Sprint 2.2-A1: Cria EMPRESA NOVA automaticamente.
+     * MEI vira DONO da própria empresa, isolado dos outros.
      */
-    private Usuario criarUsuarioGoogle(String googleId, String email, String nome, String fotoUrl) {
-        Empresa empresa = empresaRepository.findById(UUID.fromString(empresaPadraoId))
-                .orElseThrow(() -> new IllegalStateException("Empresa padrão não encontrada"));
+    @Transactional
+    public Usuario criarUsuarioGoogle(String googleId, String email, String nome, String fotoUrl) {
+        // 1. Cria a empresa primeiro (sem criadorUsuarioId — preenche depois)
+        Empresa empresa = Empresa.builder()
+                .nome("Minha Empresa")
+                .cnpj(null)                  // opcional no plano gratuito
+                .ativa(true)
+                .build();
+        empresa = empresaRepository.save(empresa);
 
+        // 2. Cria o usuário vinculado à empresa, como DONO
         Usuario novo = Usuario.builder()
                 .empresa(empresa)
                 .nome(nome != null ? nome : email.split("@")[0])
                 .email(email)
-                .senhaHash(null)                      // sem senha local
+                .senhaHash(null)
                 .googleId(googleId)
                 .provedorAuth("GOOGLE")
                 .fotoUrl(fotoUrl)
                 .perfil(PerfilUsuario.OPERADOR)
+                .papelEmpresa(PapelEmpresa.DONO)
                 .ativo(true)
-                .emailVerificado(true)                // Google já verificou
+                .emailVerificado(true)
                 .build();
 
         Usuario salvo = usuarioRepository.save(novo);
-        log.info("Auto-cadastro via Google: {}", salvo.getEmail());
+
+        // 3. Atualiza a empresa com o criador (após salvar usuário pra ter o ID)
+        empresa.setCriadorUsuarioId(salvo.getId());
+        empresaRepository.save(empresa);
+
+        log.info("Auto-cadastro via Google: {} (empresa {} criada)", salvo.getEmail(), empresa.getId());
         return salvo;
     }
 
-    // ── Auto-cadastro publico ─────────────────────────────────────────────────
+    // ── Auto-cadastro publico (email/senha) ──────────────────────────────────
 
+    /**
+     * MUDANÇA Sprint 2.2-A1: Cria EMPRESA NOVA automaticamente.
+     */
     @PostMapping("/cadastro")
+    @Transactional
     public ResponseEntity<?> cadastro(@Valid @RequestBody CadastroRequest request) {
 
         if (usuarioRepository.existsByEmail(request.email())) {
@@ -228,17 +234,24 @@ public class AuthController {
                     .body(new ErroResponse("Email ja cadastrado"));
         }
 
-        Empresa empresa = empresaRepository.findById(UUID.fromString(empresaPadraoId))
-                .orElseThrow(() -> new IllegalStateException("Empresa padrão não encontrada"));
+        // 1. Cria empresa nova
+        Empresa empresa = Empresa.builder()
+                .nome("Minha Empresa")
+                .cnpj(null)
+                .ativa(true)
+                .build();
+        empresa = empresaRepository.save(empresa);
 
         String tokenVerificacao = UUID.randomUUID().toString();
 
+        // 2. Cria usuário como DONO da empresa
         Usuario novo = Usuario.builder()
                 .empresa(empresa)
                 .nome(request.nome())
                 .email(request.email().toLowerCase().trim())
                 .senhaHash(passwordEncoder.encode(request.senha()))
                 .perfil(PerfilUsuario.OPERADOR)
+                .papelEmpresa(PapelEmpresa.DONO)
                 .ativo(true)
                 .emailVerificado(false)
                 .tokenVerificacao(tokenVerificacao)
@@ -246,12 +259,15 @@ public class AuthController {
                 .telefone(request.telefone())
                 .build();
 
-        usuarioRepository.save(novo);
+        Usuario salvo = usuarioRepository.save(novo);
 
-        // Envia email de confirmacao — erro no envio nao bloqueia o cadastro
-        emailService.enviarConfirmacaoEmail(novo.getEmail(), novo.getNome(), tokenVerificacao);
+        // 3. Atualiza empresa com o criador
+        empresa.setCriadorUsuarioId(salvo.getId());
+        empresaRepository.save(empresa);
 
-        log.info("Novo cadastro: {}", novo.getEmail());
+        emailService.enviarConfirmacaoEmail(salvo.getEmail(), salvo.getNome(), tokenVerificacao);
+
+        log.info("Novo cadastro: {} (empresa {} criada)", salvo.getEmail(), empresa.getId());
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new ErroResponse("Cadastro realizado! Verifique seu email para ativar a conta."));
@@ -276,13 +292,12 @@ public class AuthController {
         }
 
         usuario.setEmailVerificado(true);
-        usuario.setTokenVerificacao(null);  // invalida o token apos uso
+        usuario.setTokenVerificacao(null);
         usuario.setTokenExpiracao(null);
         usuarioRepository.save(usuario);
 
         log.info("Email verificado: {}", usuario.getEmail());
 
-        // Retorna JWT para auto-login direto no frontend
         String jwtToken = jwtService.generateToken(usuario);
         long   expiraEm = jwtService.extractExpiration(jwtToken).getTime();
 
@@ -306,7 +321,6 @@ public class AuthController {
 
         var usuario = usuarioRepository.findByEmail(request.email()).orElse(null);
 
-        // Resposta generica — nao revela se o email existe
         if (usuario == null || Boolean.TRUE.equals(usuario.getEmailVerificado())) {
             return ResponseEntity.ok(new ErroResponse(
                     "Se o email estiver cadastrado e pendente de verificação, você receberá um novo link."));
@@ -324,6 +338,12 @@ public class AuthController {
     }
 
     // ── Register (admin cria usuario manualmente) ─────────────────────────────
+    //
+    // Este endpoint é diferente: admin escolhe a empresa onde adicionar o usuário.
+    // Usado pra:
+    //   - Admin do sistema (você) criando usuários
+    //   - Futuro: convidar MEMBRO pra uma empresa existente
+    // Por isso aceita empresaId no request e NÃO cria empresa nova.
 
     @PostMapping("/register")
     @PreAuthorize("hasRole('ADMIN')")
@@ -343,8 +363,9 @@ public class AuthController {
                 .email(request.email().toLowerCase().trim())
                 .senhaHash(passwordEncoder.encode(request.senha()))
                 .perfil(request.perfil() != null ? request.perfil() : PerfilUsuario.OPERADOR)
+                .papelEmpresa(PapelEmpresa.MEMBRO)  // adicionado por admin = MEMBRO
                 .ativo(true)
-                .emailVerificado(true)  // admin cria ja verificado
+                .emailVerificado(true)
                 .build();
 
         usuarioRepository.save(novoUsuario);
@@ -358,7 +379,6 @@ public class AuthController {
 
     @PostMapping("/esqueci-senha")
     public ResponseEntity<?> esqueciSenha(@RequestBody EmailRequest request) {
-        // Resposta genérica — nunca revela se o email existe
         String respostaGenerica = "Se o email estiver cadastrado, você receberá um link para redefinir sua senha.";
 
         var usuario = usuarioRepository.findByEmailAndAtivoTrue(request.email()).orElse(null);
@@ -414,7 +434,6 @@ public class AuthController {
     record EmailRequest(String email) {}
     record RedefinirSenhaRequest(String token, String novaSenha) {}
 
-    // Extrai o IP real do cliente — considera proxies reversos (Render, Cloudflare)
     private String obterIp(HttpServletRequest request) {
         String forwarded = request.getHeader("X-Forwarded-For");
         if (forwarded != null && !forwarded.isBlank()) {

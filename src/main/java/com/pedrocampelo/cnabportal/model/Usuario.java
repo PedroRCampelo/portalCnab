@@ -61,6 +61,21 @@ public class Usuario implements UserDetails {
     @Builder.Default
     private PerfilUsuario perfil = PerfilUsuario.OPERADOR;
 
+    /**
+     * Papel do usuário DENTRO da sua empresa (multi-tenant — Sprint 2.2-A1):
+     *   - DONO         → criou a empresa, gerencia membros e configurações
+     *   - MEMBRO       → acesso completo aos dados da empresa, mas não gerencia
+     *   - VISUALIZADOR → futuro: só leitura
+     *
+     * Default: DONO. Todo usuário novo vira dono da sua empresa automaticamente.
+     *
+     * NÃO CONFUNDIR com `perfil` (PerfilUsuario) — esse é permissão NO SISTEMA.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "papel_empresa", nullable = false, length = 20)
+    @Builder.Default
+    private PapelEmpresa papelEmpresa = PapelEmpresa.DONO;
+
     @Column(nullable = false)
     @Builder.Default
     private Boolean ativo = true;
@@ -186,6 +201,12 @@ public class Usuario implements UserDetails {
     public enum PerfilUsuario {
         ADMIN,
         OPERADOR,
+        VISUALIZADOR
+    }
+    
+    public enum PapelEmpresa {
+        DONO,
+        MEMBRO,
         VISUALIZADOR
     }
 

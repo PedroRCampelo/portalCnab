@@ -1,0 +1,183 @@
+/* ═════════════════════════════════════════════════════════════════════════════
+   Tabs — Componente standalone
+   Sprint A3.4 · Componentes base
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+.ui-tabs {
+    display: flex;
+    align-items: center;
+    gap: 0;
+}
+
+.ui-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-family: var(--ff-sans);
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    color: var(--text-muted);
+    transition: color 0.15s, background 0.15s, border-color 0.15s;
+    white-space: nowrap;
+    position: relative;
+}
+
+.ui-tab:hover {
+    color: var(--navy-deep);
+}
+
+.ui-tab.active {
+    color: var(--cyan-dark);
+    font-weight: 600;
+}
+
+.ui-tab-icon {
+    display: inline-flex;
+    color: currentColor;
+}
+
+.ui-tab-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 6px;
+    border-radius: 100px;
+    background: var(--bg);
+    color: var(--text-dim);
+    font-family: var(--ff-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0;
+}
+
+.ui-tab.active .ui-tab-count {
+    background: var(--cyan-soft);
+    color: var(--cyan-dark);
+}
+
+.ui-tab-count--success {
+    background: var(--success-bg) !important;
+    color: var(--success) !important;
+}
+.ui-tab-count--warning {
+    background: var(--warning-bg) !important;
+    color: var(--warning) !important;
+}
+.ui-tab-count--error {
+    background: var(--error-bg) !important;
+    color: var(--error) !important;
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   VARIANTE: UNDERLINE (default — Stripe Dashboard, GitHub)
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+.ui-tabs--underline {
+    border-bottom: 1px solid var(--hair);
+}
+
+.ui-tabs--underline .ui-tab {
+    padding: 12px 16px;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+}
+
+.ui-tabs--underline .ui-tab.active {
+    border-bottom-color: var(--cyan-dark);
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   VARIANTE: PILL (botões arredondados — Linear, Notion)
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+.ui-tabs--pill {
+    gap: 4px;
+    padding: 4px;
+    background: var(--bg);
+    border: 1px solid var(--hair);
+    border-radius: 100px;
+    align-self: flex-start;
+}
+
+.ui-tabs--pill .ui-tab {
+    padding: 6px 14px;
+    border-radius: 100px;
+}
+
+.ui-tabs--pill .ui-tab:hover {
+    background: var(--surface);
+}
+
+.ui-tabs--pill .ui-tab.active {
+    background: var(--surface);
+    color: var(--navy-deep);
+    box-shadow: 0 1px 3px rgba(11, 30, 54, 0.08);
+}
+
+.ui-tabs--pill .ui-tab.active .ui-tab-count {
+    background: var(--cyan-soft);
+    color: var(--cyan-dark);
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   VARIANTE: SUBTLE (sem underline, só cor — Vercel)
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+.ui-tabs--subtle {
+    gap: 4px;
+}
+
+.ui-tabs--subtle .ui-tab {
+    padding: 6px 12px;
+    border-radius: 8px;
+}
+
+.ui-tabs--subtle .ui-tab:hover {
+    background: var(--bg);
+}
+
+.ui-tabs--subtle .ui-tab.active {
+    background: var(--cyan-soft);
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   TAMANHOS
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+.ui-tabs--default .ui-tab { font-size: 14px; }
+.ui-tabs--compact .ui-tab { font-size: 12px; }
+
+.ui-tabs--compact.ui-tabs--underline .ui-tab {
+    padding: 8px 12px;
+}
+
+.ui-tabs--compact.ui-tabs--pill {
+    padding: 3px;
+}
+.ui-tabs--compact.ui-tabs--pill .ui-tab {
+    padding: 5px 10px;
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   RESPONSIVO
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 600px) {
+    .ui-tabs--underline {
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .ui-tabs--underline::-webkit-scrollbar {
+        display: none;
+    }
+
+    .ui-tab {
+        flex-shrink: 0;
+    }
+}

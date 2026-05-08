@@ -1,18 +1,20 @@
 package com.pedrocampelo.cnabportal.service.gestaosv;
 
-import com.pedrocampelo.cnabportal.model.Empresa;
+import com.pedrocampelo.cnabportal.model.MovimentoBancario;
+import com.pedrocampelo.cnabportal.model.SaldoBancario;
 import com.pedrocampelo.cnabportal.model.Titulo;
 import com.pedrocampelo.cnabportal.model.Usuario;
-import com.pedrocampelo.cnabportal.repository.EmpresaRepository;
 import com.pedrocampelo.cnabportal.repository.TituloRepository;
+import com.pedrocampelo.cnabportal.service.fluxocaixasv.MovimentoBancarioService;
+import com.pedrocampelo.cnabportal.service.fluxocaixasv.SaldoBancarioService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -20,21 +22,24 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
 
+/**
+ * Service de gestão de títulos a pagar.
+ *
+ * MUDANÇA Sprint 2.2-A1: Remove empresaPadraoId. Empresa vem do usuário logado.
+ * Cada usuário só vê e cria títulos da SUA empresa (multi-tenant real).
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class TituloService {
 
-    private final TituloRepository  tituloRepository;
-    private final EmpresaRepository empresaRepository;
-
-    @Value("${app.empresa-padrao-id:00000000-0000-0000-0000-000000000001}")
-    private String empresaPadraoId;
+    private final TituloRepository           tituloRepository;
+    private final SaldoBancarioService       saldoBancarioService;
+    private final MovimentoBancarioService   movimentoBancarioService;
 
     // ── Listagem com filtros ───────────────────────────────────────────────────
 
     public Page<Titulo> listar(UUID usuarioId, String status, String busca, int pagina, int tamanho) {
-        // Atualiza vencidos antes de retornar — garante consistência sem esperar o scheduler
         tituloRepository.atualizarVencidos();
 
         String statusFiltro = (status == null || status.isBlank()) ? null : status.toUpperCase();
@@ -60,13 +65,10 @@ public class TituloService {
 
     public Titulo criar(Titulo titulo, Usuario usuario) {
         validar(titulo);
-        Empresa empresa = empresaRepository.findById(UUID.fromString(empresaPadraoId))
-                .orElseThrow(() -> new IllegalStateException("Empresa padrão não encontrada"));
 
         titulo.setUsuario(usuario);
-        titulo.setEmpresa(empresa);
+        titulo.setEmpresa(usuario.getEmpresa());     // ← antes: empresaPadraoId
 
-        // Saldo inicial = valor (sem pagamento parcial)
         if (titulo.getSaldo() == null || titulo.getSaldo().compareTo(BigDecimal.ZERO) == 0) {
             titulo.setSaldo(titulo.getValor());
         }
@@ -75,7 +77,7 @@ public class TituloService {
         return tituloRepository.save(titulo);
     }
 
-    // ── Atualização ───────────────────────────────────────────────────────────
+    // ── Atualização (com regras ERP) ──────────────────────────────────────────
 
     public Titulo atualizar(UUID id, Titulo dados, Usuario usuario) {
         Titulo existente = tituloRepository.findById(id)
@@ -83,6 +85,13 @@ public class TituloService {
 
         if (!existente.getUsuario().getId().equals(usuario.getId())) {
             throw new SecurityException("Acesso negado");
+        }
+
+        if (temBaixa(existente)) {
+            throw new IllegalStateException(
+                    "Título com baixa registrada não pode ser editado. " +
+                            "Estorne a baixa antes de alterar."
+            );
         }
 
         validar(dados);
@@ -105,7 +114,6 @@ public class TituloService {
         existente.setLinhaDigitavel(dados.getLinhaDigitavel());
         existente.setTipoGastoId(dados.getTipoGastoId());
 
-        // Só atualiza status se não for PAGO
         if (!"PAGO".equals(dados.getStatus())) {
             existente.atualizarStatus();
         } else {
@@ -115,9 +123,11 @@ public class TituloService {
         return tituloRepository.save(existente);
     }
 
-    // ── Baixa (pagamento total, parcial ou com acréscimos) ────────────────────
+    // ── Baixa (pagamento total ou parcial) ────────────────────────────────────
 
-    public Titulo registrarBaixa(UUID id, BigDecimal valorPago, LocalDate dataBaixa, String observacao, Usuario usuario) {
+    @Transactional
+    public Titulo registrarBaixa(UUID id, BigDecimal valorPago, LocalDate dataBaixa,
+                                 String observacao, UUID contaId, Usuario usuario) {
         Titulo titulo = tituloRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Título não encontrado"));
 
@@ -128,6 +138,10 @@ public class TituloService {
         if (valorPago == null || valorPago.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Valor da baixa deve ser maior que zero");
         }
+
+        SaldoBancario conta = contaId != null
+                ? saldoBancarioService.buscarEntidadePorId(usuario, contaId)
+                : saldoBancarioService.buscarContaPadrao(usuario);
 
         BigDecimal saldoAtual = titulo.getSaldo() != null ? titulo.getSaldo() : titulo.getValor();
         BigDecimal novoSaldo  = saldoAtual.subtract(valorPago);
@@ -142,7 +156,6 @@ public class TituloService {
             titulo.atualizarStatus();
         }
 
-        // Acumula acréscimo (diferença acima do saldo original)
         if (valorPago.compareTo(saldoAtual) > 0) {
             BigDecimal acrescimo = valorPago.subtract(saldoAtual);
             BigDecimal jurosAtuais = titulo.getJuros() != null ? titulo.getJuros() : BigDecimal.ZERO;
@@ -157,14 +170,65 @@ public class TituloService {
                     + (observacao.isBlank() ? "" : " — " + observacao));
         }
 
-        return tituloRepository.save(titulo);
+        Titulo salvo = tituloRepository.save(titulo);
+
+        String descricao = "Pagamento de " +
+                (titulo.getFornecedorNome() != null ? titulo.getFornecedorNome() : "fornecedor") +
+                " — #" + titulo.getNumero();
+
+        LocalDate dataMovimento = dataBaixa != null ? dataBaixa : LocalDate.now();
+
+        movimentoBancarioService.criarPagamento(
+                usuario, conta, dataMovimento, valorPago, descricao, salvo.getId()
+        );
+
+        log.info("Título baixado: {} (valor={}, conta={})",
+                salvo.getId(), valorPago, conta.getNomeConta());
+        return salvo;
+    }
+
+    // ── Estornar baixa ────────────────────────────────────────────────────────
+
+    @Transactional
+    public Titulo estornarBaixa(UUID id, Usuario usuario) {
+        Titulo titulo = tituloRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Título não encontrado"));
+
+        if (!titulo.getUsuario().getId().equals(usuario.getId())) {
+            throw new SecurityException("Acesso negado");
+        }
+
+        List<MovimentoBancario> estornos = movimentoBancarioService.estornarPorOrigem(
+                usuario, "TITULO", titulo.getId(),
+                "Estorno de pagamento de título"
+        );
+
+        if (estornos.isEmpty()) {
+            throw new IllegalStateException("Este título não possui pagamento para estornar.");
+        }
+
+        BigDecimal valorEstornado = estornos.stream()
+                .map(MovimentoBancario::getValor)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal saldoAtual = titulo.getSaldo() != null ? titulo.getSaldo() : BigDecimal.ZERO;
+        titulo.setSaldo(saldoAtual.add(valorEstornado));
+        titulo.setDataBaixa(null);
+
+        // Força status PENDENTE antes do atualizarStatus() (early-return em PAGO)
+        titulo.setStatus("PENDENTE");
+        titulo.atualizarStatus();
+
+        Titulo salvo = tituloRepository.save(titulo);
+        log.info("Título estornado: {} (valor estornado={})", salvo.getId(), valorEstornado);
+        return salvo;
     }
 
     private static String fmtBrl(BigDecimal v) {
         return "R$ " + String.format("%.2f", v).replace(".", ",");
     }
 
-    // ── Exclusão ──────────────────────────────────────────────────────────────
+    // ── Exclusão (com regra ERP) ──────────────────────────────────────────────
 
     public void excluir(UUID id, Usuario usuario) {
         Titulo titulo = tituloRepository.findById(id)
@@ -174,18 +238,33 @@ public class TituloService {
             throw new SecurityException("Acesso negado");
         }
 
+        if (temBaixa(titulo)) {
+            throw new IllegalStateException(
+                    "Título com baixa registrada não pode ser excluído. " +
+                            "Estorne a baixa primeiro."
+            );
+        }
+
         tituloRepository.delete(titulo);
     }
 
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private boolean temBaixa(Titulo t) {
+        if ("PAGO".equals(t.getStatus())) return true;
+        if (t.getSaldo() != null && t.getValor() != null
+                && t.getSaldo().compareTo(t.getValor()) < 0) {
+            return true;
+        }
+        return false;
+    }
 
     // ── Lançamento parcelado ──────────────────────────────────────────────────
-    // Cria N títulos com mesmo número, parcelas sequenciais (001, 002...)
-    // e vencimentos calculados conforme intervalo em dias
 
     public record ParceladoRequest(
             Titulo templateTitulo,
             int    qtdParcelas,
-            int    intervaloDias  // 30=mensal, 15=quinzenal, 7=semanal, customizado
+            int    intervaloDias
     ) {}
 
     public List<Titulo> criarParcelado(ParceladoRequest req, Usuario usuario) {
@@ -198,9 +277,6 @@ public class TituloService {
 
         validar(req.templateTitulo());
 
-        Empresa empresa = empresaRepository.findById(UUID.fromString(empresaPadraoId))
-                .orElseThrow(() -> new IllegalStateException("Empresa padrão não encontrada"));
-
         List<Titulo> criados = new ArrayList<>();
         LocalDate vencimentoBase = req.templateTitulo().getVencimento();
 
@@ -210,7 +286,7 @@ public class TituloService {
 
             Titulo t = Titulo.builder()
                     .usuario(usuario)
-                    .empresa(empresa)
+                    .empresa(usuario.getEmpresa())     // ← antes: empresaPadraoId
                     .prefixo(req.templateTitulo().getPrefixo() != null ? req.templateTitulo().getPrefixo() : "AP")
                     .numero(req.templateTitulo().getNumero())
                     .parcela(numeroParcela)
@@ -241,18 +317,12 @@ public class TituloService {
     // ── Relatórios ────────────────────────────────────────────────────────────
 
     public Map<String, Object> relatorioCompleto(UUID usuarioId) {
-        // Fluxo de caixa: próximos 12 meses
         LocalDate hoje = LocalDate.now();
         LocalDate fim  = hoje.withDayOfMonth(1).plusMonths(12).minusDays(1);
         List<Object[]> fluxo = tituloRepository.fluxoCaixaMensal(usuarioId, hoje, fim);
 
-        // Por tipo de gasto
         List<Object[]> porTipo = tituloRepository.porTipoGasto(usuarioId);
-
-        // Top fornecedores
         List<Object[]> fornecedores = tituloRepository.topFornecedores(usuarioId);
-
-        // Aging de vencidos
         List<Object[]> aging = tituloRepository.aging(usuarioId);
 
         return Map.of(
@@ -288,16 +358,8 @@ public class TituloService {
     }
 
     // ── Importação Excel ──────────────────────────────────────────────────────
-    //
-    // Colunas esperadas (linha 1 = cabeçalho, linha 2+ = dados):
-    // A: Número | B: Parcela | C: Tipo | D: Nome | E: Documento
-    // F: Emissão | G: Vencimento | H: Valor
-    //
 
     public ImportacaoResultado importarExcel(MultipartFile arquivo, Usuario usuario) throws IOException {
-        Empresa empresa = empresaRepository.findById(UUID.fromString(empresaPadraoId))
-                .orElseThrow(() -> new IllegalStateException("Empresa padrão não encontrada"));
-
         List<String> erros    = new ArrayList<>();
         List<Titulo> salvos   = new ArrayList<>();
         int linha = 1;
@@ -306,7 +368,7 @@ public class TituloService {
             Sheet sheet = workbook.getSheetAt(0);
 
             for (Row row : sheet) {
-                if (row.getRowNum() == 0) continue; // pula cabeçalho
+                if (row.getRowNum() == 0) continue;
                 linha = row.getRowNum() + 1;
 
                 try {
@@ -330,7 +392,7 @@ public class TituloService {
 
                     Titulo titulo = Titulo.builder()
                             .usuario(usuario)
-                            .empresa(empresa)
+                            .empresa(usuario.getEmpresa())     // ← antes: empresaPadraoId
                             .numero(numero)
                             .parcela(parcela.isBlank() ? "001" : parcela)
                             .tipo(tipo)
@@ -386,7 +448,6 @@ public class TituloService {
             }
             if (cell.getCellType() == CellType.STRING) {
                 String s = cell.getStringCellValue().trim();
-                // Aceita dd/MM/yyyy ou yyyy-MM-dd
                 if (s.matches("\\d{2}/\\d{2}/\\d{4}")) {
                     String[] p = s.split("/");
                     return LocalDate.of(Integer.parseInt(p[2]), Integer.parseInt(p[1]), Integer.parseInt(p[0]));
