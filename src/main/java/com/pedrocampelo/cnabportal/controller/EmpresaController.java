@@ -3,7 +3,9 @@ package com.pedrocampelo.cnabportal.controller;
 import com.pedrocampelo.cnabportal.dto.EmpresaDtos.EmpresaResponse;
 import com.pedrocampelo.cnabportal.dto.EmpresaDtos.EmpresaUpdateRequest;
 import com.pedrocampelo.cnabportal.model.Usuario;
+import com.pedrocampelo.cnabportal.dto.TermometroFaturamentoResponse;
 import com.pedrocampelo.cnabportal.service.gestaosv.EmpresaService;
+import com.pedrocampelo.cnabportal.service.gestaosv.TermometroService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +27,7 @@ import java.util.NoSuchElementException;
 public class EmpresaController {
 
     private final EmpresaService empresaService;
-
+    private final TermometroService termometroService;
     /**
      * GET /api/empresa
      * Retorna dados e configurações da empresa do MEI logado.
@@ -50,5 +52,21 @@ public class EmpresaController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("mensagem", e.getMessage()));
         }
+    }
+
+    /**
+     * GET /api/empresa/termometro-faturamento
+     * Retorna o termômetro de faturamento do ano corrente.
+     *
+     * Sprint 2.2-B · Termômetro MEI
+     *
+     * Calcula: faturado no ano, percentual do limite, projeção de estouro.
+     * Funciona pra qualquer regime com limite cadastrado, mas é otimizado
+     * pra MEI (limite padrão R$ 81.000).
+     */
+    @GetMapping("/termometro-faturamento")
+    public ResponseEntity<TermometroFaturamentoResponse> termometroFaturamento(
+            @AuthenticationPrincipal Usuario usuario) {
+        return ResponseEntity.ok(termometroService.calcular(usuario));
     }
 }

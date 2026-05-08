@@ -79,4 +79,38 @@ public interface RecebimentoRepository extends JpaRepository<Recebimento, UUID> 
     long countByClienteIdAndStatus(UUID clienteId, String status);
 
     long countByClienteId(UUID clienteId);
+
+    // ── Sprint 2.2-B · Termômetro de faturamento ─────────────────────────────
+
+    /**
+     * Soma o valor total recebido no ano corrente (status = RECEBIDO).
+     * Base pro termômetro MEI: "quanto faturei esse ano vs limite de R$ 81k".
+     */
+    @Query("""
+        SELECT COALESCE(SUM(r.valorRecebido), 0)
+        FROM Recebimento r
+        WHERE r.empresa.id = :empresaId
+          AND r.status = 'RECEBIDO'
+          AND r.dataRecebimento BETWEEN :inicioAno AND :fimAno
+    """)
+    BigDecimal somarFaturadoNoAno(@Param("empresaId") UUID empresaId,
+                                  @Param("inicioAno") LocalDate inicioAno,
+                                  @Param("fimAno") LocalDate fimAno);
+
+    /**
+     * Conta meses distintos com recebimentos no ano (pra calcular média mensal).
+     * Ex: se recebeu em jan, mar, abr → retorna 3.
+     *
+     * Query nativa: JPQL não suporta EXTRACT() dentro de COUNT(DISTINCT).
+     */
+    @Query(value =
+            "SELECT COUNT(DISTINCT EXTRACT(MONTH FROM r.data_recebimento)) " +
+                    "FROM recebimentos r " +
+                    "WHERE r.empresa_id = :empresaId " +
+                    "AND r.status = 'RECEBIDO' " +
+                    "AND r.data_recebimento BETWEEN :inicioAno AND :fimAno",
+            nativeQuery = true)
+    int contarMesesComRecebimento(@Param("empresaId") UUID empresaId,
+                                  @Param("inicioAno") LocalDate inicioAno,
+                                  @Param("fimAno") LocalDate fimAno);
 }

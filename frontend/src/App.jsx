@@ -30,7 +30,6 @@ import PaywallPage               from "./pages/app/PaywallPage.jsx";
 import TitulosPage               from "./pages/app/TitulosPage.jsx";
 import TiposGastoPage            from "./pages/app/TiposGastoPage.jsx";
 import PreferenciasAlertaPage    from "./pages/app/PreferenciasAlertaPage.jsx";
-import GestaFinanceiraPage       from "./pages/app/GestaoFinanceiraPage.jsx";
 
 import RelatoriosPage            from "./pages/app/RelatoriosPage.jsx";
 import AgingPagarPage            from "./pages/app/relatorios/AgingPagarPage.jsx";
@@ -120,7 +119,6 @@ function AppShell() {
 
                         <Route path="/preferencias-alerta" element={<ProtectedRoute><PreferenciasAlertaPage/></ProtectedRoute>}/>
                         <Route path="/historico"           element={<ProtectedRoute><HistoricoPage/></ProtectedRoute>}/>
-                        <Route path="/gestao-financeira"   element={<GestaFinanceiraPage/>}/>
                         <Route path="/paywall"             element={<ProtectedRoute><PaywallPage/></ProtectedRoute>}/>
 
                         {/* IA */}

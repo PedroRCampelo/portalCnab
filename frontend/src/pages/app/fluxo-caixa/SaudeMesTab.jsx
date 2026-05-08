@@ -5,6 +5,7 @@ import {
 import Card from "../../../components/ui/Card.jsx";
 import EmptyState from "../../../components/ui/EmptyState.jsx";
 import { fmtValor, fmtData, SITUACAO_INFO } from "./_helpers.js";
+import TermometroFaturamento from "./TermometroFaturamento.jsx";
 
 /**
  * SaudeMesTab — Tab "Saúde do mês" do Fluxo de Caixa
@@ -105,6 +106,9 @@ export default function SaudeMesTab({ saude, carregando, onRecarregar, onIrPraCo
                     featured
                 />
             </div>
+
+            {/* ═══ Termômetro de faturamento (Sprint 2.2-B) ═══ */}
+            <TermometroFaturamento/>
 
             {/* ═══ Banner de situação ═══ */}
             <div className={`smt-banner smt-banner--${sit.variant}`}>

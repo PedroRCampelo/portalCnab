@@ -1,3 +1,45 @@
+# ═════════════════════════════════════════════════════════════════════════════
+# Whallet · robots.txt
+# https://whallet.com.br
+#
+# Permite que crawlers indexem páginas públicas e tools (alta intenção SEO).
+# Bloqueia áreas autenticadas (admin, app interno) e endpoints da API.
+# ═════════════════════════════════════════════════════════════════════════════
+
 User-agent: *
+
+# Páginas privadas — não indexar
+Disallow: /admin/
+Disallow: /api/
+Disallow: /fluxo-caixa
+Disallow: /recebimentos
+Disallow: /clientes
+Disallow: /titulos
+Disallow: /tipos-gasto
+Disallow: /relatorios
+Disallow: /relatorios/
+Disallow: /historico
+Disallow: /configuracoes
+Disallow: /preferencias-alerta
+Disallow: /assistente-cnab
+Disallow: /paywall
+Disallow: /upgrade/
+Disallow: /verificar-email
+Disallow: /esqueci-senha
+Disallow: /redefinir-senha
+Disallow: /gestao-financeira
+
+# Permite o resto explicitamente (públicas + tools)
 Allow: /
+Allow: /planos
+Allow: /valida-cnab
+Allow: /excel
+Allow: /pdf
+Allow: /cadastro
+Allow: /login
+Allow: /privacidade
+Allow: /termos
+Allow: /contato
+
+# Sitemap
 Sitemap: https://whallet.com.br/sitemap.xml

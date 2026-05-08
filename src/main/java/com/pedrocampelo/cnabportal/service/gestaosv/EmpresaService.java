@@ -113,6 +113,13 @@ public class EmpresaService {
                         empresa.getId(), novoRegime);
             }
 
+            // Se mudou pra NENHUM, limpa também o limite (Sprint 2.2-B fix)
+            if (novoRegime == RegimeTributario.NENHUM) {
+                empresa.setLimiteFaturamentoAnual(null);
+                log.info("Empresa {} mudou pra NENHUM: limpando limite anual",
+                        empresa.getId());
+            }
+
             // Sugere limite default ao trocar pra regime conhecido
             if (empresa.getLimiteFaturamentoAnual() == null) {
                 BigDecimal sugerido = limitePadraoRegime(novoRegime);

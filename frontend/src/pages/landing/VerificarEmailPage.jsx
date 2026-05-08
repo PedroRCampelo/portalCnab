@@ -3,7 +3,24 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import api from "../../services/api.js";
 import { useAuth } from "../../context/AuthContext.jsx";
 
-const PLANO_PRO          = "10000000-0000-0000-0000-000000000002";
+/**
+ * VerificarEmailPage — Confirmação de e-mail via token
+ * Sprint A3 · Refatoração após remoção do plano Pro
+ *
+ * Comportamento:
+ *  - Recebe token na URL (?token=...)
+ *  - Chama GET /api/auth/verificar?token=...
+ *  - Se backend retorna AuthResponse com JWT:
+ *    → Loga automaticamente
+ *    → Redireciona conforme plano:
+ *      - Whallet+ ou Admin → /titulos (entrada do app pago)
+ *      - Free → / (homepage, vai descobrir o app)
+ *  - Se backend retorna ErroResponse (sem token):
+ *    → Mostra mensagem e link pra /login
+ *  - Se token inválido:
+ *    → Mostra erro e link pra criar conta
+ */
+
 const PLANO_WHALLET_PLUS = "10000000-0000-0000-0000-000000000003";
 
 export default function VerificarEmailPage() {
@@ -32,15 +49,15 @@ export default function VerificarEmailPage() {
                     login(data); // salva no contexto + localStorage
 
                     // Redireciona com base no plano
-                    const temPro         = data.planoId === PLANO_PRO;
                     const temWhalletPlus = data.planoId === PLANO_WHALLET_PLUS;
+                    const isAdmin        = data.perfil === "ADMIN";
 
                     setStatus("ok");
                     setMensagem(data.nome ?? "");
 
                     // Auto-redirect após 2s
                     setTimeout(() => {
-                        if (temPro || temWhalletPlus) {
+                        if (temWhalletPlus || isAdmin) {
                             navigate("/titulos", { replace: true });
                         } else {
                             navigate("/", { replace: true });
