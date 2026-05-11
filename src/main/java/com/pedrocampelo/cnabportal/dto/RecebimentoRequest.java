@@ -23,6 +23,9 @@ public record RecebimentoRequest(
         @Size(max = 50)
         String categoria,
 
+        // FK pra tabela categorias (Sprint F1.2)
+        UUID categoriaId,
+
         // Datas — emissao default = hoje no service se vier null
         LocalDate dataEmissao,
 

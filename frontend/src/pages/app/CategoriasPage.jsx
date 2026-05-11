@@ -5,33 +5,48 @@ import {
 import api from "../../services/api.js";
 import PageHeader   from "../../components/shell/PageHeader.jsx";
 import Card         from "../../components/ui/Card.jsx";
+import Tabs         from "../../components/ui/Tabs.jsx";
 import EmptyState   from "../../components/ui/EmptyState.jsx";
 import Modal        from "../../components/ui/Modal.jsx";
 
 /**
- * TiposGastoPage — Cadastro de tipos de gasto (categorias)
- * Sprint A3.6.6 · Refatoração
+ * CategoriasPage — Cadastro de categorias unificadas (receitas e despesas)
+ * Sprint F1.2
  *
- * Recursos:
- *  - Form de criação inline (input + botão criar)
- *  - Lista com avatar circular (1ª letra)
- *  - Edição inline (input troca o nome, atalho Enter salva, ESC cancela)
- *  - Confirmação de exclusão via modal
- *  - Empty state quando não tem nada
+ * Substitui TiposGastoPage.
+ * Abas: Todas | Despesas | Receitas
+ * Criação com seletor de tipo (DESPESA / RECEITA / AMBOS)
  *
  * Endpoints:
- *  - GET    /api/tipos-gasto
- *  - POST   /api/tipos-gasto
- *  - PUT    /api/tipos-gasto/{id}
- *  - DELETE /api/tipos-gasto/{id}
+ *  - GET    /api/categorias?tipo=...
+ *  - POST   /api/categorias
+ *  - PUT    /api/categorias/{id}
+ *  - DELETE /api/categorias/{id}
  */
-export default function TiposGastoPage() {
-    const [tipos,        setTipos]        = useState([]);
+
+const TIPOS = [
+    { value: "DESPESA", label: "Despesa" },
+    { value: "RECEITA", label: "Receita" },
+    { value: "AMBOS",   label: "Ambos" },
+];
+
+const TIPO_INFO = {
+    DESPESA: { label: "Despesa", cor: "var(--error)",   bg: "var(--error-bg)" },
+    RECEITA: { label: "Receita", cor: "var(--success)",  bg: "var(--success-bg)" },
+    AMBOS:   { label: "Ambos",   cor: "var(--cyan-dark)", bg: "var(--cyan-soft)" },
+};
+
+export default function CategoriasPage() {
+    const [categorias,   setCategorias]   = useState([]);
     const [carregando,   setCarregando]   = useState(true);
     const [erro,         setErro]         = useState("");
 
+    // Filtro por aba
+    const [abaAtiva, setAbaAtiva] = useState("todas");
+
     // Criação
     const [novoNome,     setNovoNome]     = useState("");
+    const [novoTipo,     setNovoTipo]     = useState("DESPESA");
     const [salvando,     setSalvando]     = useState(false);
 
     // Edição inline
@@ -47,14 +62,15 @@ export default function TiposGastoPage() {
     const carregar = useCallback(async () => {
         setCarregando(true);
         try {
-            const { data } = await api.get("/api/tipos-gasto");
-            setTipos(data);
+            const params = abaAtiva !== "todas" ? `?tipo=${abaAtiva.toUpperCase()}` : "";
+            const { data } = await api.get(`/api/categorias${params}`);
+            setCategorias(data);
         } catch (err) {
-            setErro(err.response?.data?.mensagem ?? "Erro ao carregar tipos de gasto");
+            setErro(err.response?.data?.mensagem ?? "Erro ao carregar categorias");
         } finally {
             setCarregando(false);
         }
-    }, []);
+    }, [abaAtiva]);
 
     useEffect(() => { carregar(); }, [carregar]);
 
@@ -66,19 +82,19 @@ export default function TiposGastoPage() {
         setSalvando(true);
         setErro("");
         try {
-            await api.post("/api/tipos-gasto", { nome: novoNome.trim() });
+            await api.post("/api/categorias", { nome: novoNome.trim(), tipo: novoTipo });
             setNovoNome("");
             await carregar();
         } catch (err) {
-            setErro(err.response?.data?.mensagem ?? "Erro ao criar tipo de gasto");
+            setErro(err.response?.data?.mensagem ?? "Erro ao criar categoria");
         } finally {
             setSalvando(false);
         }
     }
 
-    function abrirEdicao(tipo) {
-        setEditId(tipo.id);
-        setEditNome(tipo.nome);
+    function abrirEdicao(cat) {
+        setEditId(cat.id);
+        setEditNome(cat.nome);
         setErro("");
     }
 
@@ -93,7 +109,7 @@ export default function TiposGastoPage() {
         setSalvando(true);
         setErro("");
         try {
-            await api.put(`/api/tipos-gasto/${id}`, { nome: editNome.trim() });
+            await api.put(`/api/categorias/${id}`, { nome: editNome.trim() });
             cancelarEdicao();
             await carregar();
         } catch (err) {
@@ -106,7 +122,7 @@ export default function TiposGastoPage() {
     async function executarExclusao() {
         setExcluindo(true);
         try {
-            await api.delete(`/api/tipos-gasto/${confirmExcluir.id}`);
+            await api.delete(`/api/categorias/${confirmExcluir.id}`);
             setConfirmExcluir(null);
             await carregar();
         } catch (err) {
@@ -117,19 +133,19 @@ export default function TiposGastoPage() {
         }
     }
 
+    function trocarAba(aba) {
+        setAbaAtiva(aba);
+        cancelarEdicao();
+    }
+
     // ── Render ──────────────────────────────────────────────────────────────
 
     return (
         <div className="tg-container">
-            <PageHeader
-                title="Tipos de gasto"
-                backTo="/titulos"
-                backLabel="Títulos"
-            />
+            <PageHeader title="Categorias" />
 
             <p className="tg-subtitulo">
-                Categorize seus títulos para facilitar análises e relatórios.
-                Cada conta tem sua própria lista.
+                Categorize suas receitas e despesas para facilitar análises e relatórios.
             </p>
 
             {erro && <div className="tg-erro">{erro}</div>}
@@ -137,7 +153,7 @@ export default function TiposGastoPage() {
             {/* ── Card de criação ── */}
             <Card>
                 <Card.Body>
-                    <div className="tg-form-label">Novo tipo de gasto</div>
+                    <div className="tg-form-label">Nova categoria</div>
                     <div className="tg-form-row">
                         <input
                             type="text"
@@ -150,10 +166,20 @@ export default function TiposGastoPage() {
                                     criar();
                                 }
                             }}
-                            placeholder="Ex: Fornecedores, Aluguel, Impostos..."
+                            placeholder="Ex: Aluguel, Consultoria, Impostos..."
                             maxLength={100}
                             disabled={salvando}
                         />
+                        <select
+                            className="tg-input tg-select-tipo"
+                            value={novoTipo}
+                            onChange={e => setNovoTipo(e.target.value)}
+                            disabled={salvando}
+                        >
+                            {TIPOS.map(t => (
+                                <option key={t.value} value={t.value}>{t.label}</option>
+                            ))}
+                        </select>
                         <button
                             className="ph-btn ph-btn--primary"
                             onClick={criar}
@@ -166,20 +192,34 @@ export default function TiposGastoPage() {
                 </Card.Body>
             </Card>
 
-            {/* ── Lista de tipos ── */}
+            {/* ── Abas de filtro ── */}
+            <div className="tg-tabs-wrap">
+                <Tabs
+                    variant="pills"
+                    value={abaAtiva}
+                    onChange={trocarAba}
+                    items={[
+                        { key: "todas",   label: "Todas" },
+                        { key: "despesa", label: "Despesas" },
+                        { key: "receita", label: "Receitas" },
+                    ]}
+                />
+            </div>
+
+            {/* ── Lista de categorias ── */}
             <div className="tg-lista-wrap">
                 {carregando ? (
                     <div className="tg-loading">
                         <LuLoader size={18} className="tg-spin"/>
                         <span>Carregando...</span>
                     </div>
-                ) : tipos.length === 0 ? (
+                ) : categorias.length === 0 ? (
                     <Card>
                         <Card.Body>
                             <EmptyState
                                 icon={LuTags}
-                                title="Nenhum tipo de gasto cadastrado"
-                                description="Crie o primeiro acima para começar a categorizar seus títulos."
+                                title="Nenhuma categoria cadastrada"
+                                description="Crie a primeira acima para começar a categorizar suas receitas e despesas."
                                 variant="compact"
                             />
                         </Card.Body>
@@ -188,84 +228,95 @@ export default function TiposGastoPage() {
                     <Card>
                         <Card.Body padded={false}>
                             <ul className="tg-lista">
-                                {tipos.map((t, i) => (
-                                    <li
-                                        key={t.id}
-                                        className={`tg-item ${i > 0 ? "tg-item--bordered" : ""}`}
-                                    >
-                                        <div className="tg-avatar">
-                                            {t.nome.charAt(0).toUpperCase()}
-                                        </div>
-
-                                        {editId === t.id ? (
-                                            // Modo edição inline
-                                            <div className="tg-edit-row">
-                                                <input
-                                                    type="text"
-                                                    className="tg-input"
-                                                    value={editNome}
-                                                    onChange={e => setEditNome(e.target.value)}
-                                                    onKeyDown={e => {
-                                                        if (e.key === "Enter" && editNome.trim()) {
-                                                            e.preventDefault();
-                                                            salvarEdicao(t.id);
-                                                        }
-                                                        if (e.key === "Escape") {
-                                                            cancelarEdicao();
-                                                        }
-                                                    }}
-                                                    maxLength={100}
-                                                    autoFocus
-                                                    disabled={salvando}
-                                                />
-                                                <button
-                                                    className="tg-icon-btn tg-icon-btn--success"
-                                                    onClick={() => salvarEdicao(t.id)}
-                                                    disabled={salvando || !editNome.trim()}
-                                                    title="Salvar (Enter)"
-                                                >
-                                                    <LuCheck size={14}/>
-                                                </button>
-                                                <button
-                                                    className="tg-icon-btn"
-                                                    onClick={cancelarEdicao}
-                                                    disabled={salvando}
-                                                    title="Cancelar (Esc)"
-                                                >
-                                                    <LuX size={14}/>
-                                                </button>
+                                {categorias.map((c, i) => {
+                                    const info = TIPO_INFO[c.tipo] || TIPO_INFO.AMBOS;
+                                    return (
+                                        <li
+                                            key={c.id}
+                                            className={`tg-item ${i > 0 ? "tg-item--bordered" : ""}`}
+                                        >
+                                            <div className="tg-avatar">
+                                                {c.nome.charAt(0).toUpperCase()}
                                             </div>
-                                        ) : (
-                                            <>
-                                                <span className="tg-nome">{t.nome}</span>
-                                                <div className="tg-actions">
+
+                                            {editId === c.id ? (
+                                                <div className="tg-edit-row">
+                                                    <input
+                                                        type="text"
+                                                        className="tg-input"
+                                                        value={editNome}
+                                                        onChange={e => setEditNome(e.target.value)}
+                                                        onKeyDown={e => {
+                                                            if (e.key === "Enter" && editNome.trim()) {
+                                                                e.preventDefault();
+                                                                salvarEdicao(c.id);
+                                                            }
+                                                            if (e.key === "Escape") {
+                                                                cancelarEdicao();
+                                                            }
+                                                        }}
+                                                        maxLength={100}
+                                                        autoFocus
+                                                        disabled={salvando}
+                                                    />
+                                                    <button
+                                                        className="tg-icon-btn tg-icon-btn--success"
+                                                        onClick={() => salvarEdicao(c.id)}
+                                                        disabled={salvando || !editNome.trim()}
+                                                        title="Salvar (Enter)"
+                                                    >
+                                                        <LuCheck size={14}/>
+                                                    </button>
                                                     <button
                                                         className="tg-icon-btn"
-                                                        onClick={() => abrirEdicao(t)}
-                                                        title="Editar"
+                                                        onClick={cancelarEdicao}
+                                                        disabled={salvando}
+                                                        title="Cancelar (Esc)"
                                                     >
-                                                        <LuPencil size={14}/>
-                                                    </button>
-                                                    <button
-                                                        className="tg-icon-btn tg-icon-btn--danger"
-                                                        onClick={() => setConfirmExcluir(t)}
-                                                        title="Excluir"
-                                                    >
-                                                        <LuTrash2 size={14}/>
+                                                        <LuX size={14}/>
                                                     </button>
                                                 </div>
-                                            </>
-                                        )}
-                                    </li>
-                                ))}
+                                            ) : (
+                                                <>
+                                                    <span className="tg-nome">{c.nome}</span>
+                                                    <span
+                                                        className="tg-tipo-badge"
+                                                        style={{
+                                                            color: info.cor,
+                                                            background: info.bg,
+                                                        }}
+                                                    >
+                                                        {info.label}
+                                                    </span>
+                                                    <div className="tg-actions">
+                                                        <button
+                                                            className="tg-icon-btn"
+                                                            onClick={() => abrirEdicao(c)}
+                                                            title="Editar"
+                                                        >
+                                                            <LuPencil size={14}/>
+                                                        </button>
+                                                        <button
+                                                            className="tg-icon-btn tg-icon-btn--danger"
+                                                            onClick={() => setConfirmExcluir(c)}
+                                                            title="Excluir"
+                                                        >
+                                                            <LuTrash2 size={14}/>
+                                                        </button>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </li>
+                                    );
+                                })}
                             </ul>
                         </Card.Body>
                     </Card>
                 )}
 
-                {tipos.length > 0 && !carregando && (
+                {categorias.length > 0 && !carregando && (
                     <p className="tg-contagem">
-                        {tipos.length} {tipos.length === 1 ? "tipo" : "tipos"} cadastrado{tipos.length > 1 ? "s" : ""}
+                        {categorias.length} {categorias.length === 1 ? "categoria" : "categorias"}
                     </p>
                 )}
             </div>
@@ -275,10 +326,10 @@ export default function TiposGastoPage() {
                 open={confirmExcluir !== null}
                 onClose={() => setConfirmExcluir(null)}
                 size="sm"
-                title="Excluir tipo de gasto?"
+                title="Excluir categoria?"
                 description={confirmExcluir && (
-                    <>O tipo <strong>"{confirmExcluir.nome}"</strong> será excluído.
-                        Os títulos que usam essa categoria ficarão sem tipo de gasto.</>
+                    <>A categoria <strong>"{confirmExcluir.nome}"</strong> será excluída.
+                        Títulos e recebimentos que usam essa categoria ficarão sem categorização.</>
                 )}
                 actions={
                     <>
@@ -378,10 +429,20 @@ const COMPONENT_CSS = `
     cursor: not-allowed;
 }
 
+.tg-select-tipo {
+    flex: 0 0 130px;
+}
+
+/* ── Abas ────────────────────────────────────────────────────────────── */
+
+.tg-tabs-wrap {
+    margin: 20px 0 4px;
+}
+
 /* ── Lista ────────────────────────────────────────────────────────────── */
 
 .tg-lista-wrap {
-    margin-top: 20px;
+    margin-top: 8px;
 }
 
 .tg-loading {
@@ -425,7 +486,6 @@ const COMPONENT_CSS = `
     background: var(--bg);
 }
 
-/* Avatar circular cyan-soft */
 .tg-avatar {
     width: 32px;
     height: 32px;
@@ -439,7 +499,6 @@ const COMPONENT_CSS = `
     font-family: var(--ff-mono);
     font-size: 13px;
     font-weight: 700;
-    letter-spacing: 0;
 }
 
 .tg-nome {
@@ -451,13 +510,21 @@ const COMPONENT_CSS = `
     line-height: 1.3;
 }
 
+.tg-tipo-badge {
+    flex-shrink: 0;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
 .tg-actions {
     display: flex;
     gap: 4px;
     flex-shrink: 0;
 }
 
-/* Modo edição inline */
 .tg-edit-row {
     flex: 1;
     display: flex;
@@ -528,6 +595,10 @@ const COMPONENT_CSS = `
         flex-direction: column;
     }
 
+    .tg-select-tipo {
+        flex: auto;
+    }
+
     .tg-form-row .ph-btn {
         justify-content: center;
     }
@@ -535,6 +606,7 @@ const COMPONENT_CSS = `
     .tg-item {
         padding: 12px 16px;
         gap: 10px;
+        flex-wrap: wrap;
     }
 
     .tg-edit-row {

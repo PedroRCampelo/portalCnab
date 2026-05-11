@@ -44,7 +44,7 @@ const MENU = [
             { to: "/recebimentos", icon: LuHandCoins,   label: "Recebimentos" },
             { to: "/titulos",      icon: LuWalletCards, label: "Títulos a pagar" },
             { to: "/clientes",     icon: LuUsers,       label: "Clientes" },
-            { to: "/tipos-gasto",  icon: LuTag,         label: "Tipos de gasto" },
+            { to: "/categorias",   icon: LuTag,         label: "Categorias" },
         ],
     },
     {

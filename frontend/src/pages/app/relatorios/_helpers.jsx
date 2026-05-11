@@ -153,7 +153,7 @@ import { useEffect } from "react";
 
 /**
  * Hook que busca o endpoint unificado /api/titulos/relatorio
- * Retorna fluxoCaixa, porTipoGasto, fornecedores, aging
+ * Retorna fluxoCaixa, porCategoria, fornecedores, aging
  *
  * Cache simples por sessão pra não refazer request entre telas
  */

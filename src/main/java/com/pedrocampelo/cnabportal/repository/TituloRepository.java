@@ -90,19 +90,19 @@ public interface TituloRepository extends JpaRepository<Titulo, UUID> {
             @Param("inicio")    java.time.LocalDate inicio,
             @Param("fim")       java.time.LocalDate fim);
 
-    // Por tipo de gasto: soma de saldo agrupada por tipo_gasto_id
+    // Por categoria: soma de saldo agrupada por categoria_id
     @Query(value = """
-        SELECT COALESCE(tg.nome, 'Sem categoria') AS categoria,
+        SELECT COALESCE(c.nome, 'Sem categoria') AS categoria,
                SUM(t.saldo)                        AS total,
                COUNT(*)                            AS quantidade
         FROM titulos t
-        LEFT JOIN tipos_gasto tg ON tg.id = t.tipo_gasto_id
+        LEFT JOIN categorias c ON c.id = t.categoria_id
         WHERE t.usuario_id = :usuarioId
           AND t.status != 'PAGO'
-        GROUP BY COALESCE(tg.nome, 'Sem categoria')
+        GROUP BY COALESCE(c.nome, 'Sem categoria')
         ORDER BY total DESC
         """, nativeQuery = true)
-    List<Object[]> porTipoGasto(@Param("usuarioId") UUID usuarioId);
+    List<Object[]> porCategoria(@Param("usuarioId") UUID usuarioId);
 
     // Top fornecedores: soma de saldo por fornecedor
     @Query(value = """
@@ -136,7 +136,7 @@ public interface TituloRepository extends JpaRepository<Titulo, UUID> {
         ORDER BY MIN(CURRENT_DATE - t.vencimento)
         """, nativeQuery = true)
     List<Object[]> aging(@Param("usuarioId") UUID usuarioId);
-    
+
     /**
      * Soma títulos pendentes (não pagos) com vencimento no período.
      * Usado pelo Fluxo de Caixa para "A pagar esse mês".

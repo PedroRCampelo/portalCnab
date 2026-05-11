@@ -280,6 +280,15 @@ public class TituloService {
             int    intervaloDias
     ) {}
 
+    /**
+     * Gera número sequencial: AP00001, AP00002...
+     * Usa sequence do PostgreSQL (seq_titulo_numero).
+     */
+    private String gerarNumero() {
+        Long seq = tituloRepository.proximoNumeroSequencia();
+        return "AP" + String.format("%05d", seq);
+    }
+
     public List<Titulo> criarParcelado(ParceladoRequest req, Usuario usuario) {
         if (req.qtdParcelas() < 2 || req.qtdParcelas() > 360) {
             throw new IllegalArgumentException("Número de parcelas deve ser entre 2 e 360.");
@@ -342,13 +351,13 @@ public class TituloService {
         LocalDate fim  = hoje.withDayOfMonth(1).plusMonths(12).minusDays(1);
         List<Object[]> fluxo = tituloRepository.fluxoCaixaMensal(usuarioId, hoje, fim);
 
-        List<Object[]> porTipo = tituloRepository.porTipoGasto(usuarioId);
+        List<Object[]> porTipo = tituloRepository.porCategoria(usuarioId);
         List<Object[]> fornecedores = tituloRepository.topFornecedores(usuarioId);
         List<Object[]> aging = tituloRepository.aging(usuarioId);
 
         return Map.of(
                 "fluxoCaixa",   mapearFluxo(fluxo),
-                "porTipoGasto", mapearCategoria(porTipo),
+                "porCategoria", mapearCategoria(porTipo),
                 "fornecedores", mapearCategoria(fornecedores),
                 "aging",        mapearCategoria(aging)
         );

@@ -72,8 +72,19 @@ public class Recebimento {
     @NotBlank
     private String descricao;
 
+    /**
+     * Categoria string livre (legado, deprecado).
+     * Usar categoriaId (FK pra tabela categorias) no lugar.
+     */
     @Column(length = 50)
     private String categoria;
+
+    /**
+     * FK para tabela categorias (Sprint F1.2).
+     * Substitui o campo 'categoria' (string livre).
+     */
+    @Column(name = "categoria_id")
+    private UUID categoriaId;
 
     // ── Parcelamento ──────────────────────────────────────────────────────────
 

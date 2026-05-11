@@ -57,7 +57,7 @@ export default function PorTipoGastoPage() {
         );
     }
 
-    const tipos = dados.porTipoGasto ?? [];
+    const tipos = dados.porCategoria ?? [];
     const total = tipos.reduce((s, i) => s + Number(i.total || 0), 0);
     const max   = tipos.length > 0 ? Math.max(...tipos.map(i => Number(i.total))) : 0;
 
@@ -122,7 +122,7 @@ export default function PorTipoGastoPage() {
                             title="Nenhum dado disponível"
                             description="Cadastre tipos de gasto e categorize seus títulos a pagar pra ver a distribuição aqui."
                             action={
-                                <Link to="/tipos-gasto" className="ph-btn ph-btn--ghost">
+                                <Link to="/categorias" className="ph-btn ph-btn--ghost">
                                     Cadastrar tipos de gasto →
                                 </Link>
                             }

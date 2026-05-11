@@ -28,7 +28,7 @@ import ClientesPage              from "./pages/app/ClientesPage.jsx";
 import ConfiguracoesPage         from "./pages/app/ConfiguracoesPage.jsx";
 import PaywallPage               from "./pages/app/PaywallPage.jsx";
 import TitulosPage               from "./pages/app/TitulosPage.jsx";
-import TiposGastoPage            from "./pages/app/TiposGastoPage.jsx";
+import CategoriasPage             from "./pages/app/CategoriasPage.jsx";
 import PreferenciasAlertaPage    from "./pages/app/PreferenciasAlertaPage.jsx";
 
 import RelatoriosPage            from "./pages/app/RelatoriosPage.jsx";
@@ -115,7 +115,7 @@ function AppShell() {
                         <Route path="/clientes"            element={<ProtectedRoute><ClientesPage/></ProtectedRoute>}/>
                         <Route path="/configuracoes"       element={<ProtectedRoute><ConfiguracoesPage/></ProtectedRoute>}/>
                         <Route path="/titulos"             element={<ProtectedRoute><TitulosPage/></ProtectedRoute>}/>
-                        <Route path="/tipos-gasto"         element={<ProtectedRoute><TiposGastoPage/></ProtectedRoute>}/>
+                        <Route path="/categorias"          element={<ProtectedRoute><CategoriasPage/></ProtectedRoute>}/>
 
                         {/* Central de Relatórios */}
                         <Route path="/relatorios"                   element={<ProtectedRoute><RelatoriosPage/></ProtectedRoute>}/>

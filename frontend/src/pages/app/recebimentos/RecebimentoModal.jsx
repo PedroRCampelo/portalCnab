@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { LuChevronDown, LuChevronUp } from "react-icons/lu";
 import Modal from "../../../components/ui/Modal.jsx";
 import ClienteAutocomplete from "./ClienteAutocomplete.jsx";
+import api from "../../../services/api.js";
 import {
     fmtValor, hoje, mascaraMoeda, parseMoeda, formatarMoedaParaInput,
     FORMAS_PAGAMENTO, RECEBIMENTO_VAZIO,
@@ -33,6 +34,7 @@ export default function RecebimentoModal({ recebimento, onSalvar, onFechar, salv
                 clienteId:       recebimento.cliente?.id ?? "",
                 descricao:       recebimento.descricao ?? "",
                 categoria:       recebimento.categoria ?? "",
+                categoriaId:     recebimento.categoriaId ?? "",
                 dataVencimento:  recebimento.dataVencimento ?? "",
                 valor:           formatarMoedaParaInput(recebimento.valor),
                 formaPagamento:  recebimento.formaPagamento ?? "PIX",
@@ -48,6 +50,14 @@ export default function RecebimentoModal({ recebimento, onSalvar, onFechar, salv
 
     const [maisDetalhes, setMaisDetalhes] = useState(false);
     const [erro, setErro] = useState("");
+    const [categorias, setCategorias] = useState([]);
+
+    // Carrega categorias de receita
+    useEffect(() => {
+        api.get("/api/categorias?tipo=RECEITA")
+            .then(({ data }) => setCategorias(data))
+            .catch(() => {});
+    }, []);
 
     function atualizar(c, v) {
         setForm(p => ({ ...p, [c]: v }));
@@ -69,6 +79,7 @@ export default function RecebimentoModal({ recebimento, onSalvar, onFechar, salv
                 clienteId:       form.clienteId,
                 descricao:       form.descricao.trim(),
                 categoria:       form.categoria || null,
+                categoriaId:     form.categoriaId || null,
                 dataVencimento:  form.dataVencimento,
                 valor:           valorNum,
                 formaPagamento:  form.formaPagamento,
@@ -90,7 +101,7 @@ export default function RecebimentoModal({ recebimento, onSalvar, onFechar, salv
             size="default"
             title={ehEdicao ? "Editar recebimento" : "Novo recebimento"}
         >
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", overflow: "hidden", flex: 1, minHeight: 0 }}>
                 <Modal.Body>
 
                     {/* Cliente (autocomplete) */}
@@ -179,15 +190,17 @@ export default function RecebimentoModal({ recebimento, onSalvar, onFechar, salv
                                     Categoria
                                     <span className="rm-label-opt">opcional</span>
                                 </label>
-                                <input
-                                    type="text"
+                                <select
                                     className="rm-input"
-                                    value={form.categoria}
-                                    onChange={e => atualizar("categoria", e.target.value)}
-                                    placeholder="Ex: serviço, produto"
+                                    value={form.categoriaId || ""}
+                                    onChange={e => atualizar("categoriaId", e.target.value || null)}
                                     disabled={salvando}
-                                    maxLength={50}
-                                />
+                                >
+                                    <option value="">— Sem categoria —</option>
+                                    {categorias.map(c => (
+                                        <option key={c.id} value={c.id}>{c.nome}</option>
+                                    ))}
+                                </select>
                             </div>
 
                             {/* Recorrência */}

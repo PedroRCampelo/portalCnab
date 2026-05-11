@@ -227,7 +227,7 @@ export default function TituloModal({ titulo, tiposGasto = [], onSalvar, onParce
                                 disabled={salvando}
                             />
                             <Campo
-                                label="Tipo de gasto"
+                                label="Categoria"
                                 tipo="select"
                                 value={form.tipoGastoId}
                                 onChange={v => atualizar("tipoGastoId", v)}
@@ -722,7 +722,6 @@ const COMPONENT_CSS = `
     color: var(--text-dim);
     cursor: not-allowed;
 }
-
 
 
 /* ── Info box (na aba CNAB) ──────────────────────────────────────────── */

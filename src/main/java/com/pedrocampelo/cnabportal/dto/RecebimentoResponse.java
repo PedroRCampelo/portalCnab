@@ -15,7 +15,8 @@ public record RecebimentoResponse(
         String parcela,                 // "01", "02"
         String chave,                   // RC0000101 — numero + parcela
         String descricao,
-        String categoria,
+        String categoria,               // string livre (legado, deprecado)
+        UUID categoriaId,               // FK pra tabela categorias (Sprint F1.2)
 
         LocalDate dataEmissao,
         LocalDate dataVencimento,
@@ -51,10 +52,6 @@ public record RecebimentoResponse(
             String telefone
     ) {}
 
-    /**
-     * Resumo de auditoria — quem fez cada operação.
-     * Campos nullable (só preenchidos quando a operação aconteceu).
-     */
     public record AuditoriaResumo(
             String criadoPorNome,
             LocalDateTime criadoEm,
@@ -80,7 +77,6 @@ public record RecebimentoResponse(
         boolean cancelavel   = !temBaixa && !cancelado;
         boolean estornavel   = temBaixa && !cancelado;
 
-        // Monta auditoria (acessa lazy proxies — garantir @Transactional no caller)
         AuditoriaResumo auditoria = new AuditoriaResumo(
                 r.getCriadoPor() != null ? r.getCriadoPor().getNome() : null,
                 r.getCriadoEm(),
@@ -100,6 +96,7 @@ public record RecebimentoResponse(
                 r.getChave(),
                 r.getDescricao(),
                 r.getCategoria(),
+                r.getCategoriaId(),
                 r.getDataEmissao(),
                 r.getDataVencimento(),
                 r.getDataRecebimento(),

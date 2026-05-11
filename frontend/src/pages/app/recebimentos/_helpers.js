@@ -140,6 +140,7 @@ export const RECEBIMENTO_VAZIO = {
     clienteId:       "",
     descricao:       "",
     categoria:       "",
+    categoriaId:     "",
     dataVencimento:  "",
     valor:           "",
     formaPagamento:  "PIX",

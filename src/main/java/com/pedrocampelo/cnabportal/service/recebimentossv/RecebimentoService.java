@@ -31,12 +31,10 @@ import java.util.NoSuchElementException;
 import java.util.UUID;
 
 /**
- * RecebimentoService — Sprint F1.1
+ * RecebimentoService — Sprint F1.1 + F1.2
  *
- * Mudanças F1.1:
- *   - Numeração Protheus: RC00001 + parcela "01" + chave "RC0000101"
- *   - Auditoria: criadoPor, alteradoPor, baixadoPor, canceladoPor
- *   - Listagens com @Transactional(readOnly=true) pra resolver lazy proxies
+ * F1.1: Numeração Protheus (RC00001 + parcela + chave), auditoria
+ * F1.2: categoriaId (FK pra tabela categorias)
  */
 @Service
 @RequiredArgsConstructor
@@ -115,6 +113,7 @@ public class RecebimentoService {
                 .parcela("01")
                 .descricao(request.descricao().trim())
                 .categoria(request.categoria())
+                .categoriaId(request.categoriaId())
                 .dataEmissao(request.dataEmissao() != null ? request.dataEmissao() : LocalDate.now())
                 .dataVencimento(request.dataVencimento())
                 .valor(request.valor())
@@ -153,7 +152,6 @@ public class RecebimentoService {
         BigDecimal somaParcelasIgual = valorPorParcela.multiply(BigDecimal.valueOf(qtd - 1));
         BigDecimal valorUltimaParcela = valorTotal.subtract(somaParcelasIgual);
 
-        // Todas as parcelas compartilham o mesmo numero
         String numero = gerarNumero();
         String formaPagamento = request.formaPagamento() != null ? request.formaPagamento() : "PIX";
         LocalDate hoje = LocalDate.now();
@@ -201,7 +199,7 @@ public class RecebimentoService {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Edição (com regra ERP — bloqueia se tem baixa)
+    // Edição
     // ─────────────────────────────────────────────────────────────────────────
 
     @Transactional
@@ -224,6 +222,7 @@ public class RecebimentoService {
 
         r.setDescricao(request.descricao().trim());
         r.setCategoria(request.categoria());
+        r.setCategoriaId(request.categoriaId());
         if (request.dataEmissao() != null)    r.setDataEmissao(request.dataEmissao());
         r.setDataVencimento(request.dataVencimento());
         r.setValor(request.valor());
@@ -234,7 +233,6 @@ public class RecebimentoService {
         r.setRecorrenciaTipo(request.recorrenciaTipo());
         r.setObservacao(request.observacao());
 
-        // ── Auditoria F1.1 ──
         r.setAlteradoPor(usuario);
 
         r.atualizarStatus();
@@ -281,7 +279,6 @@ public class RecebimentoService {
             r.setDataRecebimento(dataMovimento);
         }
 
-        // ── Auditoria F1.1 ──
         r.setBaixadoPor(usuario);
         r.setBaixadoEm(LocalDateTime.now());
 
@@ -325,8 +322,6 @@ public class RecebimentoService {
         BigDecimal valorEstornado = r.getValorRecebido();
         r.setValorRecebido(BigDecimal.ZERO);
         r.setDataRecebimento(null);
-
-        // ── Auditoria F1.1: limpa baixa, mantém histórico via log ──
         r.setBaixadoPor(null);
         r.setBaixadoEm(null);
 
@@ -361,8 +356,6 @@ public class RecebimentoService {
         }
 
         r.setStatus("CANCELADO");
-
-        // ── Auditoria F1.1 ──
         r.setCanceladoPor(usuario);
         r.setCanceladoEm(LocalDateTime.now());
 
@@ -407,10 +400,6 @@ public class RecebimentoService {
         }
     }
 
-    /**
-     * Gera número sequencial: RC00001, RC00002...
-     * Usa sequence do PostgreSQL (seq_recebimento_numero).
-     */
     private String gerarNumero() {
         Long seq = recebimentoRepository.proximoNumeroSequencia();
         return "RC" + String.format("%05d", seq);

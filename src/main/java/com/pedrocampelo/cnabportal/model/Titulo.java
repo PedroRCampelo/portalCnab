@@ -52,12 +52,11 @@ public class Titulo {
     private String numero;
 
     /**
-     * Parcela string legada "001", "002". Mantida pra CNAB.
-     * Usar parcelaAtual / parcelaTotal pra lógica nova.
+     * Parcela string legada "01", "02". Mantida pra CNAB.
      */
     @Column(nullable = false, length = 3)
     @Builder.Default
-    private String parcela = "001";
+    private String parcela = "01";
 
     /**
      * Chave composta: numero + parcela → "AP0000101".
@@ -86,10 +85,17 @@ public class Titulo {
     @Builder.Default
     private String tipo = "BOLETO";
 
-    // ── Tipo de gasto ─────────────────────────────────────────────────────────
+    // ── Tipo de gasto (legado — deprecado, usar categoriaId) ───────────────
 
     @Column(name = "tipo_gasto_id")
     private UUID tipoGastoId;
+
+    /**
+     * FK para tabela categorias (Sprint F1.2).
+     * Substitui tipoGastoId.
+     */
+    @Column(name = "categoria_id")
+    private UUID categoriaId;
 
     // ── Fornecedor ────────────────────────────────────────────────────────────
 

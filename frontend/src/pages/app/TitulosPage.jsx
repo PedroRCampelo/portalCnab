@@ -39,7 +39,7 @@ export default function TitulosPage() {
     // Estado
     const [titulos,     setTitulos]     = useState([]);
     const [resumo,      setResumo]      = useState(null);
-    const [tiposGasto,  setTiposGasto]  = useState([]);
+    const [categorias,  setCategorias]  = useState([]);
     const [carregando,  setCarregando]  = useState(true);
     const [erro,        setErro]        = useState("");
 
@@ -93,8 +93,8 @@ export default function TitulosPage() {
 
     const carregarTiposGasto = useCallback(async () => {
         try {
-            const { data } = await api.get("/api/tipos-gasto");
-            setTiposGasto(data);
+            const { data } = await api.get("/api/categorias?tipo=DESPESA");
+            setCategorias(data);
         } catch {}
     }, []);
 
@@ -277,7 +277,7 @@ export default function TitulosPage() {
             key: "tipoGastoId",
             label: "Tipo de gasto",
             render: t => {
-                const nome = tiposGasto.find(tg => tg.id === t.tipoGastoId)?.nome;
+                const nome = categorias.find(c => c.id === t.categoriaId || c.id === t.tipoGastoId)?.nome;
                 if (!nome) return <span style={{ color: "var(--text-dim)", fontSize: 12 }}>—</span>;
                 return (
                     <span className="ui-badge ui-badge--neutral" style={{ fontSize: 11 }}>
@@ -370,7 +370,7 @@ export default function TitulosPage() {
                 onExcluir={() => setConfirmExcluir(t)}
             />,
         },
-    ], [tiposGasto]);
+    ], [categorias]);
 
     // ── Render ──────────────────────────────────────────────────────────────
 
@@ -399,7 +399,7 @@ export default function TitulosPage() {
                         </button>
                         <button
                             className="ph-btn ph-btn--ghost"
-                            onClick={() => navigate("/tipos-gasto")}
+                            onClick={() => navigate("/categorias")}
                         >
                             <LuTags size={14}/>
                             Tipos de gasto
@@ -534,7 +534,7 @@ export default function TitulosPage() {
             {tituloModal.aberto && (
                 <TituloModal
                     titulo={tituloModal.titulo}
-                    tiposGasto={tiposGasto}
+                    tiposGasto={categorias}
                     onSalvar={salvarTitulo}
                     onParcelar={abrirParcelado}
                     onFechar={() => setTituloModal({ aberto: false, titulo: null })}

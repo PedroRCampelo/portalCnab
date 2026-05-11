@@ -148,7 +148,7 @@ public class InsightService {
         BigDecimal media = todos.isEmpty() ? BigDecimal.ZERO :
                 totalMes.divide(BigDecimal.valueOf(Math.max(todos.size(), 1)), 2, RoundingMode.HALF_UP);
 
-        List<Object[]> catRows = tituloRepository.porTipoGasto(usuarioId);
+        List<Object[]> catRows = tituloRepository.porCategoria(usuarioId);
         List<Map<String, Object>> categorias = catRows.stream().limit(MAX_CATEGORIAS).map(row -> {
             Map<String, Object> m = new LinkedHashMap<>();
             m.put("categoria", row[0]); m.put("valor", row[1]);

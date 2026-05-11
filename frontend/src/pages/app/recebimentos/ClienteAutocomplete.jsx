@@ -277,7 +277,6 @@ const COMPONENT_CSS = `
     overflow-y: auto;
     z-index: 100;
     box-shadow: 0 12px 32px rgba(11, 30, 54, 0.10);
-    overflow: hidden;
 }
 
 .cli-dropdown-state {
