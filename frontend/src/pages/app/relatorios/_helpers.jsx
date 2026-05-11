@@ -109,7 +109,8 @@ export function useExportacao(endpointBase, prefixoArquivo) {
             const response = await api.get(`${endpointBase}/${tipo}`, { responseType: "blob" });
 
             const contentType = response.headers["content-type"] || "";
-            const expectedType = tipo === "pdf"
+            const ehPdf = tipo === "pdf";
+            const expectedType = ehPdf
                 ? "application/pdf"
                 : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
@@ -123,7 +124,7 @@ export function useExportacao(endpointBase, prefixoArquivo) {
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
-            a.download = `${prefixoArquivo}_${new Date().toISOString().slice(0, 10)}.${tipo === "excel" ? "xlsx" : "pdf"}`;
+            a.download = `${prefixoArquivo}_${new Date().toISOString().slice(0, 10)}.${ehPdf ? "pdf" : "xlsx"}`;
             document.body.appendChild(a);
             a.click();
             a.remove();
@@ -202,6 +203,118 @@ export function useRelatorioTitulos() {
         api.get("/api/titulos/relatorio")
             .then(({ data }) => {
                 _cacheRelatorio = data;
+                setDados(data);
+            })
+            .catch(e => setErro(e?.response?.data?.mensagem ?? "Erro ao recarregar"))
+            .finally(() => setCarregando(false));
+    }
+
+    return { dados, carregando, erro, recarregar };
+}
+
+/* ─── Hook: dados unificados do relatório de recebimentos ────────────────── */
+
+let _cacheRelReceb = null;
+let _cachePromiseReceb = null;
+
+export function useRelatorioRecebimentos() {
+    const [dados, setDados] = useState(_cacheRelReceb);
+    const [carregando, setCarregando] = useState(_cacheRelReceb === null);
+    const [erro, setErro] = useState("");
+
+    useEffect(() => {
+        if (_cacheRelReceb) {
+            setDados(_cacheRelReceb);
+            setCarregando(false);
+            return;
+        }
+
+        if (_cachePromiseReceb) {
+            _cachePromiseReceb
+                .then(d => { setDados(d); setCarregando(false); })
+                .catch(e => { setErro(e); setCarregando(false); });
+            return;
+        }
+
+        _cachePromiseReceb = api.get("/api/recebimentos/relatorio")
+            .then(({ data }) => {
+                _cacheRelReceb = data;
+                _cachePromiseReceb = null;
+                return data;
+            });
+
+        _cachePromiseReceb
+            .then(d => { setDados(d); setCarregando(false); })
+            .catch(e => {
+                setErro(e?.response?.data?.mensagem ?? "Erro ao carregar relatório");
+                _cachePromiseReceb = null;
+                setCarregando(false);
+            });
+    }, []);
+
+    function recarregar() {
+        _cacheRelReceb = null;
+        _cachePromiseReceb = null;
+        setCarregando(true);
+        api.get("/api/recebimentos/relatorio")
+            .then(({ data }) => {
+                _cacheRelReceb = data;
+                setDados(data);
+            })
+            .catch(e => setErro(e?.response?.data?.mensagem ?? "Erro ao recarregar"))
+            .finally(() => setCarregando(false));
+    }
+
+    return { dados, carregando, erro, recarregar };
+}
+
+/* ─── Hook: dados unificados do relatório de fluxo e banco ───────────────── */
+
+let _cacheFluxoBanco = null;
+let _cachePromiseFluxo = null;
+
+export function useRelatorioFluxoBanco() {
+    const [dados, setDados] = useState(_cacheFluxoBanco);
+    const [carregando, setCarregando] = useState(_cacheFluxoBanco === null);
+    const [erro, setErro] = useState("");
+
+    useEffect(() => {
+        if (_cacheFluxoBanco) {
+            setDados(_cacheFluxoBanco);
+            setCarregando(false);
+            return;
+        }
+
+        if (_cachePromiseFluxo) {
+            _cachePromiseFluxo
+                .then(d => { setDados(d); setCarregando(false); })
+                .catch(e => { setErro(e); setCarregando(false); });
+            return;
+        }
+
+        _cachePromiseFluxo = api.get("/api/fluxo-caixa/relatorio")
+            .then(({ data }) => {
+                _cacheFluxoBanco = data;
+                _cachePromiseFluxo = null;
+                return data;
+            });
+
+        _cachePromiseFluxo
+            .then(d => { setDados(d); setCarregando(false); })
+            .catch(e => {
+                setErro(e?.response?.data?.mensagem ?? "Erro ao carregar relatório");
+                _cachePromiseFluxo = null;
+                setCarregando(false);
+            });
+    }, []);
+
+    function recarregar() {
+        _cacheFluxoBanco = null;
+        _cachePromiseFluxo = null;
+        setCarregando(true);
+        api.get("/api/fluxo-caixa/relatorio")
+            .then(({ data }) => {
+                _cacheFluxoBanco = data;
                 setDados(data);
             })
             .catch(e => setErro(e?.response?.data?.mensagem ?? "Erro ao recarregar"))

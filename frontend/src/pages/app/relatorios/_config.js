@@ -90,7 +90,8 @@ export const RELATORIOS = [
         titulo: "Aging de receber",
         descricao: "Recebimentos atrasados, a vencer e previsão de entrada",
         icon: LuTrendingDown,
-        status: "em-breve",
+        status: "ativo",
+        rota: "/relatorios/aging-receber",
     },
     {
         key: "por-cliente",
@@ -98,7 +99,8 @@ export const RELATORIOS = [
         titulo: "Por cliente",
         descricao: "Top clientes por valor recebido e em aberto",
         icon: LuUsers,
-        status: "em-breve",
+        status: "ativo",
+        rota: "/relatorios/por-cliente",
     },
     {
         key: "historico-pagamentos",
@@ -106,7 +108,8 @@ export const RELATORIOS = [
         titulo: "Histórico de pagamentos",
         descricao: "Linha do tempo de todos os pagamentos recebidos",
         icon: LuHistory,
-        status: "em-breve",
+        status: "ativo",
+        rota: "/relatorios/historico-pagamentos",
     },
 
     // ── Fluxo e banco ────────────────────────────────────────────────────
@@ -116,7 +119,8 @@ export const RELATORIOS = [
         titulo: "Fluxo de caixa",
         descricao: "Entradas, saídas e saldo projetado por período",
         icon: LuChartLine,
-        status: "em-breve",
+        status: "ativo",
+        rota: "/relatorios/fluxo-caixa",
     },
     {
         key: "movimentos-bancarios",
@@ -124,7 +128,8 @@ export const RELATORIOS = [
         titulo: "Movimentos bancários",
         descricao: "Extrato consolidado das suas contas com filtros",
         icon: LuLandmark,
-        status: "em-breve",
+        status: "ativo",
+        rota: "/relatorios/movimentos-bancarios",
     },
     {
         key: "saldo-por-conta",
@@ -132,7 +137,8 @@ export const RELATORIOS = [
         titulo: "Saldo por conta",
         descricao: "Posição atual em cada conta bancária cadastrada",
         icon: LuWallet,
-        status: "em-breve",
+        status: "ativo",
+        rota: "/relatorios/saldo-por-conta",
     },
 
     // ── Consolidado ──────────────────────────────────────────────────────
@@ -142,7 +148,8 @@ export const RELATORIOS = [
         titulo: "DRE mensal",
         descricao: "Demonstrativo de resultados (receitas - despesas) por mês",
         icon: LuFileChartColumn,
-        status: "em-breve",
+        status: "ativo",
+        rota: "/relatorios/dre-mensal",
     },
 ];
 

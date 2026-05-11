@@ -11,6 +11,10 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.pedrocampelo.cnabportal.service.fluxocaixasv.FluxoBancoReportService;
+import java.util.Map;
+import com.pedrocampelo.cnabportal.service.reports.RelatorioExportService;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/api/fluxo-caixa")
@@ -20,6 +24,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class FluxoCaixaController {
 
     private final FluxoCaixaService fluxoCaixaService;
+    private final FluxoBancoReportService fluxoBancoReportService;
+    private final RelatorioExportService relatorioExportService;
 
     /**
      * GET /api/fluxo-caixa/saude-mes
@@ -34,5 +40,32 @@ public class FluxoCaixaController {
     @GetMapping("/saude-mes")
     public ResponseEntity<SaudeMesResponse> saudeMes(@AuthenticationPrincipal Usuario usuario) {
         return ResponseEntity.ok(fluxoCaixaService.calcularSaudeMes(usuario));
+    }
+
+    /**
+     * GET /api/fluxo-caixa/relatorio
+     * Relatório unificado: fluxo de caixa, movimentos, saldo por conta, DRE.
+     */
+    @GetMapping("/relatorio")
+    public ResponseEntity<Map<String, Object>> relatorio(@AuthenticationPrincipal Usuario usuario) {
+        return ResponseEntity.ok(fluxoBancoReportService.relatorioCompleto(usuario));
+    }
+
+    // ── GET /api/fluxo-caixa/exportar/excel?tipo=fluxo-caixa|movimentos|saldo-por-conta|dre
+    @GetMapping("/exportar/excel")
+    public ResponseEntity<byte[]> exportarExcel(
+            @AuthenticationPrincipal Usuario usuario,
+            @RequestParam String tipo) {
+        try {
+            byte[] bytes = relatorioExportService.exportarFluxoBancoExcel(usuario, tipo);
+            String filename = tipo + "_" + java.time.LocalDate.now() + ".xlsx";
+            return ResponseEntity.ok()
+                    .header("Content-Disposition", "attachment; filename=\"" + filename + "\"")
+                    .header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                    .body(bytes);
+        } catch (Exception e) {
+            log.error("Erro ao exportar fluxo/banco ({}): {}", tipo, e.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }

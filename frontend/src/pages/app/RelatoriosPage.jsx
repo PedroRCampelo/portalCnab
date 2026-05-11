@@ -31,7 +31,7 @@ export default function RelatoriosPage() {
         <>
             <PageHeader
                 title="Relatórios"
-                badge={{ label: `${ativos} ativos · ${breve} em breve`, variant: "neutral" }}
+                badge={{ label: `${ativos} ativos`, variant: "neutral" }}
             />
 
             <p className="rel-subtitulo">

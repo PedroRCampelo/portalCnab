@@ -1066,6 +1066,102 @@
     color: var(--muted);
 }
 
+/* ── Feature screenshot (substitui .lp-feature-mock) ───────────────────── */
+
+.lp-feature-screenshot {
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--hair);
+    box-shadow:
+            0 16px 48px rgba(11, 30, 54, 0.08),
+            0 4px 16px rgba(11, 30, 54, 0.04);
+    position: relative;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.lp-feature-screenshot:hover {
+    transform: translateY(-4px);
+    box-shadow:
+            0 24px 64px rgba(11, 30, 54, 0.12),
+            0 8px 24px rgba(11, 30, 54, 0.06);
+}
+
+.lp-feature-screenshot::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--cyan), var(--cyan-light));
+    z-index: 2;
+}
+
+.lp-feature-screenshot img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+/* ── Feature bullets ───────────────────────────────────────────────────── */
+
+.lp-feature-bullets {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.lp-feature-bullets li {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--ink-2);
+    padding-left: 20px;
+    position: relative;
+    font-weight: 500;
+}
+
+.lp-feature-bullets li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: var(--cyan-dark);
+    font-weight: 700;
+    font-size: 12px;
+}
+
+/* ── Thermometer (hero mockup) ─────────────────────────────────────────── */
+
+.lp-hero-mock-thermometer {
+    height: 8px;
+    background: var(--hair);
+    border-radius: 100px;
+    overflow: hidden;
+    margin: 10px 0 6px;
+}
+
+.lp-hero-mock-thermometer-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--cyan-dark), var(--success));
+    border-radius: inherit;
+    animation: lpThermGrow 1.2s ease 0.6s both;
+}
+
+@keyframes lpThermGrow {
+    from { width: 0 !important; }
+}
+
+.lp-hero-mock-thermometer-meta {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--ff-mono);
+    font-size: 8px;
+    letter-spacing: 0.04em;
+    color: var(--text-dim);
+}
+
 /* ═════════════════════════════════════════════════════════════════════════════
    PRA QUEM É (3 perfis)
    ═════════════════════════════════════════════════════════════════════════════ */

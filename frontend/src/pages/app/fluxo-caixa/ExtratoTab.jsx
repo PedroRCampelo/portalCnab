@@ -47,6 +47,9 @@ export default function ExtratoTab({ contas }) {
     const [totalPaginas,   setTotalPaginas]   = useState(0);
     const [totalElementos, setTotalElementos] = useState(0);
 
+    // ── Estornos ─────────────────────────────────────────────────────────────
+    const [contabilizarEstornos, setContabilizarEstornos] = useState(false);
+
     // Aplica período rápido ao mudar
     useEffect(() => {
         if (periodoRapido) {
@@ -101,13 +104,38 @@ export default function ExtratoTab({ contas }) {
 
     const { totalEntradas, totalSaidas } = useMemo(() => {
         let entradas = 0, saidas = 0;
-        for (const m of movimentos) {
-            if (m.cancelado) continue;
-            if (m.ehEntrada) entradas += Number(m.valor);
-            else            saidas    += Number(m.valor);
+
+        if (contabilizarEstornos) {
+            // Modo bruto: conta tudo (menos cancelados)
+            for (const m of movimentos) {
+                if (m.cancelado) continue;
+                if (m.ehEntrada) entradas += Number(m.valor);
+                else             saidas   += Number(m.valor);
+            }
+        } else {
+            // Modo compensado: estornos anulam seus originais
+            // 1. Coletar IDs dos movimentos que foram estornados
+            const idsEstornados = new Set();
+            for (const m of movimentos) {
+                if (m.cancelado) continue;
+                if (m.movimentoEstornadoId) {
+                    idsEstornados.add(m.movimentoEstornadoId);
+                }
+            }
+            // 2. Excluir tanto o estorno quanto o original estornado
+            for (const m of movimentos) {
+                if (m.cancelado) continue;
+                // É um estorno? Pula.
+                if (m.movimentoEstornadoId) continue;
+                // Foi estornado? Pula também.
+                if (idsEstornados.has(m.id)) continue;
+                if (m.ehEntrada) entradas += Number(m.valor);
+                else             saidas   += Number(m.valor);
+            }
         }
+
         return { totalEntradas: entradas, totalSaidas: saidas };
-    }, [movimentos]);
+    }, [movimentos, contabilizarEstornos]);
 
     // Agrupar movimentos por dia (key = data ISO)
     const { grupos, diasOrdenados } = useMemo(() => {
@@ -220,6 +248,27 @@ export default function ExtratoTab({ contas }) {
                     </div>
                 </div>
             </div>
+
+            {/* ═══ TOGGLE ESTORNOS ══════════════════════════════════════ */}
+            <label className="ext-toggle-row">
+                <span className="ext-toggle-track" data-on={contabilizarEstornos}>
+                    <input
+                        type="checkbox"
+                        checked={contabilizarEstornos}
+                        onChange={e => setContabilizarEstornos(e.target.checked)}
+                        className="ext-toggle-input"
+                    />
+                    <span className="ext-toggle-thumb"/>
+                </span>
+                <span className="ext-toggle-label">
+                    Contabilizar estornos
+                </span>
+                <span className="ext-toggle-hint">
+                    {contabilizarEstornos
+                        ? "Estornos estão somando nos totais"
+                        : "Estornos se compensam com o original"}
+                </span>
+            </label>
 
             {/* ═══ RESUMO DO PERÍODO ═════════════════════════════════════ */}
             {!carregando && movimentos.length > 0 && (
@@ -505,6 +554,79 @@ const COMPONENT_CSS = `
 .ext-input:focus {
     border-color: var(--cyan);
     box-shadow: 0 0 0 3px rgba(21, 195, 221, 0.1);
+}
+
+/* ═══ TOGGLE ESTORNOS ═══════════════════════════════════════════════════ */
+
+.ext-toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    border-radius: 10px;
+    background: var(--surface);
+    border: 1px solid var(--hair);
+    cursor: pointer;
+    user-select: none;
+    transition: border-color 0.15s;
+}
+
+.ext-toggle-row:hover {
+    border-color: var(--text-dim);
+}
+
+.ext-toggle-input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.ext-toggle-track {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 20px;
+    border-radius: 100px;
+    background: var(--hair);
+    flex-shrink: 0;
+    transition: background 0.2s;
+}
+
+.ext-toggle-track[data-on="true"] {
+    background: var(--cyan);
+}
+
+.ext-toggle-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    transition: transform 0.2s;
+}
+
+.ext-toggle-track[data-on="true"] .ext-toggle-thumb {
+    transform: translateX(16px);
+}
+
+.ext-toggle-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--navy-deep);
+    letter-spacing: -0.005em;
+}
+
+.ext-toggle-hint {
+    font-family: var(--ff-mono);
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    color: var(--text-dim);
+    margin-left: auto;
 }
 
 /* ═══ RESUMO DO PERÍODO (KPIs) ═════════════════════════════════════════ */
@@ -826,6 +948,10 @@ const COMPONENT_CSS = `
     }
 
     .ext-paginacao-total {
+        display: none;
+    }
+
+    .ext-toggle-hint {
         display: none;
     }
 }

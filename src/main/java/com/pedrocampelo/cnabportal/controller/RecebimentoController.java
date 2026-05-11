@@ -19,6 +19,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import com.pedrocampelo.cnabportal.service.recebimentossv.RecebimentoReportService;
+import com.pedrocampelo.cnabportal.service.reports.RelatorioExportService;
 
 import java.util.List;
 import java.util.Map;
@@ -34,6 +36,9 @@ public class RecebimentoController {
 
     private final RecebimentoService recebimentoService;
     private final CobrancaService    cobrancaService;
+    private final RecebimentoReportService recebimentoReportService;
+    private final RelatorioExportService relatorioExportService;
+
 
     // ── Listagem ──────────────────────────────────────────────────────────────
 
@@ -195,6 +200,30 @@ public class RecebimentoController {
             return ResponseEntity.ok(historico);
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("mensagem", e.getMessage()));
+        }
+    }
+
+    // ── GET /api/recebimentos/relatorio — relatório completo ──────────────────
+    @GetMapping("/relatorio")
+    public ResponseEntity<Map<String, Object>> relatorio(@AuthenticationPrincipal Usuario usuario) {
+        return ResponseEntity.ok(recebimentoReportService.relatorioCompleto(usuario));
+    }
+
+    // ── GET /api/recebimentos/exportar/excel?tipo=aging-receber|por-cliente|historico
+    @GetMapping("/exportar/excel")
+    public ResponseEntity<byte[]> exportarExcel(
+            @AuthenticationPrincipal Usuario usuario,
+            @RequestParam String tipo) {
+        try {
+            byte[] bytes = relatorioExportService.exportarRecebimentosExcel(usuario, tipo);
+            String filename = tipo + "_" + java.time.LocalDate.now() + ".xlsx";
+            return ResponseEntity.ok()
+                    .header("Content-Disposition", "attachment; filename=\"" + filename + "\"")
+                    .header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                    .body(bytes);
+        } catch (Exception e) {
+            log.error("Erro ao exportar recebimentos ({}): {}", tipo, e.getMessage());
+            return ResponseEntity.internalServerError().build();
         }
     }
 }

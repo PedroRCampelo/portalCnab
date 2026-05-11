@@ -3,7 +3,7 @@ package com.pedrocampelo.cnabportal.controller;
 import com.pedrocampelo.cnabportal.config.gate.RequireWhalletPlusWrite;
 import com.pedrocampelo.cnabportal.model.Titulo;
 import com.pedrocampelo.cnabportal.model.Usuario;
-import com.pedrocampelo.cnabportal.service.gestaosv.TituloReportService;
+import com.pedrocampelo.cnabportal.service.reports.RelatorioExportService;
 import com.pedrocampelo.cnabportal.service.gestaosv.TituloService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 public class TituloController {
 
     private final TituloService       tituloService;
-    private final TituloReportService tituloReportService;
+    private final RelatorioExportService relatorioExportService;
 
     // ── GET /api/titulos — listagem paginada com filtros ──────────────────────
     @GetMapping
@@ -188,7 +188,7 @@ public class TituloController {
             @AuthenticationPrincipal Usuario usuario,
             @RequestParam(defaultValue = "") String status) {
         try {
-            byte[] bytes = tituloReportService.gerarExcel(usuario.getId(), status);
+            byte[] bytes = relatorioExportService.gerarTitulosExcel(usuario.getId(), status);
             String filename = "titulos_" + java.time.LocalDate.now() + ".xlsx";
             return ResponseEntity.ok()
                     .header("Content-Disposition", "attachment; filename=\"" + filename + "\"")
@@ -206,7 +206,7 @@ public class TituloController {
             @AuthenticationPrincipal Usuario usuario,
             @RequestParam(defaultValue = "") String status) {
         try {
-            byte[] bytes = tituloReportService.gerarPdf(usuario.getId(), status);
+            byte[] bytes = relatorioExportService.gerarTitulosPdf(usuario.getId(), status);
             String filename = "titulos_" + java.time.LocalDate.now() + ".pdf";
             return ResponseEntity.ok()
                     .header("Content-Disposition", "attachment; filename=\"" + filename + "\"")

@@ -113,4 +113,10 @@ public interface RecebimentoRepository extends JpaRepository<Recebimento, UUID> 
     int contarMesesComRecebimento(@Param("empresaId") UUID empresaId,
                                   @Param("inicioAno") LocalDate inicioAno,
                                   @Param("fimAno") LocalDate fimAno);
+
+    /**
+     * Lista todos os recebimentos da empresa ordenados por vencimento.
+     * Usado pelos relatórios (sem paginação).
+     */
+    List<Recebimento> findByEmpresaIdOrderByDataVencimentoAsc(UUID empresaId);
 }

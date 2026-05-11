@@ -35,6 +35,13 @@ import RelatoriosPage            from "./pages/app/RelatoriosPage.jsx";
 import AgingPagarPage            from "./pages/app/relatorios/AgingPagarPage.jsx";
 import PorTipoGastoPage          from "./pages/app/relatorios/PorTipoGastoPage.jsx";
 import PorFornecedorPage         from "./pages/app/relatorios/PorFornecedorPage.jsx";
+import AgingReceberPage          from "./pages/app/relatorios/AgingReceberPage.jsx";
+import PorClientePage            from "./pages/app/relatorios/PorClientePage.jsx";
+import HistoricoPagamentosPage   from "./pages/app/relatorios/HistoricoPagamentosPage.jsx";
+import FluxoCaixaRelPage           from "./pages/app/relatorios/FluxoCaixaRelPage.jsx";
+import MovimentosBancariosRelPage  from "./pages/app/relatorios/MovimentosBancariosRelPage.jsx";
+import SaldoPorContaRelPage        from "./pages/app/relatorios/SaldoPorContaRelPage.jsx";
+import DreMensalPage               from "./pages/app/relatorios/DreMensalPage.jsx";
 
 import HistoricoPage             from "./pages/app/HistoricoPage.jsx";
 import AssistenteCnabPage        from "./pages/app/AssistenteCnabPage.jsx";
@@ -51,6 +58,8 @@ import CnabKnowledgePage         from "./pages/admin/CnabKnowledgePage.jsx";
 import ExcelPage                 from "./pages/tools/ExcelPage.jsx";
 import PdfPage                   from "./pages/tools/PdfPage.jsx";
 import ValidaCnabPage            from "./pages/tools/ValidaCnabPage.jsx";
+
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Sprint A3.1 · App Shell
@@ -113,6 +122,13 @@ function AppShell() {
                         <Route path="/relatorios/aging-pagar"       element={<ProtectedRoute><AgingPagarPage/></ProtectedRoute>}/>
                         <Route path="/relatorios/por-tipo-gasto"    element={<ProtectedRoute><PorTipoGastoPage/></ProtectedRoute>}/>
                         <Route path="/relatorios/por-fornecedor"    element={<ProtectedRoute><PorFornecedorPage/></ProtectedRoute>}/>
+                        <Route path="/relatorios/aging-receber"          element={<ProtectedRoute><AgingReceberPage/></ProtectedRoute>}/>
+                        <Route path="/relatorios/por-cliente"            element={<ProtectedRoute><PorClientePage/></ProtectedRoute>}/>
+                        <Route path="/relatorios/historico-pagamentos"   element={<ProtectedRoute><HistoricoPagamentosPage/></ProtectedRoute>}/>
+                        <Route path="/relatorios/fluxo-caixa"            element={<ProtectedRoute><FluxoCaixaRelPage/></ProtectedRoute>}/>
+                        <Route path="/relatorios/movimentos-bancarios"   element={<ProtectedRoute><MovimentosBancariosRelPage/></ProtectedRoute>}/>
+                        <Route path="/relatorios/saldo-por-conta"        element={<ProtectedRoute><SaldoPorContaRelPage/></ProtectedRoute>}/>
+                        <Route path="/relatorios/dre-mensal"             element={<ProtectedRoute><DreMensalPage/></ProtectedRoute>}/>
 
                         {/* Rota legada redirecionando pra nova */}
                         <Route path="/relatorios-titulos"   element={<ProtectedRoute><AgingPagarPage/></ProtectedRoute>}/>

@@ -2,9 +2,15 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import "./HomePage.css";
 
+/* ── Screenshots do app real ── */
+import screenshotFluxo       from "../../assets/screenshots/fluxo-caixa.png";
+import screenshotRecebimentos from "../../assets/screenshots/recebimentos.png";
+import screenshotRelatorios   from "../../assets/screenshots/relatorios.png";
+import screenshotElvis        from "../../assets/screenshots/elvis.png";
+
 /**
  * HomePage — Landing pública do Whallet
- * Sprint A2 + revisão · Hero com mockup ao lado
+ * Sprint 2.2 · Hero com mockup + Features com screenshots reais
  *
  * Posicionamento: "O dinheiro do seu negócio merece mais que uma planilha"
  * Público: autônomo / MEI / pequena empresa
@@ -36,7 +42,7 @@ export default function HomePage() {
     function irParaLogin()    { navigate("/login"); }
     function irParaCadastro() { navigate("/cadastro"); }
     function irParaPlanos()   { navigate("/planos"); }
-    function irParaApp()      { navigate("/fluxo-caixa"); }  // FIX: era /dashboard
+    function irParaApp()      { navigate("/fluxo-caixa"); }
 
     return (
         <div className="lp">
@@ -69,7 +75,7 @@ export default function HomePage() {
             </header>
 
             {/* ═════════════════════════════════════════════════════════════════
-                HERO unificado — copy + mockup do app ao lado
+                HERO — copy + mockup do app ao lado
                 ═════════════════════════════════════════════════════════════════ */}
             <section className="lp-hero">
                 <div className="lp-container">
@@ -115,7 +121,7 @@ export default function HomePage() {
                                 <div className="lp-hero-mock-float-icon">+</div>
                                 <div className="lp-hero-mock-float-text">
                                     <small>Recebido agora</small>
-                                    R$ 1.500,00
+                                    R$ 2.500,00
                                 </div>
                             </div>
 
@@ -153,39 +159,37 @@ export default function HomePage() {
                                     <div className="lp-hero-mock-kpis">
                                         <div className="lp-hero-mock-kpi">
                                             <div className="lp-hero-mock-kpi-label">Saldo atual</div>
-                                            <div className="lp-hero-mock-kpi-value">R$ 25.994</div>
-                                            <div className="lp-hero-mock-kpi-trend">3 contas conectadas</div>
+                                            <div className="lp-hero-mock-kpi-value">R$ 28.538</div>
+                                            <div className="lp-hero-mock-kpi-trend">3 contas</div>
                                         </div>
                                         <div className="lp-hero-mock-kpi">
                                             <div className="lp-hero-mock-kpi-label">A receber</div>
-                                            <div className="lp-hero-mock-kpi-value up">R$ 8.450</div>
-                                            <div className="lp-hero-mock-kpi-trend">12 entradas previstas</div>
+                                            <div className="lp-hero-mock-kpi-value up">R$ 12.100</div>
+                                            <div className="lp-hero-mock-kpi-trend">Em dia</div>
                                         </div>
                                         <div className="lp-hero-mock-kpi">
                                             <div className="lp-hero-mock-kpi-label">A pagar</div>
-                                            <div className="lp-hero-mock-kpi-value down">R$ 7.610</div>
-                                            <div className="lp-hero-mock-kpi-trend">8 títulos em aberto</div>
+                                            <div className="lp-hero-mock-kpi-value down">R$ 2.130</div>
+                                            <div className="lp-hero-mock-kpi-trend">2 atrasados</div>
                                         </div>
                                         <div className="lp-hero-mock-kpi featured">
                                             <div className="lp-hero-mock-kpi-label">Sobra projetada</div>
-                                            <div className="lp-hero-mock-kpi-value featured">R$ 18.484</div>
-                                            <div className="lp-hero-mock-kpi-trend">↑ 12% vs mês passado</div>
+                                            <div className="lp-hero-mock-kpi-value featured">R$ 38.507</div>
+                                            <div className="lp-hero-mock-kpi-trend">Mês positivo 🎉</div>
                                         </div>
                                     </div>
 
                                     <div className="lp-hero-mock-chart">
                                         <div className="lp-hero-mock-chart-head">
-                                            <span className="lp-hero-mock-chart-label">Próximos 30 dias</span>
-                                            <span className="lp-hero-mock-chart-period">↻ atualizado agora</span>
+                                            <span className="lp-hero-mock-chart-label">Termômetro MEI 2026</span>
+                                            <span className="lp-hero-mock-chart-period">34% do limite</span>
                                         </div>
-                                        <div className="lp-hero-mock-chart-bars">
-                                            {[42, 68, 55, 75, 60, 82, 70, 50, 92, 78, 65, 80].map((h, i) => (
-                                                <div
-                                                    key={i}
-                                                    className={`lp-hero-mock-chart-bar ${i > 7 ? "muted" : ""}`}
-                                                    style={{ height: `${h}%` }}
-                                                />
-                                            ))}
+                                        <div className="lp-hero-mock-thermometer">
+                                            <div className="lp-hero-mock-thermometer-fill" style={{ width: "34%" }} />
+                                        </div>
+                                        <div className="lp-hero-mock-thermometer-meta">
+                                            <span>R$ 27.600 faturado</span>
+                                            <span>R$ 81.000 limite</span>
                                         </div>
                                     </div>
 
@@ -194,7 +198,7 @@ export default function HomePage() {
                                         <div className="lp-hero-mock-status-text">
                                             <div className="lp-hero-mock-status-label">Situação do mês</div>
                                             <div className="lp-hero-mock-status-msg">
-                                                Você termina o mês positivo, com sobra de <strong>R$ 18.484,23</strong>.
+                                                Você termina o mês positivo, com sobra de <strong>R$ 38.507,60</strong>.
                                             </div>
                                         </div>
                                     </div>
@@ -206,8 +210,6 @@ export default function HomePage() {
                     </div>
                 </div>
             </section>
-
-            {/* ⚠️ Seção <section className="lp-showcase"> antiga FOI REMOVIDA — fundida no hero */}
 
             {/* ── PROBLEMA (seção dark) ──────────────────────────────── */}
             <section className="lp-section lp-section--dark">
@@ -250,116 +252,119 @@ export default function HomePage() {
                 </div>
             </section>
 
-            {/* ── 3 FEATURES-PILARES ─────────────────────────────────── */}
+            {/* ═════════════════════════════════════════════════════════════════
+                FEATURES — Screenshots reais do app
+                ═════════════════════════════════════════════════════════════════ */}
             <section className="lp-section" id="recursos">
                 <div className="lp-container">
                     <div className="lp-section-head">
                         <div>
-                            <div className="lp-section-eyebrow">A solução</div>
+                            <div className="lp-section-eyebrow">O App</div>
                             <h2 className="lp-section-title">
-                                Três telas. Três respostas. <em>Todo dia.</em>
+                                Tudo num lugar só.<br/>
+                                Sem complicação, <em>de verdade.</em>
                             </h2>
                         </div>
                         <p className="lp-section-desc">
-                            Whallet não é mais uma planilha. É um sistema feito pra
-                            te dar, em segundos, a clareza que você precisa pra
-                            tomar decisão.
+                            Não é mais uma planilha bonita. É um sistema que te mostra,
+                            em segundos, a saúde financeira do seu negócio.
                         </p>
                     </div>
 
                     <div className="lp-features">
-                        {/* Feature 1 - Recebimentos */}
+
+                        {/* Feature 1 — Fluxo de Caixa */}
                         <div className="lp-feature">
                             <div className="lp-feature-text">
-                                <div className="lp-feature-num">01 / Veja</div>
+                                <div className="lp-feature-num">01 / Saúde do mês</div>
                                 <h3 className="lp-feature-title">
-                                    O que entra<br/>e o que sai.
+                                    Saiba quanto tem,<br/>quanto entra e <em>quanto sai.</em>
                                 </h3>
                                 <p className="lp-feature-desc">
-                                    Recebimentos e contas a pagar num único lugar.
-                                    Você cadastra uma vez e o Whallet te lembra
-                                    no dia certo, sem você precisar olhar planilha.
+                                    Saldo de todas as contas, recebimentos previstos, contas a pagar
+                                    e sobra projetada — tudo atualizado em tempo real. Sem precisar
+                                    abrir planilha ou conferir app de banco.
                                 </p>
+                                <ul className="lp-feature-bullets">
+                                    <li>Saldo consolidado de múltiplas contas</li>
+                                    <li>Termômetro do limite MEI (R$ 81 mil/ano)</li>
+                                    <li>Projeção automática da sobra do mês</li>
+                                </ul>
                             </div>
-                            <div className="lp-feature-mock">
-                                <div className="lp-mock-list">
-                                    <MockRow type="in"  name="Cliente João - Projeto Web" date="HOJE · PIX"           value="+R$ 1.500" />
-                                    <MockRow type="out" name="Aluguel sala comercial"     date="03/10 · BOLETO"        value="-R$ 850" />
-                                    <MockRow type="in"  name="Maria - Consultoria"        date="05/10 · TRANSFERÊNCIA" value="+R$ 2.200" />
-                                    <MockRow type="pending" name="DAS · Outubro"          date="VENCE EM 8 DIAS"       value="-R$ 80,90" />
-                                </div>
+                            <div className="lp-feature-screenshot">
+                                <img src={screenshotFluxo} alt="Tela de Fluxo de Caixa do Whallet mostrando saldo, recebimentos e contas a pagar" loading="lazy" />
                             </div>
                         </div>
 
-                        {/* Feature 2 - Saldos */}
+                        {/* Feature 2 — Recebimentos */}
                         <div className="lp-feature lp-feature--reverse">
                             <div className="lp-feature-text">
-                                <div className="lp-feature-num">02 / Saiba</div>
+                                <div className="lp-feature-num">02 / Recebimentos</div>
                                 <h3 className="lp-feature-title">
-                                    Saldo atualizado<br/>em <em>tempo real.</em>
+                                    Nunca mais perca<br/>um pagamento <em>de vista.</em>
                                 </h3>
                                 <p className="lp-feature-desc">
-                                    Junta as suas contas bancárias num só lugar e mostra
-                                    quanto tem agora, somando tudo. Quando entra dinheiro
-                                    ou paga boleto, o saldo já reflete.
+                                    Cadastre o que cada cliente te deve e quando vence. O Whallet
+                                    te avisa antes de atrasar — e manda cobrança automática por
+                                    WhatsApp se você quiser.
                                 </p>
+                                <ul className="lp-feature-bullets">
+                                    <li>Filtro rápido: a receber, atrasados, parciais</li>
+                                    <li>Cobrança automática via WhatsApp</li>
+                                    <li>Relatórios por cliente e aging</li>
+                                </ul>
                             </div>
-                            <div className="lp-feature-mock">
-                                <div className="lp-mock-accounts">
-                                    <MockAccount bank="Inter PJ"      name="Conta principal" value="R$ 4.230,15" />
-                                    <MockAccount bank="Nubank"        name="Reserva"         value="R$ 1.800,00" />
-                                    <MockAccount bank="Mercado Pago"  name="Vendas online"   value="R$ 642,80" />
-                                    <div className="lp-mock-account" style={{
-                                        background: "var(--cyan-soft)",
-                                        borderColor: "var(--cyan)",
-                                    }}>
-                                        <div>
-                                            <div className="lp-mock-account-bank" style={{ color: "var(--cyan-dark)" }}>
-                                                TOTAL · 3 contas
-                                            </div>
-                                            <div className="lp-mock-account-name">Saldo geral</div>
-                                        </div>
-                                        <div className="lp-mock-account-value" style={{ color: "var(--cyan-dark)" }}>
-                                            R$ 6.672,95
-                                        </div>
-                                    </div>
-                                </div>
+                            <div className="lp-feature-screenshot">
+                                <img src={screenshotRecebimentos} alt="Tela de Recebimentos do Whallet com lista de clientes e status" loading="lazy" />
                             </div>
                         </div>
 
-                        {/* Feature 3 - Alerta preditivo */}
+                        {/* Feature 3 — Relatórios */}
                         <div className="lp-feature">
                             <div className="lp-feature-text">
-                                <div className="lp-feature-num">03 / Antecipe</div>
+                                <div className="lp-feature-num">03 / Relatórios</div>
                                 <h3 className="lp-feature-title">
-                                    Saiba antes<br/>que <em>aperte.</em>
+                                    Relatórios que<br/>seu contador <em>vai amar.</em>
                                 </h3>
                                 <p className="lp-feature-desc">
-                                    O Whallet calcula seu fluxo dos próximos 60 dias
-                                    e avisa se vai faltar dinheiro. Antes de virar
-                                    problema, você já sabe — e pode agir.
+                                    10 relatórios prontos — de aging a DRE mensal.
+                                    Exporte pra Excel com um clique, mande pro contador
+                                    e pronto. Sem formatar tabela no braço.
                                 </p>
+                                <ul className="lp-feature-bullets">
+                                    <li>DRE, fluxo de caixa, saldo por conta</li>
+                                    <li>Aging a receber e a pagar</li>
+                                    <li>Exportação Excel e PDF em um clique</li>
+                                </ul>
                             </div>
-                            <div className="lp-feature-mock">
-                                <div className="lp-mock-alert">
-                                    <div className="lp-mock-alert-head">
-                                        <div className="lp-mock-alert-badge">⚠ Alerta</div>
-                                        <div className="lp-mock-alert-title">Aperto previsto em 12 dias</div>
-                                    </div>
-                                    <p className="lp-mock-alert-desc">
-                                        Suas saídas projetadas vão exceder o saldo disponível
-                                        em <strong>R$ 320</strong> entre 26/10 e 02/11.
-                                    </p>
-                                    <div className="lp-mock-alert-bar">
-                                        <div className="lp-mock-alert-bar-fill"/>
-                                    </div>
-                                    <div className="lp-mock-alert-meta">
-                                        <span>Saldo · R$ 6.672</span>
-                                        <span>Saídas · R$ 6.992</span>
-                                    </div>
-                                </div>
+                            <div className="lp-feature-screenshot">
+                                <img src={screenshotRelatorios} alt="Relatório por tipo de gasto do Whallet com distribuição visual" loading="lazy" />
                             </div>
                         </div>
+
+                        {/* Feature 4 — Elvis (IA) */}
+                        <div className="lp-feature lp-feature--reverse">
+                            <div className="lp-feature-text">
+                                <div className="lp-feature-num">04 / Inteligência Artificial</div>
+                                <h3 className="lp-feature-title">
+                                    Elvis, o agente de IA<br/>que entende <em>CNAB.</em>
+                                </h3>
+                                <p className="lp-feature-desc">
+                                    Precisa converter um arquivo CNAB pra Excel? Quer entender
+                                    um campo de retorno bancário? Pergunta pro Elvis. Ele domina
+                                    os layouts dos principais bancos do mercado.
+                                </p>
+                                <ul className="lp-feature-bullets">
+                                    <li>Conversão CNAB 240 e 400 para Excel e PDF</li>
+                                    <li>Análise de arquivos de remessa em tempo real</li>
+                                    <li>5 perguntas grátis/mês · Ilimitado no Whallet+</li>
+                                </ul>
+                            </div>
+                            <div className="lp-feature-screenshot">
+                                <img src={screenshotElvis} alt="Elvis, agente de IA do Whallet respondendo pergunta sobre CNAB" loading="lazy" />
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </section>
@@ -486,39 +491,6 @@ export default function HomePage() {
                     </div>
                 </div>
             </footer>
-        </div>
-    );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Componentes auxiliares dos mockups das features
-// ─────────────────────────────────────────────────────────────────────────────
-
-function MockRow({ type, name, date, value }) {
-    return (
-        <div className="lp-mock-row">
-            <div className="lp-mock-row-left">
-                <div className={`lp-mock-dot ${type}`}/>
-                <div className="lp-mock-row-text">
-                    <span className="lp-mock-row-name">{name}</span>
-                    <span className="lp-mock-row-date">{date}</span>
-                </div>
-            </div>
-            <span className={`lp-mock-row-value ${type === "in" ? "in" : type === "out" ? "out" : ""}`}>
-                {value}
-            </span>
-        </div>
-    );
-}
-
-function MockAccount({ bank, name, value }) {
-    return (
-        <div className="lp-mock-account">
-            <div>
-                <div className="lp-mock-account-bank">{bank}</div>
-                <div className="lp-mock-account-name">{name}</div>
-            </div>
-            <div className="lp-mock-account-value">{value}</div>
         </div>
     );
 }
