@@ -119,9 +119,8 @@ export default function BaixaModal({ titulo, onConfirmar, onFechar }) {
                         {titulo.fornecedorNome}
                     </div>
                     <div className="bxm-info-numero">
-                        {titulo.prefixo && `${titulo.prefixo} `}
                         #{titulo.numero}
-                        {titulo.parcela && titulo.parcela !== "001" && ` · Parcela ${titulo.parcela}`}
+                        {titulo.parcelaTotal > 1 && ` · Parcela ${String(titulo.parcelaAtual).padStart(2, "0")}/${String(titulo.parcelaTotal).padStart(2, "0")}`}
                     </div>
                     <div className="bxm-info-saldo">
                         <span>Saldo atual:</span>

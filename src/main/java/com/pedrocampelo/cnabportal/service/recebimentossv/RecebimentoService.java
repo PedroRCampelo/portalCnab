@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,12 +31,12 @@ import java.util.NoSuchElementException;
 import java.util.UUID;
 
 /**
- * RecebimentoService — versão integrada com módulo Fluxo de Caixa.
+ * RecebimentoService — Sprint F1.1
  *
- * MUDANÇAS PARTE 2:
- *   - receber() agora cria movimento bancário automaticamente
- *   - estornarBaixa() cria movimento de compensação
- *   - Validação: precisa ter conta bancária cadastrada antes de baixar
+ * Mudanças F1.1:
+ *   - Numeração Protheus: RC00001 + parcela "01" + chave "RC0000101"
+ *   - Auditoria: criadoPor, alteradoPor, baixadoPor, canceladoPor
+ *   - Listagens com @Transactional(readOnly=true) pra resolver lazy proxies
  */
 @Service
 @RequiredArgsConstructor
@@ -48,9 +49,10 @@ public class RecebimentoService {
     private final MovimentoBancarioService   movimentoBancarioService;
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Listagem e resumo (sem mudanças)
+    // Listagem e resumo
     // ─────────────────────────────────────────────────────────────────────────
 
+    @Transactional(readOnly = true)
     public Page<RecebimentoResponse> listar(Usuario usuario, String status, UUID clienteId,
                                             int pagina, int tamanho) {
         UUID empresaId = usuario.getEmpresa().getId();
@@ -71,6 +73,7 @@ public class RecebimentoService {
         return page.map(RecebimentoResponse::from);
     }
 
+    @Transactional(readOnly = true)
     public Map<String, Object> resumo(Usuario usuario) {
         UUID empresaId = usuario.getEmpresa().getId();
         atualizarStatusAtrasados(empresaId);
@@ -88,24 +91,28 @@ public class RecebimentoService {
         return resumo;
     }
 
+    @Transactional(readOnly = true)
     public RecebimentoResponse buscarPorId(Usuario usuario, UUID id) {
         Recebimento r = buscarEntidadePorId(usuario, id);
         return RecebimentoResponse.from(r);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Criação simples (sem mudanças)
+    // Criação simples
     // ─────────────────────────────────────────────────────────────────────────
 
     @Transactional
     public RecebimentoResponse criar(Usuario usuario, RecebimentoRequest request) {
         Cliente cliente = clienteService.buscarEntidadePorId(usuario, request.clienteId());
 
+        String numero = gerarNumero();
+
         Recebimento novo = Recebimento.builder()
                 .empresa(usuario.getEmpresa())
                 .usuario(usuario)
                 .cliente(cliente)
-                .numero(gerarNumero())
+                .numero(numero)
+                .parcela("01")
                 .descricao(request.descricao().trim())
                 .categoria(request.categoria())
                 .dataEmissao(request.dataEmissao() != null ? request.dataEmissao() : LocalDate.now())
@@ -113,23 +120,25 @@ public class RecebimentoService {
                 .valor(request.valor())
                 .valorRecebido(BigDecimal.ZERO)
                 .formaPagamento(request.formaPagamento() != null ? request.formaPagamento() : "PIX")
-                .parcelaAtual(request.parcelaAtual() != null ? request.parcelaAtual() : 1)
-                .parcelaTotal(request.parcelaTotal() != null ? request.parcelaTotal() : 1)
+                .parcelaAtual(1)
+                .parcelaTotal(1)
                 .recorrente(Boolean.TRUE.equals(request.recorrente()))
                 .recorrenciaTipo(request.recorrenciaTipo())
                 .observacao(request.observacao())
+                .criadoPor(usuario)
                 .build();
 
+        novo.montarChave();
         novo.atualizarStatus();
         Recebimento salvo = recebimentoRepository.save(novo);
-        log.info("Recebimento criado: {} (cliente={}, valor={})",
-                salvo.getId(), cliente.getNome(), salvo.getValor());
+        log.info("Recebimento criado: {} chave={} (cliente={}, valor={})",
+                salvo.getId(), salvo.getChave(), cliente.getNome(), salvo.getValor());
 
         return RecebimentoResponse.from(salvo);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Criação parcelada (sem mudanças)
+    // Criação parcelada
     // ─────────────────────────────────────────────────────────────────────────
 
     @Transactional
@@ -144,7 +153,8 @@ public class RecebimentoService {
         BigDecimal somaParcelasIgual = valorPorParcela.multiply(BigDecimal.valueOf(qtd - 1));
         BigDecimal valorUltimaParcela = valorTotal.subtract(somaParcelasIgual);
 
-        String numeroSerie = gerarNumero();
+        // Todas as parcelas compartilham o mesmo numero
+        String numero = gerarNumero();
         String formaPagamento = request.formaPagamento() != null ? request.formaPagamento() : "PIX";
         LocalDate hoje = LocalDate.now();
 
@@ -157,11 +167,14 @@ public class RecebimentoService {
             LocalDate vencimento = request.dataVencimentoPrimeira()
                     .plusDays((long) request.intervaloDias() * i);
 
+            String parcelaStr = String.format("%02d", numeroParcela);
+
             Recebimento r = Recebimento.builder()
                     .empresa(usuario.getEmpresa())
                     .usuario(usuario)
                     .cliente(cliente)
-                    .numero(numeroSerie)
+                    .numero(numero)
+                    .parcela(parcelaStr)
                     .descricao(request.descricao().trim() + " (" + numeroParcela + "/" + qtd + ")")
                     .categoria(request.categoria())
                     .dataEmissao(hoje)
@@ -173,14 +186,16 @@ public class RecebimentoService {
                     .parcelaTotal(qtd)
                     .recorrente(false)
                     .observacao(request.observacao())
+                    .criadoPor(usuario)
                     .build();
 
+            r.montarChave();
             r.atualizarStatus();
             criados.add(recebimentoRepository.save(r));
         }
 
-        log.info("Recebimento parcelado criado: {} parcelas, número série {}, cliente {}, total R$ {}",
-                qtd, numeroSerie, cliente.getNome(), valorTotal);
+        log.info("Recebimento parcelado criado: {} parcelas, número {}, cliente {}, total R$ {}",
+                qtd, numero, cliente.getNome(), valorTotal);
 
         return criados.stream().map(RecebimentoResponse::from).toList();
     }
@@ -219,31 +234,19 @@ public class RecebimentoService {
         r.setRecorrenciaTipo(request.recorrenciaTipo());
         r.setObservacao(request.observacao());
 
+        // ── Auditoria F1.1 ──
+        r.setAlteradoPor(usuario);
+
         r.atualizarStatus();
         Recebimento salvo = recebimentoRepository.save(r);
-        log.info("Recebimento atualizado: {}", salvo.getId());
+        log.info("Recebimento atualizado: {} por {}", salvo.getId(), usuario.getNome());
         return RecebimentoResponse.from(salvo);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // RECEBER (DAR BAIXA) — INTEGRAÇÃO COM MOVIMENTO BANCÁRIO
+    // RECEBER (DAR BAIXA)
     // ─────────────────────────────────────────────────────────────────────────
 
-    /**
-     * Registra recebimento (parcial ou total) E cria movimento bancário.
-     *
-     * Fluxo:
-     *   1. Valida estado do recebimento
-     *   2. Determina conta bancária:
-     *      - Se contaId vier no request: usa essa
-     *      - Se null: usa conta padrão (principal ou única)
-     *   3. Atualiza valor recebido + status do Recebimento
-     *   4. Cria movimento bancário do tipo RECEBIMENTO
-     *   5. Saldo da conta é recalculado automaticamente na próxima consulta
-     *
-     * Importante: a operação é transacional. Se a criação do movimento falhar,
-     * o recebimento NÃO é marcado como baixado (rollback).
-     */
     @Transactional
     public RecebimentoResponse receber(Usuario usuario, UUID id, ReceberRequest request) {
         Recebimento r = buscarEntidadePorId(usuario, id);
@@ -267,10 +270,8 @@ public class RecebimentoService {
             );
         }
 
-        // ── Determina a conta bancária do movimento ──────────────────────────
         SaldoBancario conta = resolverConta(usuario, request.contaId());
 
-        // ── Atualiza Recebimento ─────────────────────────────────────────────
         LocalDate dataMovimento = request.dataRecebimento() != null
                 ? request.dataRecebimento()
                 : LocalDate.now();
@@ -279,46 +280,35 @@ public class RecebimentoService {
         if (r.getDataRecebimento() == null) {
             r.setDataRecebimento(dataMovimento);
         }
+
+        // ── Auditoria F1.1 ──
+        r.setBaixadoPor(usuario);
+        r.setBaixadoEm(LocalDateTime.now());
+
         r.atualizarStatus();
         Recebimento salvo = recebimentoRepository.save(r);
 
-        // ── Cria movimento bancário ──────────────────────────────────────────
         String descricao = "Recebimento de " + r.getCliente().getNome() + " — " + r.getDescricao();
         movimentoBancarioService.criarRecebimento(
                 usuario, conta, dataMovimento, valorRecebimento, descricao, salvo.getId()
         );
 
-        log.info("Recebimento baixado: {} (valor={}, conta={}, status={})",
-                salvo.getId(), valorRecebimento, conta.getNomeConta(), salvo.getStatus());
+        log.info("Recebimento baixado: {} por {} (valor={}, conta={}, status={})",
+                salvo.getId(), usuario.getNome(), valorRecebimento, conta.getNomeConta(), salvo.getStatus());
         return RecebimentoResponse.from(salvo);
     }
 
-    /**
-     * Resolve qual conta usar pra o movimento.
-     * Prioridade: 1) contaId do request, 2) conta padrão da empresa.
-     */
     private SaldoBancario resolverConta(Usuario usuario, UUID contaId) {
         if (contaId != null) {
             return saldoBancarioService.buscarEntidadePorId(usuario, contaId);
         }
-        // Sem conta especificada — usa padrão (principal ou primeira disponível)
         return saldoBancarioService.buscarContaPadrao(usuario);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // ESTORNAR BAIXA — INTEGRAÇÃO COM MOVIMENTO BANCÁRIO
+    // ESTORNAR BAIXA
     // ─────────────────────────────────────────────────────────────────────────
 
-    /**
-     * Estorna a baixa do recebimento E cria movimento(s) de compensação.
-     *
-     * Fluxo:
-     *   1. Valida que tem baixa pra estornar
-     *   2. Estorna TODOS os movimentos ativos vinculados a este recebimento
-     *      (pode ter múltiplos se foram baixas parciais)
-     *   3. Zera valor recebido e data de recebimento no Recebimento
-     *   4. Recalcula status (volta pra PENDENTE/ATRASADO)
-     */
     @Transactional
     public RecebimentoResponse estornarBaixa(Usuario usuario, UUID id) {
         Recebimento r = buscarEntidadePorId(usuario, id);
@@ -327,25 +317,29 @@ public class RecebimentoService {
             throw new IllegalStateException("Este recebimento não possui baixa para estornar.");
         }
 
-        // ── Estorna todos os movimentos vinculados ───────────────────────────
         movimentoBancarioService.estornarPorOrigem(
                 usuario, "RECEBIMENTO", r.getId(),
                 "Estorno de baixa do recebimento"
         );
 
-        // ── Zera valores no Recebimento ──────────────────────────────────────
         BigDecimal valorEstornado = r.getValorRecebido();
         r.setValorRecebido(BigDecimal.ZERO);
         r.setDataRecebimento(null);
+
+        // ── Auditoria F1.1: limpa baixa, mantém histórico via log ──
+        r.setBaixadoPor(null);
+        r.setBaixadoEm(null);
+
         r.atualizarStatus();
 
         Recebimento salvo = recebimentoRepository.save(r);
-        log.info("Recebimento estornado: {} (valor estornado={})", salvo.getId(), valorEstornado);
+        log.info("Recebimento estornado: {} por {} (valor estornado={})",
+                salvo.getId(), usuario.getNome(), valorEstornado);
         return RecebimentoResponse.from(salvo);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Cancelar e excluir (sem mudanças vs Sprint 1)
+    // Cancelar e excluir
     // ─────────────────────────────────────────────────────────────────────────
 
     @Transactional
@@ -367,8 +361,13 @@ public class RecebimentoService {
         }
 
         r.setStatus("CANCELADO");
+
+        // ── Auditoria F1.1 ──
+        r.setCanceladoPor(usuario);
+        r.setCanceladoEm(LocalDateTime.now());
+
         Recebimento salvo = recebimentoRepository.save(r);
-        log.info("Recebimento cancelado: {}", id);
+        log.info("Recebimento cancelado: {} por {}", id, usuario.getNome());
         return RecebimentoResponse.from(salvo);
     }
 
@@ -383,7 +382,7 @@ public class RecebimentoService {
         }
 
         recebimentoRepository.delete(r);
-        log.info("Recebimento excluído: {}", id);
+        log.info("Recebimento excluído: {} por {}", id, usuario.getNome());
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -408,8 +407,12 @@ public class RecebimentoService {
         }
     }
 
+    /**
+     * Gera número sequencial: RC00001, RC00002...
+     * Usa sequence do PostgreSQL (seq_recebimento_numero).
+     */
     private String gerarNumero() {
-        long ts = System.currentTimeMillis();
-        return "R-" + Long.toString(ts, 36).toUpperCase();
+        Long seq = recebimentoRepository.proximoNumeroSequencia();
+        return "RC" + String.format("%05d", seq);
     }
 }

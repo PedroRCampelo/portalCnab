@@ -130,7 +130,7 @@ export const STATUS_OPS = [
 /**
  * Campos obrigatórios no cadastro de título
  */
-export const CAMPOS_OBRIGATORIOS = ["numero", "fornecedorNome", "vencimento", "valor"];
+export const CAMPOS_OBRIGATORIOS = ["fornecedorNome", "vencimento", "valor"];
 
 /**
  * Estado inicial vazio (com todos os campos CNAB)

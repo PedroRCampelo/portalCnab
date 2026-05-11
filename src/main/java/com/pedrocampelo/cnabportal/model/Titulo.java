@@ -32,19 +32,53 @@ public class Titulo {
     @JoinColumn(name = "empresa_id", nullable = false)
     private Empresa empresa;
 
-    // ── Identificação ─────────────────────────────────────────────────────────
+    // ── Identificação — padrão Protheus (Sprint F1.1) ─────────────────────────
 
+    /**
+     * Prefixo legado (AP, NF, etc). Mantido pra retrocompatibilidade CNAB.
+     * Não participa mais da lógica de chave — usar numero + parcela.
+     */
     @Column(nullable = false, length = 10)
     @Builder.Default
     private String prefixo = "AP";
 
+    /**
+     * Número sequencial do título: AP00001, AP00002...
+     * Auto-gerado. Agrupa parcelas (todas as parcelas de um parcelado
+     * compartilham o mesmo numero).
+     */
     @Column(nullable = false, length = 20)
     @NotBlank
     private String numero;
 
+    /**
+     * Parcela string legada "001", "002". Mantida pra CNAB.
+     * Usar parcelaAtual / parcelaTotal pra lógica nova.
+     */
     @Column(nullable = false, length = 3)
     @Builder.Default
     private String parcela = "001";
+
+    /**
+     * Chave composta: numero + parcela → "AP0000101".
+     * Identificador único legível por empresa (índice unique).
+     */
+    @Column(length = 20)
+    private String chave;
+
+    /**
+     * Parcela atual (int) — padronização com recebimentos.
+     */
+    @Column(name = "parcela_atual")
+    @Builder.Default
+    private Integer parcelaAtual = 1;
+
+    /**
+     * Total de parcelas (int) — padronização com recebimentos.
+     */
+    @Column(name = "parcela_total")
+    @Builder.Default
+    private Integer parcelaTotal = 1;
 
     // ── Tipo de pagamento ─────────────────────────────────────────────────────
 
@@ -52,7 +86,7 @@ public class Titulo {
     @Builder.Default
     private String tipo = "BOLETO";
 
-    // ── Tipo de gasto (referência opcional por UUID) ──────────────────────────
+    // ── Tipo de gasto ─────────────────────────────────────────────────────────
 
     @Column(name = "tipo_gasto_id")
     private UUID tipoGastoId;
@@ -63,7 +97,7 @@ public class Titulo {
     @NotBlank
     private String fornecedorNome;
 
-    @Column(name = "fornecedor_documento", length = 20)  // opcional
+    @Column(name = "fornecedor_documento", length = 20)
     private String fornecedorDocumento;
 
     // ── Datas ─────────────────────────────────────────────────────────────────
@@ -129,10 +163,10 @@ public class Titulo {
     @Column(name = "linha_digitavel", length = 100)
     private String linhaDigitavel;
 
-    // ── Dados bancários do favorecido — Segmento A (TED/DOC/Crédito) ─────────
+    // ── Dados bancários do favorecido — Segmento A ───────────────────────────
 
     @Column(name = "favorecido_banco_code", length = 3)
-    private String favorecidoBancoCode;      // ex: "341" = Itaú
+    private String favorecidoBancoCode;
 
     @Column(name = "favorecido_agencia", length = 5)
     private String favorecidoAgencia;
@@ -147,30 +181,30 @@ public class Titulo {
     private String favorecidoContaDv;
 
     @Column(name = "favorecido_tipo_conta", length = 2)
-    private String favorecidoTipoConta;      // CC | CP | PP
+    private String favorecidoTipoConta;
 
     @Column(name = "favorecido_tipo_inscricao", length = 1)
-    private String favorecidoTipoInscricao; // 1=CPF 2=CNPJ
+    private String favorecidoTipoInscricao;
 
     @Column(name = "finalidade_ted", length = 5)
-    private String finalidadeTed;            // ex: "00001" = crédito em conta
+    private String finalidadeTed;
 
     @Column(name = "finalidade_doc", length = 2)
     private String finalidadeDoc;
 
     @Column(name = "aviso", length = 1)
     @Builder.Default
-    private String aviso = "0";              // 0=não avisar 2=avisar favorecido
+    private String aviso = "0";
 
     // ── PIX ───────────────────────────────────────────────────────────────────
 
     @Column(name = "tipo_chave_pix", length = 10)
-    private String tipoChavePix;             // CPF | CNPJ | EMAIL | TELEFONE | EVP
+    private String tipoChavePix;
 
     @Column(name = "chave_pix", length = 99)
     private String chavePix;
 
-    // ── Endereço do favorecido — Segmento B (alguns bancos) ──────────────────
+    // ── Endereço do favorecido — Segmento B ──────────────────────────────────
 
     @Column(name = "favorecido_logradouro", length = 40)
     private String favorecidoLogradouro;
@@ -187,12 +221,40 @@ public class Titulo {
     // ── Controle CNAB ─────────────────────────────────────────────────────────
 
     @Column(name = "seu_numero", length = 20)
-    private String seuNumero;               // referência do pagador no lote
+    private String seuNumero;
 
     @Column(name = "nosso_numero", length = 20)
-    private String nossoNumero;             // retorno do banco
+    private String nossoNumero;
 
-    // ── Auditoria ─────────────────────────────────────────────────────────────
+    // ── Auditoria — Sprint F1.1 ──────────────────────────────────────────────
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "criado_por_id")
+    private Usuario criadoPor;
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "alterado_por_id")
+    private Usuario alteradoPor;
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "baixado_por_id")
+    private Usuario baixadoPor;
+
+    @Column(name = "baixado_em")
+    private LocalDateTime baixadoEm;
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cancelado_por_id")
+    private Usuario canceladoPor;
+
+    @Column(name = "cancelado_em")
+    private LocalDateTime canceladoEm;
+
+    // ── Timestamps ────────────────────────────────────────────────────────────
 
     @CreationTimestamp
     @Column(name = "criado_em", nullable = false, updatable = false)
@@ -202,7 +264,14 @@ public class Titulo {
     @Column(name = "atualizado_em", nullable = false)
     private LocalDateTime atualizadoEm;
 
-    // ── Utilitário ────────────────────────────────────────────────────────────
+    // ── Utilitários ───────────────────────────────────────────────────────────
+
+    /** Monta a chave composta a partir do numero + parcela (2 chars). */
+    public void montarChave() {
+        if (this.numero != null && this.parcelaAtual != null) {
+            this.chave = this.numero + String.format("%02d", this.parcelaAtual);
+        }
+    }
 
     public void atualizarStatus() {
         if ("PAGO".equals(this.status)) return;

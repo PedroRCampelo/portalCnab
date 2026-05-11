@@ -16,14 +16,6 @@ import java.util.UUID;
 /**
  * Movimento bancário — uma linha do "livro caixa" do MEI.
  *
- * Cada movimento representa um evento financeiro real:
- *   - Saldo inicial da conta
- *   - Recebimento (baixa de recebível)
- *   - Pagamento (baixa de título)
- *   - Ajuste manual (correção de saldo)
- *   - Estorno de recebimento
- *   - Estorno de pagamento
- *
  * REGRA DE OURO: movimentos NUNCA são apagados.
  * Pra anular um movimento, criar um movimento de estorno apontando pro original.
  */
@@ -66,16 +58,11 @@ public class MovimentoBancario {
     @Column(nullable = false, length = 30)
     @NotBlank
     private String tipo;
-    // SALDO_INICIAL | RECEBIMENTO | PAGAMENTO | AJUSTE_MANUAL
-    // | ESTORNO_RECEBIMENTO | ESTORNO_PAGAMENTO
 
     @Column(name = "eh_entrada", nullable = false)
     @NotNull
     private Boolean ehEntrada;
 
-    /**
-     * Valor SEMPRE POSITIVO. O sinal vem do campo ehEntrada.
-     */
     @Column(nullable = false, precision = 18, scale = 2)
     @NotNull
     @Positive
@@ -89,18 +76,12 @@ public class MovimentoBancario {
 
     @Column(name = "origem_tipo", length = 30)
     private String origemTipo;
-    // RECEBIMENTO | TITULO | NULL
 
     @Column(name = "origem_id")
     private UUID origemId;
 
     // ── Estorno ───────────────────────────────────────────────────────────────
 
-    /**
-     * Se este movimento é um estorno, aponta pro movimento original que está
-     * sendo anulado. O movimento original NÃO é alterado — apenas marcado
-     * como cancelado=true.
-     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "movimento_estornado_id")
     private MovimentoBancario movimentoEstornado;
@@ -114,7 +95,22 @@ public class MovimentoBancario {
     @Column(name = "motivo_cancelamento", length = 255)
     private String motivoCancelamento;
 
-    // ── Auditoria ─────────────────────────────────────────────────────────────
+    // ── Auditoria — Sprint F1.1 ──────────────────────────────────────────────
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "criado_por_id")
+    private Usuario criadoPor;
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cancelado_por_id")
+    private Usuario canceladoPor;
+
+    @Column(name = "cancelado_em")
+    private LocalDateTime canceladoEm;
+
+    // ── Timestamp ─────────────────────────────────────────────────────────────
 
     @CreationTimestamp
     @Column(name = "criado_em", nullable = false, updatable = false)
@@ -122,17 +118,10 @@ public class MovimentoBancario {
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    /**
-     * Retorna o valor com sinal aplicado (positivo=entrada, negativo=saída).
-     * Útil pra cálculos de saldo.
-     */
     public BigDecimal getValorComSinal() {
         return ehEntrada ? valor : valor.negate();
     }
 
-    /**
-     * Retorna true se o movimento é "ativo" (não cancelado e relevante para o saldo).
-     */
     public boolean isAtivo() {
         return !Boolean.TRUE.equals(cancelado);
     }

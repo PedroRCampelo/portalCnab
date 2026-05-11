@@ -22,6 +22,8 @@ import java.util.UUID;
 /**
  * Serviço central de movimentos bancários (razão auxiliar / livro caixa).
  *
+ * Sprint F1.1: criadoPor em todas as criações de movimento.
+ *
  * REGRAS DE OURO:
  *   - Movimentos NUNCA são apagados.
  *   - Estornar = criar movimento INVERSO de compensação. O original permanece ativo.
@@ -57,11 +59,12 @@ public class MovimentoBancarioService {
                 .origemTipo("RECEBIMENTO")
                 .origemId(recebimentoId)
                 .cancelado(false)
+                .criadoPor(usuario)
                 .build();
 
         MovimentoBancario salvo = movimentoRepository.save(mov);
-        log.info("Movimento RECEBIMENTO criado: conta={}, valor={}, recebimento={}",
-                conta.getNomeConta(), valor, recebimentoId);
+        log.info("Movimento RECEBIMENTO criado: conta={}, valor={}, recebimento={}, por={}",
+                conta.getNomeConta(), valor, recebimentoId, usuario.getNome());
         return salvo;
     }
 
@@ -83,11 +86,12 @@ public class MovimentoBancarioService {
                 .origemTipo("TITULO")
                 .origemId(tituloId)
                 .cancelado(false)
+                .criadoPor(usuario)
                 .build();
 
         MovimentoBancario salvo = movimentoRepository.save(mov);
-        log.info("Movimento PAGAMENTO criado: conta={}, valor={}, titulo={}",
-                conta.getNomeConta(), valor, tituloId);
+        log.info("Movimento PAGAMENTO criado: conta={}, valor={}, titulo={}, por={}",
+                conta.getNomeConta(), valor, tituloId, usuario.getNome());
         return salvo;
     }
 
@@ -159,11 +163,12 @@ public class MovimentoBancarioService {
                 .origemId(original.getOrigemId())
                 .movimentoEstornado(original)
                 .cancelado(false)
+                .criadoPor(usuario)
                 .build();
 
         MovimentoBancario salvo = movimentoRepository.save(estorno);
-        log.info("Movimento estornado: original={} (continua ativo), estorno={} criado",
-                original.getId(), salvo.getId());
+        log.info("Movimento estornado: original={} (continua ativo), estorno={} criado, por={}",
+                original.getId(), salvo.getId(), usuario.getNome());
         return salvo;
     }
 
@@ -204,20 +209,17 @@ public class MovimentoBancarioService {
                         ? "Ajuste de saldo: " + motivo
                         : "Ajuste de saldo manual")
                 .cancelado(false)
+                .criadoPor(usuario)
                 .build();
 
         MovimentoBancario salvo = movimentoRepository.save(mov);
-        log.info("Saldo ajustado: conta={}, antes={}, depois={}, diferenca={}",
-                conta.getNomeConta(), saldoAtual, saldoReal, diferenca);
+        log.info("Saldo ajustado: conta={}, antes={}, depois={}, diferenca={}, por={}",
+                conta.getNomeConta(), saldoAtual, saldoReal, diferenca, usuario.getNome());
         return salvo;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
     // CONSULTA / EXTRATO
-    //
-    // IMPORTANTE: @Transactional(readOnly = true) mantém a sessão Hibernate aberta
-    // durante o `.map()`, evitando LazyInitializationException ao acessar
-    // movimento.getConta().getNomeConta() no DTO.
     // ─────────────────────────────────────────────────────────────────────────
 
     @Transactional(readOnly = true)

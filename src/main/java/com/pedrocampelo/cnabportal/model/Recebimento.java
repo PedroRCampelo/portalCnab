@@ -25,7 +25,7 @@ public class Recebimento {
     @Column(updatable = false, nullable = false)
     private UUID id;
 
-    // ── Multi-tenant + auditoria ──────────────────────────────────────────────
+    // ── Multi-tenant ──────────────────────────────────────────────────────────
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
@@ -43,15 +43,30 @@ public class Recebimento {
     @JoinColumn(name = "cliente_id", nullable = false)
     private Cliente cliente;
 
-    // ── Identificação ─────────────────────────────────────────────────────────
+    // ── Identificação — padrão Protheus (Sprint F1.1) ─────────────────────────
 
     /**
-     * Número do recebimento — agrupador de parcelas.
-     * Recebimentos parcelados compartilham o mesmo número e diferem em parcelaAtual.
-     * Mesmo padrão de Titulo (contas a pagar).
+     * Número sequencial do recebimento: RC00001, RC00002...
+     * Auto-gerado. Agrupa parcelas (todas as parcelas de um parcelado
+     * compartilham o mesmo numero).
      */
     @Column(length = 20)
     private String numero;
+
+    /**
+     * Parcela no formato string: "01", "02", "03".
+     * Usado na composição da chave.
+     */
+    @Column(length = 3)
+    @Builder.Default
+    private String parcela = "01";
+
+    /**
+     * Chave composta: numero + parcela → "RC0000101".
+     * Identificador único legível por empresa (índice unique).
+     */
+    @Column(length = 20)
+    private String chave;
 
     @Column(nullable = false, length = 255)
     @NotBlank
@@ -59,6 +74,16 @@ public class Recebimento {
 
     @Column(length = 50)
     private String categoria;
+
+    // ── Parcelamento ──────────────────────────────────────────────────────────
+
+    @Column(name = "parcela_atual", nullable = false)
+    @Builder.Default
+    private Integer parcelaAtual = 1;
+
+    @Column(name = "parcela_total", nullable = false)
+    @Builder.Default
+    private Integer parcelaTotal = 1;
 
     // ── Datas ─────────────────────────────────────────────────────────────────
 
@@ -91,16 +116,6 @@ public class Recebimento {
     @Builder.Default
     private String formaPagamento = "PIX";
 
-    // ── Parcelamento ──────────────────────────────────────────────────────────
-
-    @Column(name = "parcela_atual", nullable = false)
-    @Builder.Default
-    private Integer parcelaAtual = 1;
-
-    @Column(name = "parcela_total", nullable = false)
-    @Builder.Default
-    private Integer parcelaTotal = 1;
-
     // ── Recorrência ───────────────────────────────────────────────────────────
 
     @Column(nullable = false)
@@ -119,7 +134,35 @@ public class Recebimento {
     @Column(columnDefinition = "TEXT")
     private String observacao;
 
-    // ── Auditoria ─────────────────────────────────────────────────────────────
+    // ── Auditoria — Sprint F1.1 ──────────────────────────────────────────────
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "criado_por_id")
+    private Usuario criadoPor;
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "alterado_por_id")
+    private Usuario alteradoPor;
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "baixado_por_id")
+    private Usuario baixadoPor;
+
+    @Column(name = "baixado_em")
+    private LocalDateTime baixadoEm;
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cancelado_por_id")
+    private Usuario canceladoPor;
+
+    @Column(name = "cancelado_em")
+    private LocalDateTime canceladoEm;
+
+    // ── Timestamps ────────────────────────────────────────────────────────────
 
     @CreationTimestamp
     @Column(name = "criado_em", nullable = false, updatable = false)
@@ -130,6 +173,13 @@ public class Recebimento {
     private LocalDateTime atualizadoEm;
 
     // ── Utilitários de domínio ────────────────────────────────────────────────
+
+    /** Monta a chave composta a partir do numero + parcela. */
+    public void montarChave() {
+        if (this.numero != null && this.parcela != null) {
+            this.chave = this.numero + this.parcela;
+        }
+    }
 
     public void atualizarStatus() {
         if ("CANCELADO".equals(this.status)) return;
@@ -158,18 +208,10 @@ public class Recebimento {
         return this.valor.subtract(this.valorRecebido);
     }
 
-    /**
-     * Retorna true se o recebimento já recebeu algum valor.
-     * Usado pra bloquear edição/exclusão (princípio ERP — lançamentos com baixa
-     * só podem ser estornados, não alterados diretamente).
-     */
     public boolean temBaixa() {
         return this.valorRecebido.compareTo(BigDecimal.ZERO) > 0;
     }
 
-    /**
-     * Retorna true se o recebimento está em estado terminal (não permite operações).
-     */
     public boolean estaFinalizado() {
         return "RECEBIDO".equals(this.status) || "CANCELADO".equals(this.status);
     }

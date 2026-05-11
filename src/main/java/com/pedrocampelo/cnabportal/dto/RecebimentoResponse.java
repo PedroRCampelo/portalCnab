@@ -11,7 +11,9 @@ public record RecebimentoResponse(
         UUID id,
         ClienteResumo cliente,
 
-        String numero,                  // NOVO — agrupador de parcelas
+        String numero,                  // RC00001 — sequencial
+        String parcela,                 // "01", "02"
+        String chave,                   // RC0000101 — numero + parcela
         String descricao,
         String categoria,
 
@@ -32,10 +34,13 @@ public record RecebimentoResponse(
         String status,
         String observacao,
 
-        // Campos calculados — flags pra UI bloquear ações conforme estado ERP
-        Boolean editavel,               // true se pode alterar (sem baixa, não cancelado)
-        Boolean cancelavel,             // true se pode cancelar (sem baixa)
-        Boolean estornavel,             // true se tem baixa pra estornar
+        // Flags de operação pra UI
+        Boolean editavel,
+        Boolean cancelavel,
+        Boolean estornavel,
+
+        // Auditoria — Sprint F1.1
+        AuditoriaResumo auditoria,
 
         LocalDateTime criadoEm
 ) {
@@ -46,6 +51,21 @@ public record RecebimentoResponse(
             String telefone
     ) {}
 
+    /**
+     * Resumo de auditoria — quem fez cada operação.
+     * Campos nullable (só preenchidos quando a operação aconteceu).
+     */
+    public record AuditoriaResumo(
+            String criadoPorNome,
+            LocalDateTime criadoEm,
+            String alteradoPorNome,
+            LocalDateTime atualizadoEm,
+            String baixadoPorNome,
+            LocalDateTime baixadoEm,
+            String canceladoPorNome,
+            LocalDateTime canceladoEm
+    ) {}
+
     public static RecebimentoResponse from(Recebimento r) {
         ClienteResumo clienteResumo = r.getCliente() == null ? null
                 : new ClienteResumo(
@@ -54,17 +74,30 @@ public record RecebimentoResponse(
                 r.getCliente().getTelefone()
         );
 
-        // Cálculo das flags de operação (regras ERP):
         boolean temBaixa     = r.temBaixa();
         boolean cancelado    = "CANCELADO".equals(r.getStatus());
         boolean editavel     = !temBaixa && !cancelado;
         boolean cancelavel   = !temBaixa && !cancelado;
         boolean estornavel   = temBaixa && !cancelado;
 
+        // Monta auditoria (acessa lazy proxies — garantir @Transactional no caller)
+        AuditoriaResumo auditoria = new AuditoriaResumo(
+                r.getCriadoPor() != null ? r.getCriadoPor().getNome() : null,
+                r.getCriadoEm(),
+                r.getAlteradoPor() != null ? r.getAlteradoPor().getNome() : null,
+                r.getAtualizadoEm(),
+                r.getBaixadoPor() != null ? r.getBaixadoPor().getNome() : null,
+                r.getBaixadoEm(),
+                r.getCanceladoPor() != null ? r.getCanceladoPor().getNome() : null,
+                r.getCanceladoEm()
+        );
+
         return new RecebimentoResponse(
                 r.getId(),
                 clienteResumo,
                 r.getNumero(),
+                r.getParcela(),
+                r.getChave(),
                 r.getDescricao(),
                 r.getCategoria(),
                 r.getDataEmissao(),
@@ -83,6 +116,7 @@ public record RecebimentoResponse(
                 editavel,
                 cancelavel,
                 estornavel,
+                auditoria,
                 r.getCriadoEm()
         );
     }

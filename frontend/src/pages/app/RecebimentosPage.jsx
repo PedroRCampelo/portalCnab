@@ -109,7 +109,9 @@ export default function RecebimentosPage() {
         const q = busca.toLowerCase();
         return recebimentos.filter(r =>
             r.descricao?.toLowerCase().includes(q) ||
-            r.cliente?.nome?.toLowerCase().includes(q)
+            r.cliente?.nome?.toLowerCase().includes(q) ||
+            r.numero?.toLowerCase().includes(q) ||
+            r.chave?.toLowerCase().includes(q)
         );
     }, [recebimentos, busca]);
 
@@ -190,6 +192,34 @@ export default function RecebimentosPage() {
 
     const colunas = useMemo(() => [
         {
+            key: "numero",
+            label: "Número",
+            sortable: true,
+            render: r => (
+                <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.3 }}>
+                    <span style={{
+                        fontFamily: "var(--ff-mono)",
+                        fontSize: 13,
+                        fontWeight: 600,
+                        color: "var(--navy-deep)",
+                        letterSpacing: "0.02em",
+                    }}>
+                        {r.numero}
+                    </span>
+                    {r.parcelaTotal > 1 && (
+                        <span style={{
+                            fontFamily: "var(--ff-mono)",
+                            fontSize: 10,
+                            color: "var(--text-dim)",
+                            letterSpacing: "0.04em",
+                        }}>
+                            Parcela {r.parcela}/{String.format ? r.parcelaTotal : String(r.parcelaTotal).padStart(2, "0")}
+                        </span>
+                    )}
+                </div>
+            ),
+        },
+        {
             key: "cliente",
             label: "Cliente",
             sortable: true,
@@ -202,11 +232,6 @@ export default function RecebimentosPage() {
                         <div className="ui-cell-avatar-name">
                             {r.cliente?.nome || "Sem cliente"}
                         </div>
-                        {r.parcelaTotal > 1 && (
-                            <div className="ui-cell-avatar-sub">
-                                Parcela {r.parcelaAtual}/{r.parcelaTotal}
-                            </div>
-                        )}
                     </div>
                 </div>
             ),

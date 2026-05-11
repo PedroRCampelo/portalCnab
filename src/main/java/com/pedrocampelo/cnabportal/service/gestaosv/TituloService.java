@@ -67,11 +67,14 @@ public class TituloService {
         validar(titulo);
 
         titulo.setUsuario(usuario);
-        titulo.setEmpresa(usuario.getEmpresa());     // ← antes: empresaPadraoId
+        titulo.setEmpresa(usuario.getEmpresa());
 
         if (titulo.getSaldo() == null || titulo.getSaldo().compareTo(BigDecimal.ZERO) == 0) {
             titulo.setSaldo(titulo.getValor());
         }
+
+        // ── Auditoria F1.1 ──
+        titulo.setCriadoPor(usuario);
 
         titulo.atualizarStatus();
         return tituloRepository.save(titulo);
@@ -96,9 +99,7 @@ public class TituloService {
 
         validar(dados);
 
-        existente.setPrefixo(dados.getPrefixo());
-        existente.setNumero(dados.getNumero());
-        existente.setParcela(dados.getParcela());
+        // Numero, parcela e chave são auto-gerados — nunca sobrescrever na edição
         existente.setTipo(dados.getTipo());
         existente.setFornecedorNome(dados.getFornecedorNome());
         existente.setFornecedorDocumento(dados.getFornecedorDocumento());
@@ -113,6 +114,9 @@ public class TituloService {
         existente.setCodigoBarras(dados.getCodigoBarras());
         existente.setLinhaDigitavel(dados.getLinhaDigitavel());
         existente.setTipoGastoId(dados.getTipoGastoId());
+
+        // ── Auditoria F1.1 ──
+        existente.setAlteradoPor(usuario);
 
         if (!"PAGO".equals(dados.getStatus())) {
             existente.atualizarStatus();
@@ -172,6 +176,11 @@ public class TituloService {
 
         Titulo salvo = tituloRepository.save(titulo);
 
+        // ── Auditoria F1.1 ──
+        salvo.setBaixadoPor(usuario);
+        salvo.setBaixadoEm(java.time.LocalDateTime.now());
+        salvo = tituloRepository.save(salvo);
+
         String descricao = "Pagamento de " +
                 (titulo.getFornecedorNome() != null ? titulo.getFornecedorNome() : "fornecedor") +
                 " — #" + titulo.getNumero();
@@ -214,6 +223,10 @@ public class TituloService {
         BigDecimal saldoAtual = titulo.getSaldo() != null ? titulo.getSaldo() : BigDecimal.ZERO;
         titulo.setSaldo(saldoAtual.add(valorEstornado));
         titulo.setDataBaixa(null);
+
+        // ── Auditoria F1.1: limpa baixa ──
+        titulo.setBaixadoPor(null);
+        titulo.setBaixadoEm(null);
 
         // Força status PENDENTE antes do atualizarStatus() (early-return em PAGO)
         titulo.setStatus("PENDENTE");
@@ -277,19 +290,25 @@ public class TituloService {
 
         validar(req.templateTitulo());
 
+        // Todas as parcelas compartilham o mesmo numero
+        String numero = gerarNumero();
+
         List<Titulo> criados = new ArrayList<>();
         LocalDate vencimentoBase = req.templateTitulo().getVencimento();
 
         for (int i = 0; i < req.qtdParcelas(); i++) {
-            String numeroParcela = String.format("%03d", i + 1);
+            int numeroParcela = i + 1;
+            String parcelaStr = String.format("%02d", numeroParcela);
             LocalDate vencimento = vencimentoBase.plusDays((long) req.intervaloDias() * i);
 
             Titulo t = Titulo.builder()
                     .usuario(usuario)
-                    .empresa(usuario.getEmpresa())     // ← antes: empresaPadraoId
+                    .empresa(usuario.getEmpresa())
                     .prefixo(req.templateTitulo().getPrefixo() != null ? req.templateTitulo().getPrefixo() : "AP")
-                    .numero(req.templateTitulo().getNumero())
-                    .parcela(numeroParcela)
+                    .numero(numero)
+                    .parcela(parcelaStr)
+                    .parcelaAtual(numeroParcela)
+                    .parcelaTotal(req.qtdParcelas())
                     .tipo(req.templateTitulo().getTipo())
                     .tipoGastoId(req.templateTitulo().getTipoGastoId())
                     .fornecedorNome(req.templateTitulo().getFornecedorNome())
@@ -302,14 +321,16 @@ public class TituloService {
                     .juros(BigDecimal.ZERO)
                     .multa(BigDecimal.ZERO)
                     .observacao(req.templateTitulo().getObservacao())
+                    .criadoPor(usuario)
                     .build();
 
+            t.montarChave();
             t.atualizarStatus();
             criados.add(tituloRepository.save(t));
         }
 
-        log.info("Lançamento parcelado: {} parcelas criadas — número {} — usuário {}",
-                criados.size(), req.templateTitulo().getNumero(), usuario.getEmail());
+        log.info("Lançamento parcelado: {} parcelas, número {}, usuário {}",
+                criados.size(), numero, usuario.getEmail());
 
         return criados;
     }
@@ -381,8 +402,8 @@ public class TituloService {
                     LocalDate vencimento = dataCell(row, 6);
                     BigDecimal valor     = valorCell(row, 7);
 
-                    if (numero.isBlank() || nome.isBlank() || valor == null) {
-                        erros.add("Linha " + linha + ": campos obrigatórios ausentes (Número, Nome, Valor)");
+                    if (nome.isBlank() || valor == null) {
+                        erros.add("Linha " + linha + ": campos obrigatórios ausentes (Nome, Valor)");
                         continue;
                     }
 
@@ -390,11 +411,25 @@ public class TituloService {
                         tipo = "BOLETO";
                     }
 
+                    // Importação: gera numero sequencial, usa parcela do Excel se houver
+                    String numeroGerado = gerarNumero();
+                    String parcelaStr = parcela.isBlank() ? "01" : parcela;
+                    // Normaliza pra 2 chars
+                    if (parcelaStr.length() == 3 && parcelaStr.startsWith("0")) {
+                        parcelaStr = parcelaStr.substring(1);
+                    } else if (parcelaStr.length() == 1) {
+                        parcelaStr = "0" + parcelaStr;
+                    }
+                    int parcelaInt = 1;
+                    try { parcelaInt = Integer.parseInt(parcelaStr); } catch (NumberFormatException ignored) {}
+
                     Titulo titulo = Titulo.builder()
                             .usuario(usuario)
-                            .empresa(usuario.getEmpresa())     // ← antes: empresaPadraoId
-                            .numero(numero)
-                            .parcela(parcela.isBlank() ? "001" : parcela)
+                            .empresa(usuario.getEmpresa())
+                            .numero(numeroGerado)
+                            .parcela(parcelaStr)
+                            .parcelaAtual(parcelaInt)
+                            .parcelaTotal(parcelaInt)
                             .tipo(tipo)
                             .fornecedorNome(nome)
                             .fornecedorDocumento(documento)
@@ -405,8 +440,10 @@ public class TituloService {
                             .desconto(BigDecimal.ZERO)
                             .juros(BigDecimal.ZERO)
                             .multa(BigDecimal.ZERO)
+                            .criadoPor(usuario)
                             .build();
 
+                    titulo.montarChave();
                     titulo.atualizarStatus();
                     salvos.add(tituloRepository.save(titulo));
 

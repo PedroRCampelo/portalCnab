@@ -119,4 +119,15 @@ public interface RecebimentoRepository extends JpaRepository<Recebimento, UUID> 
      * Usado pelos relatórios (sem paginação).
      */
     List<Recebimento> findByEmpresaIdOrderByDataVencimentoAsc(UUID empresaId);
+
+    // ── Sprint F1.1 · Código legível sequencial ──────────────────────────────
+
+    /**
+     * Próximo valor da sequência de código de recebimento.
+     * Garante unicidade mesmo sob concorrência (sequence do PostgreSQL).
+     */
+    // ── Sprint F1.1 · Número sequencial ──────────────────────────────────────
+    @Query(value = "SELECT nextval('seq_recebimento_numero')", nativeQuery = true)
+    Long proximoNumeroSequencia();
+
 }

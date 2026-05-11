@@ -168,4 +168,10 @@ public interface TituloRepository extends JpaRepository<Titulo, UUID> {
       AND t.vencimento < CURRENT_DATE
     ORDER BY t.vencimento
 """, nativeQuery = true)
-    List<Titulo> listarAtrasadosPorEmpresa(@Param("empresaId") UUID empresaId);}
+    List<Titulo> listarAtrasadosPorEmpresa(@Param("empresaId") UUID empresaId);
+
+    // ── Sprint F1.1 · Número sequencial ──────────────────────────────────────
+
+    @Query(value = "SELECT nextval('seq_titulo_numero')", nativeQuery = true)
+    Long proximoNumeroSequencia();
+}

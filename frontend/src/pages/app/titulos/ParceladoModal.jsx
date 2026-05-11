@@ -113,9 +113,8 @@ export default function ParceladoModal({ formBase, onSalvar, onFechar, salvando 
             title="Lançamento parcelado"
             description={
                 formBase && (
-                    <>Serão criados <strong>{qtdNum || 2} títulos</strong> com base em{" "}
-                        <strong>#{formBase.numero || "—"}</strong>{" "}
-                        de <strong>{formBase.fornecedorNome || "—"}</strong>,{" "}
+                    <>Serão criados <strong>{qtdNum || 2} títulos</strong> de{" "}
+                        <strong>{formBase.fornecedorNome || "—"}</strong>,{" "}
                         valor <strong>{formBase.valor || "0,00"}</strong> cada.</>
                 )
             }

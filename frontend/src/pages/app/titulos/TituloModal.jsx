@@ -43,7 +43,10 @@ export default function TituloModal({ titulo, tiposGasto = [], onSalvar, onParce
             setForm({
                 prefixo: titulo.prefixo ?? "AP",
                 numero: titulo.numero ?? "",
-                parcela: titulo.parcela ?? "001",
+                parcela: titulo.parcela ?? "01",
+                parcelaAtual: titulo.parcelaAtual ?? 1,
+                parcelaTotal: titulo.parcelaTotal ?? 1,
+                chave: titulo.chave ?? "",
                 tipo: titulo.tipo ?? "BOLETO",
                 tipoGastoId: titulo.tipoGastoId ?? "",
                 fornecedorNome: titulo.fornecedorNome ?? "",
@@ -132,8 +135,8 @@ export default function TituloModal({ titulo, tiposGasto = [], onSalvar, onParce
 
     function abrirParcelar() {
         // Validação mínima antes de parcelar
-        if (!form.numero || !form.fornecedorNome || !form.valor) {
-            setErro("Preencha Número, Fornecedor e Valor antes de parcelar.");
+        if (!form.fornecedorNome || !form.valor) {
+            setErro("Preencha Fornecedor e Valor antes de parcelar.");
             setAbaAtiva("geral");
             return;
         }
@@ -180,31 +183,31 @@ export default function TituloModal({ titulo, tiposGasto = [], onSalvar, onParce
                 {abaAtiva === "geral" && (
                     <div className="tm-tab-content">
 
-                        {/* Identificação */}
-                        <div className="tm-grid-3">
-                            <Campo
-                                label="Prefixo"
-                                value={form.prefixo}
-                                onChange={v => atualizar("prefixo", v)}
-                                maxLength={10}
-                                disabled={salvando}
-                            />
-                            <Campo
-                                label="Número"
-                                obrigatorio
-                                value={form.numero}
-                                onChange={v => atualizar("numero", v)}
-                                maxLength={20}
-                                disabled={salvando}
-                            />
-                            <Campo
-                                label="Parcela"
-                                value={form.parcela}
-                                onChange={v => atualizar("parcela", v)}
-                                maxLength={3}
-                                disabled={salvando}
-                            />
-                        </div>
+                        {/* Identificação — somente na edição (readonly) */}
+                        {ehEdicao && (
+                            <div className="tm-grid-3">
+                                <Campo
+                                    label="Número"
+                                    value={form.numero}
+                                    onChange={() => {}}
+                                    disabled={true}
+                                />
+                                <Campo
+                                    label="Parcela"
+                                    value={form.parcelaAtual && form.parcelaTotal
+                                        ? `${String(form.parcelaAtual).padStart(2, "0")} / ${String(form.parcelaTotal).padStart(2, "0")}`
+                                        : form.parcela}
+                                    onChange={() => {}}
+                                    disabled={true}
+                                />
+                                <Campo
+                                    label="Chave"
+                                    value={form.chave || ""}
+                                    onChange={() => {}}
+                                    disabled={true}
+                                />
+                            </div>
+                        )}
 
                         <div className="tm-grid-3">
                             <Campo
@@ -690,7 +693,6 @@ const COMPONENT_CSS = `
 }
 
 .tm-label-req {
-    color: var(--warning);
     margin-left: 3px;
     font-weight: 700;
 }
@@ -721,9 +723,7 @@ const COMPONENT_CSS = `
     cursor: not-allowed;
 }
 
-.tm-input--required-empty {
-    border-color: rgba(230, 162, 60, 0.4);
-}
+
 
 /* ── Info box (na aba CNAB) ──────────────────────────────────────────── */
 

@@ -236,17 +236,16 @@ export default function TitulosPage() {
                         color: "var(--navy-deep)",
                         letterSpacing: "0.02em",
                     }}>
-                        {t.prefixo && <span style={{ color: "var(--text-dim)" }}>{t.prefixo} </span>}
                         {t.numero}
                     </span>
-                    {t.parcela && t.parcela !== "001" && (
+                    {t.parcelaTotal > 1 && (
                         <span style={{
                             fontFamily: "var(--ff-mono)",
                             fontSize: 10,
                             color: "var(--text-dim)",
                             letterSpacing: "0.04em",
                         }}>
-                            Parcela {t.parcela}
+                            Parcela {String(t.parcelaAtual).padStart(2, "0")}/{String(t.parcelaTotal).padStart(2, "0")}
                         </span>
                     )}
                 </div>
