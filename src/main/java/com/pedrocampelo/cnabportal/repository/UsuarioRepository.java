@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import java.time.OffsetDateTime;
+import java.util.List;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -35,4 +37,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
     @Transactional
     @Query("UPDATE Usuario u SET u.ultimoAcesso = :agora WHERE u.id = :id")
     void atualizarUltimoAcesso(UUID id, LocalDateTime agora);
+
+    // Sprint Trial: busca trials expirados pra batch de expiração
+    List<Usuario> findByAssinaturaStatusAndTrialExpiraEmBefore(String status, OffsetDateTime antes);
 }

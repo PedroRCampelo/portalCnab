@@ -2,27 +2,11 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import api from "../../services/api.js";
+import { getTrialStatus, ativarTrial } from "../../services/trialService.js";
 import { LuPlus, LuCheck, LuX, LuArrowRight, LuArrowLeft } from "react-icons/lu";
 import "./PlanosPage.css";
 
-/**
- * PlanosPage — Whallet Pricing
- * Sprint A2.5 · Refatoração de planos
- *
- * Estrutura:
- *  - Hero
- *  - Tabela comparativa (Free × Whallet+) com features agrupadas
- *  - Waitlist (Time / Empresa em breve)
- *  - FAQ (4-6 perguntas)
- *  - Painel de assinatura (apenas pra logado com Whallet+)
- *  - CTA final
- */
-
 const PLANO_WHALLET_PLUS = "10000000-0000-0000-0000-000000000003";
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Helpers de formatação
-// ─────────────────────────────────────────────────────────────────────────────
 
 function fmtData(ts) {
     if (!ts) return "";
@@ -37,10 +21,6 @@ function fmtValor(centavos, moeda) {
         currency: (moeda || "brl").toUpperCase(),
     }).format(centavos / 100);
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Estrutura das features — fonte única
-// ─────────────────────────────────────────────────────────────────────────────
 
 const FEATURE_GROUPS = [
     {
@@ -97,10 +77,6 @@ const FEATURE_GROUPS = [
     },
 ];
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Perguntas frequentes
-// ─────────────────────────────────────────────────────────────────────────────
-
 const FAQ = [
     {
         q: "Como funciona o trial de 7 dias do Whallet+?",
@@ -128,10 +104,6 @@ const FAQ = [
     },
 ];
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Página principal
-// ─────────────────────────────────────────────────────────────────────────────
-
 export default function PlanosPage() {
     const { autenticado, usuario, atualizarUsuario } = useAuth();
     const navigate = useNavigate();
@@ -148,6 +120,8 @@ export default function PlanosPage() {
     const [waitlistEmail,     setWaitlistEmail]     = useState("");
     const [waitlistEnviado,   setWaitlistEnviado]   = useState(false);
     const [waitlistEnviando,  setWaitlistEnviando]  = useState(false);
+    const [trial,             setTrial]             = useState(null);
+    const [ativandoTrial,     setAtivandoTrial]     = useState(false);
 
     const isAdmin        = usuario?.perfil === "ADMIN";
     const temWhalletPlus = isAdmin || usuario?.planoId === PLANO_WHALLET_PLUS;
@@ -160,12 +134,16 @@ export default function PlanosPage() {
             ? new Date(usuario.assinaturaExpiraEm).getTime() / 1000
             : null);
 
-    // Atualiza usuário ao entrar
     useEffect(() => {
         if (autenticado && !isAdmin) atualizarUsuario();
     }, [autenticado, isAdmin]);
 
-    // Status da assinatura via API
+    useEffect(() => {
+        if (autenticado && !isAdmin) {
+            getTrialStatus().then(setTrial).catch(() => {});
+        }
+    }, [autenticado, isAdmin]);
+
     useEffect(() => {
         if (autenticado && !isAdmin) {
             api.get("/api/stripe/status-assinatura")
@@ -174,7 +152,6 @@ export default function PlanosPage() {
         }
     }, [autenticado, isAdmin]);
 
-    // Histórico de pagamentos
     useEffect(() => {
         if (autenticado && temWhalletPlus) {
             setCarregandoPag(true);
@@ -185,7 +162,18 @@ export default function PlanosPage() {
         }
     }, [autenticado, temWhalletPlus]);
 
-    // ── Ações ────────────────────────────────────────────────────────────
+    async function handleAtivarTrial() {
+        setAtivandoTrial(true);
+        try {
+            await ativarTrial();
+            await atualizarUsuario();
+            navigate("/fluxo-caixa");
+        } catch (err) {
+            alert(err.response?.data?.mensagem ?? "Erro ao ativar trial.");
+        } finally {
+            setAtivandoTrial(false);
+        }
+    }
 
     async function handleAssinarPlus() {
         if (!autenticado) {
@@ -223,12 +211,9 @@ export default function PlanosPage() {
         if (!waitlistEmail.includes("@")) return;
         setWaitlistEnviando(true);
         try {
-            // TODO: criar endpoint /api/waitlist/team quando implementar
-            // await api.post("/api/waitlist/team", { email: waitlistEmail });
-            await new Promise(r => setTimeout(r, 600));  // simula request
+            await new Promise(r => setTimeout(r, 600));
             setWaitlistEnviado(true);
         } catch {
-            // silently fail por ora
             setWaitlistEnviado(true);
         } finally {
             setWaitlistEnviando(false);
@@ -238,7 +223,6 @@ export default function PlanosPage() {
     return (
         <div className="pp">
 
-            {/* Botão voltar (canto superior) */}
             <button
                 onClick={() => navigate("/")}
                 style={{
@@ -273,7 +257,6 @@ export default function PlanosPage() {
             <section className="pp-container">
                 <div className="pp-table-wrap">
 
-                    {/* Header com os 2 planos */}
                     <div className="pp-table-header">
                         <div className="pp-table-header-cell">
                             <h3 className="pp-plan-name" style={{ visibility: "hidden" }}>.</h3>
@@ -326,23 +309,70 @@ export default function PlanosPage() {
                                     <LuArrowRight size={14}/>
                                 </button>
                             ) : temWhalletPlus ? (
-                                <button className="pp-plan-cta pp-plan-cta--current">
-                                    Plano atual
-                                </button>
+                                <>
+                                    <button className="pp-plan-cta pp-plan-cta--current">
+                                        Plano atual
+                                    </button>
+                                    {trial?.emTrial && trial.expiraEm && (
+                                        <div style={{
+                                            marginTop: 8,
+                                            padding: "6px 12px",
+                                            borderRadius: 8,
+                                            background: "rgba(21, 195, 221, 0.08)",
+                                            border: "1px solid rgba(21, 195, 221, 0.18)",
+                                            fontSize: 12,
+                                            color: "var(--cyan-dark)",
+                                            textAlign: "center",
+                                            lineHeight: 1.5,
+                                        }}>
+                                            Seu teste gratuito vai até{" "}
+                                            <strong>
+                                                {new Date(trial.expiraEm).toLocaleDateString("pt-BR", {
+                                                    day: "2-digit", month: "long",
+                                                })}
+                                            </strong>
+                                            {trial.diasRestantes > 0 && (
+                                                <> · {trial.diasRestantes} {trial.diasRestantes === 1 ? "dia restante" : "dias restantes"}</>
+                                            )}
+                                        </div>
+                                    )}
+                                </>
                             ) : (
-                                <button
-                                    className="pp-plan-cta pp-plan-cta--primary"
-                                    onClick={handleAssinarPlus}
-                                    disabled={carregandoPlus}
-                                >
-                                    {carregandoPlus ? "Carregando..." : "Assinar Whallet+"}
-                                    {!carregandoPlus && <LuArrowRight size={14}/>}
-                                </button>
+                                <>
+                                    {trial && !trial.jaUsou ? (
+                                        <>
+                                            <button
+                                                className="pp-plan-cta pp-plan-cta--primary"
+                                                onClick={handleAtivarTrial}
+                                                disabled={ativandoTrial}
+                                            >
+                                                {ativandoTrial ? "Ativando..." : "Experimentar grátis 7 dias"}
+                                                {!ativandoTrial && <LuArrowRight size={14}/>}
+                                            </button>
+                                            <button
+                                                className="pp-plan-cta pp-plan-cta--ghost"
+                                                onClick={handleAssinarPlus}
+                                                disabled={carregandoPlus}
+                                                style={{ marginTop: 6 }}
+                                            >
+                                                {carregandoPlus ? "Carregando..." : "Assinar direto"}
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <button
+                                            className="pp-plan-cta pp-plan-cta--primary"
+                                            onClick={handleAssinarPlus}
+                                            disabled={carregandoPlus}
+                                        >
+                                            {carregandoPlus ? "Carregando..." : "Assinar Whallet+"}
+                                            {!carregandoPlus && <LuArrowRight size={14}/>}
+                                        </button>
+                                    )}
+                                </>
                             )}
                         </div>
                     </div>
 
-                    {/* Body com features agrupadas */}
                     <div className="pp-table-body">
                         {FEATURE_GROUPS.map((group) => (
                             <div key={group.title}>
@@ -522,7 +552,6 @@ export default function PlanosPage() {
                             </div>
                         )}
 
-                        {/* Histórico de pagamentos */}
                         {pagamentos.length > 0 && (
                             <div className="pp-billing-history">
                                 <div className="pp-billing-history-title">Histórico de pagamentos</div>
@@ -572,13 +601,25 @@ export default function PlanosPage() {
                             </div>
                         </>
                     ) : !temWhalletPlus ? (
-                        <button
-                            className="pp-cta-final-button"
-                            onClick={handleAssinarPlus}
-                            disabled={carregandoPlus}
-                        >
-                            {carregandoPlus ? "Carregando..." : "Assinar Whallet+ →"}
-                        </button>
+                        <>
+                            {trial && !trial.jaUsou ? (
+                                <button
+                                    className="pp-cta-final-button"
+                                    onClick={handleAtivarTrial}
+                                    disabled={ativandoTrial}
+                                >
+                                    {ativandoTrial ? "Ativando..." : "Experimentar grátis 7 dias →"}
+                                </button>
+                            ) : (
+                                <button
+                                    className="pp-cta-final-button"
+                                    onClick={handleAssinarPlus}
+                                    disabled={carregandoPlus}
+                                >
+                                    {carregandoPlus ? "Carregando..." : "Assinar Whallet+ →"}
+                                </button>
+                            )}
+                        </>
                     ) : (
                         <button
                             className="pp-cta-final-button"

@@ -127,6 +127,18 @@ public class Usuario implements UserDetails {
     @Column(name = "stripe_customer_id", length = 100)
     private String stripeCustomerId;
 
+    // ── Trial 7 dias (V30) ───────────────────────────────────────────────────
+
+    @Column(name = "trial_inicio_em")
+    private java.time.OffsetDateTime trialInicioEm;
+
+    @Column(name = "trial_expira_em")
+    private java.time.OffsetDateTime trialExpiraEm;
+
+    @Column(name = "trial_utilizado", nullable = false)
+    @Builder.Default
+    private Boolean trialUtilizado = false;
+
     @Column(name = "telefone", length = 20)
     private String telefone;
 

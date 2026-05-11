@@ -31,6 +31,7 @@ public class PlanoGuard {
     public static final String SLUG_WHALLET_PLUS = "whallet-plus";
 
     private final PlanoRepository planoRepository;
+    private final TrialService trialService;
 
     /**
      * Retorna o slug do plano do usuário, ou "gratuito" se não tem.
@@ -84,6 +85,16 @@ public class PlanoGuard {
         String status = usuario.getAssinaturaStatus();
         if (status == null || "SEM_ASSINATURA".equals(status)) return false;
         if ("EXPIRADA".equals(status)) return false;
+
+        // Trial: verifica se ainda está dentro do prazo
+        if ("TRIAL".equals(status)) {
+            // Se expirou, TrialService reverte pra Free e retorna false
+            if (trialService.verificarEExpirarSeNecessario(usuario)) {
+                return false;  // trial acabou de expirar
+            }
+            return true;  // trial ainda ativo
+        }
+
         // ATIVA ou CANCELANDO: ainda paga, libera
         return true;
     }
