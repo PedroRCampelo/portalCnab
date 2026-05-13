@@ -232,7 +232,7 @@
 .wa-back { color: #AEBAC1; font-size: 22px; line-height: 1; }
 .wa-avatar {
     width: 36px; height: 36px; border-radius: 50%;
-    background: var(--navy-deep); display: flex; align-items: center; justify-content: center;
+    background: #FFFFFF; display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
 }
 .wa-name {

@@ -7,7 +7,7 @@ import screenshotFluxo from "../../assets/screenshots/fluxo-caixa.png";
 import screenshotReceb from "../../assets/screenshots/recebimentos.png";
 import screenshotRelat from "../../assets/screenshots/relatorios.png";
 import screenshotElvis from "../../assets/screenshots/elvis.png";
-
+import logo from '../../assets/logos/logo.svg';
 /* ──────────────────────────────────────────────────────────────
    DATA
    ────────────────────────────────────────────────────────────── */
@@ -219,11 +219,7 @@ function IPhoneMockup({ messages, className = "" }) {
                 <div className="wa-header">
                     <span className="wa-back">‹</span>
                     <div className="wa-avatar">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                            <path d="M3 21V19C3 17.9391 3.42143 16.9217 4.17157 16.1716C4.92172 15.4214 5.93913 15 7 15H12" stroke="#15C3DD" strokeWidth="2" strokeLinecap="round"/>
-                            <circle cx="9" cy="8" r="4" stroke="#15C3DD" strokeWidth="2"/>
-                            <path d="M17 15L21 19M21 15L17 19" stroke="#15C3DD" strokeWidth="2" strokeLinecap="round"/>
-                        </svg>
+                        <img src={logo} width={20} height={20} alt="Whallet Logo" loading="eager" />
                     </div>
                     <div className="wa-meta">
                         <div className="wa-name">
