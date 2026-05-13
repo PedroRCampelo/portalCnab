@@ -39,7 +39,6 @@ public class Titulo {
     private String prefixo = "AP";
 
     @Column(nullable = false, length = 20)
-    @NotBlank
     private String numero;
 
     @Column(nullable = false, length = 3)
@@ -118,7 +117,6 @@ public class Titulo {
     private BigDecimal valor;
 
     @Column(nullable = false, precision = 18, scale = 2)
-    @NotNull
     @PositiveOrZero
     private BigDecimal saldo;
 
