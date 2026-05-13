@@ -4,32 +4,60 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-/**
- * DTO de entrada pra criação/edição de Cliente.
- *
- * Note que NÃO recebemos empresa_id — a empresa vem do usuário autenticado.
- * Isso evita o frontend "passar" um empresa_id de outra empresa (IDOR).
- */
+import java.time.LocalDate;
+
 public record ClienteRequest(
 
         @NotBlank(message = "Nome é obrigatório")
-        @Size(max = 150, message = "Nome muito longo (máx 150)")
+        @Size(max = 150)
         String nome,
 
-        @Size(max = 20, message = "Documento muito longo")
-        String documento,  // opcional — CPF (11) ou CNPJ (14), só dígitos
+        @Size(max = 20)
+        String documento,
 
-        @Pattern(regexp = "PF|PJ", message = "Tipo de pessoa deve ser PF ou PJ")
-        String tipoPessoa,  // opcional — default PF no service
+        @Pattern(regexp = "PF|PJ", message = "Tipo deve ser PF ou PJ")
+        String tipoPessoa,
 
-        @Size(max = 150, message = "Email muito longo")
-        String email,  // opcional
+        LocalDate dataNascimento,
 
-        @Size(max = 20, message = "Telefone muito longo")
-        String telefone,  // opcional, mas necessário pra cobrança WhatsApp
+        @Size(max = 150)
+        String email,
 
-        @Size(max = 50, message = "Categoria muito longa")
+        @Size(max = 20)
+        String telefone,
+
+        @Size(max = 20)
+        String whatsapp,
+
+        @Size(max = 20)
+        String telefone2,
+
+        @Size(max = 200)
+        String endereco,
+
+        @Size(max = 100)
+        String cidade,
+
+        @Size(max = 2)
+        String estado,
+
+        @Size(max = 9)
+        String cep,
+
+        @Size(max = 50)
+        String origemLead,
+
+        @Size(max = 100)
+        String responsavel,
+
+        @Size(max = 255)
+        String tags,
+
+        @Size(max = 50)
         String categoria,
 
-        String notas
+        String notas,
+
+        @Size(max = 30)
+        String setorId
 ) {}

@@ -49,6 +49,7 @@ export default function Tabs({
                 return (
                     <button
                         key={item.key}
+                        type="button"
                         className={`ui-tab ${ativo ? "active" : ""}`}
                         onClick={() => onChange?.(item.key)}
                         role="tab"

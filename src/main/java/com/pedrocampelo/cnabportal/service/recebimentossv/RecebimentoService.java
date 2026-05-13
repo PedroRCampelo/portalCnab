@@ -31,10 +31,12 @@ import java.util.NoSuchElementException;
 import java.util.UUID;
 
 /**
- * RecebimentoService — Sprint F1.1 + F1.2
+ * RecebimentoService — Sprint F1.1: auditoria completa + código legível.
  *
- * F1.1: Numeração Protheus (RC00001 + parcela + chave), auditoria
- * F1.2: categoriaId (FK pra tabela categorias)
+ * Mudanças F1.1:
+ *   - Cada operação grava quem fez (criadoPor, alteradoPor, baixadoPor, canceladoPor)
+ *   - Código legível auto-gerado (RC-00001)
+ *   - Listagens com @Transactional(readOnly=true) pra resolver lazy proxies de auditoria
  */
 @Service
 @RequiredArgsConstructor
@@ -103,35 +105,33 @@ public class RecebimentoService {
     public RecebimentoResponse criar(Usuario usuario, RecebimentoRequest request) {
         Cliente cliente = clienteService.buscarEntidadePorId(usuario, request.clienteId());
 
-        String numero = gerarNumero();
-
         Recebimento novo = Recebimento.builder()
                 .empresa(usuario.getEmpresa())
                 .usuario(usuario)
                 .cliente(cliente)
-                .numero(numero)
-                .parcela("01")
+                .codigo(gerarCodigo())
+                .numero(gerarNumero())
                 .descricao(request.descricao().trim())
                 .categoria(request.categoria())
-                .categoriaId(request.categoriaId())
                 .dataEmissao(request.dataEmissao() != null ? request.dataEmissao() : LocalDate.now())
                 .dataVencimento(request.dataVencimento())
                 .valor(request.valor())
                 .valorRecebido(BigDecimal.ZERO)
                 .formaPagamento(request.formaPagamento() != null ? request.formaPagamento() : "PIX")
-                .parcelaAtual(1)
-                .parcelaTotal(1)
+                .parcelaAtual(request.parcelaAtual() != null ? request.parcelaAtual() : 1)
+                .parcelaTotal(request.parcelaTotal() != null ? request.parcelaTotal() : 1)
                 .recorrente(Boolean.TRUE.equals(request.recorrente()))
                 .recorrenciaTipo(request.recorrenciaTipo())
                 .observacao(request.observacao())
+                .origem(request.observacao() != null && request.observacao().contains("Via WhatsApp") ? "WHATSAPP" : "MANUAL")
+                // ── Auditoria F1.1 ──
                 .criadoPor(usuario)
                 .build();
 
-        novo.montarChave();
         novo.atualizarStatus();
         Recebimento salvo = recebimentoRepository.save(novo);
-        log.info("Recebimento criado: {} chave={} (cliente={}, valor={})",
-                salvo.getId(), salvo.getChave(), cliente.getNome(), salvo.getValor());
+        log.info("Recebimento criado: {} código={} (cliente={}, valor={})",
+                salvo.getId(), salvo.getCodigo(), cliente.getNome(), salvo.getValor());
 
         return RecebimentoResponse.from(salvo);
     }
@@ -152,7 +152,7 @@ public class RecebimentoService {
         BigDecimal somaParcelasIgual = valorPorParcela.multiply(BigDecimal.valueOf(qtd - 1));
         BigDecimal valorUltimaParcela = valorTotal.subtract(somaParcelasIgual);
 
-        String numero = gerarNumero();
+        String numeroSerie = gerarNumero();
         String formaPagamento = request.formaPagamento() != null ? request.formaPagamento() : "PIX";
         LocalDate hoje = LocalDate.now();
 
@@ -165,14 +165,12 @@ public class RecebimentoService {
             LocalDate vencimento = request.dataVencimentoPrimeira()
                     .plusDays((long) request.intervaloDias() * i);
 
-            String parcelaStr = String.format("%02d", numeroParcela);
-
             Recebimento r = Recebimento.builder()
                     .empresa(usuario.getEmpresa())
                     .usuario(usuario)
                     .cliente(cliente)
-                    .numero(numero)
-                    .parcela(parcelaStr)
+                    .codigo(gerarCodigo())
+                    .numero(numeroSerie)
                     .descricao(request.descricao().trim() + " (" + numeroParcela + "/" + qtd + ")")
                     .categoria(request.categoria())
                     .dataEmissao(hoje)
@@ -184,22 +182,22 @@ public class RecebimentoService {
                     .parcelaTotal(qtd)
                     .recorrente(false)
                     .observacao(request.observacao())
+                    // ── Auditoria F1.1 ──
                     .criadoPor(usuario)
                     .build();
 
-            r.montarChave();
             r.atualizarStatus();
             criados.add(recebimentoRepository.save(r));
         }
 
-        log.info("Recebimento parcelado criado: {} parcelas, número {}, cliente {}, total R$ {}",
-                qtd, numero, cliente.getNome(), valorTotal);
+        log.info("Recebimento parcelado criado: {} parcelas, número série {}, cliente {}, total R$ {}",
+                qtd, numeroSerie, cliente.getNome(), valorTotal);
 
         return criados.stream().map(RecebimentoResponse::from).toList();
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Edição
+    // Edição (com regra ERP — bloqueia se tem baixa)
     // ─────────────────────────────────────────────────────────────────────────
 
     @Transactional
@@ -222,7 +220,6 @@ public class RecebimentoService {
 
         r.setDescricao(request.descricao().trim());
         r.setCategoria(request.categoria());
-        r.setCategoriaId(request.categoriaId());
         if (request.dataEmissao() != null)    r.setDataEmissao(request.dataEmissao());
         r.setDataVencimento(request.dataVencimento());
         r.setValor(request.valor());
@@ -233,6 +230,7 @@ public class RecebimentoService {
         r.setRecorrenciaTipo(request.recorrenciaTipo());
         r.setObservacao(request.observacao());
 
+        // ── Auditoria F1.1 ──
         r.setAlteradoPor(usuario);
 
         r.atualizarStatus();
@@ -279,6 +277,7 @@ public class RecebimentoService {
             r.setDataRecebimento(dataMovimento);
         }
 
+        // ── Auditoria F1.1 ──
         r.setBaixadoPor(usuario);
         r.setBaixadoEm(LocalDateTime.now());
 
@@ -322,6 +321,8 @@ public class RecebimentoService {
         BigDecimal valorEstornado = r.getValorRecebido();
         r.setValorRecebido(BigDecimal.ZERO);
         r.setDataRecebimento(null);
+
+        // ── Auditoria F1.1: limpa baixa, mantém histórico via log ──
         r.setBaixadoPor(null);
         r.setBaixadoEm(null);
 
@@ -356,6 +357,8 @@ public class RecebimentoService {
         }
 
         r.setStatus("CANCELADO");
+
+        // ── Auditoria F1.1 ──
         r.setCanceladoPor(usuario);
         r.setCanceladoEm(LocalDateTime.now());
 
@@ -400,8 +403,17 @@ public class RecebimentoService {
         }
     }
 
+    /**
+     * Gera código legível sequencial: RC-00001, RC-00002...
+     * Usa sequence do PostgreSQL pra garantir unicidade mesmo sob concorrência.
+     */
+    private String gerarCodigo() {
+        Long seq = recebimentoRepository.proximoCodigoSequencia();
+        return "RC-" + String.format("%05d", seq);
+    }
+
     private String gerarNumero() {
-        Long seq = recebimentoRepository.proximoNumeroSequencia();
-        return "RC" + String.format("%05d", seq);
+        long ts = System.currentTimeMillis();
+        return "R-" + Long.toString(ts, 36).toUpperCase();
     }
 }

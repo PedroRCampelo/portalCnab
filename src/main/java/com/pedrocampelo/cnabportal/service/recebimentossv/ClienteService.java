@@ -28,17 +28,12 @@ public class ClienteService {
     private final ClienteRepository clienteRepository;
     private final RecebimentoRepository recebimentoRepository;
 
-    // ── Listagem paginada ─────────────────────────────────────────────────────
-
     public Page<ClienteResponse> listar(Usuario usuario, int pagina, int tamanho) {
-        Page<Cliente> page = clienteRepository.findByEmpresaIdAndAtivoTrue(
+        return clienteRepository.findByEmpresaIdAndAtivoTrue(
                 usuario.getEmpresa().getId(),
                 PageRequest.of(pagina, Math.min(tamanho, 100), Sort.by("nome").ascending())
-        );
-        return page.map(ClienteResponse::from);
+        ).map(ClienteResponse::from);
     }
-
-    // ── Autocomplete (criação rápida de recebimento) ──────────────────────────
 
     public List<ClienteResponse> buscarPorNome(Usuario usuario, String termo) {
         if (termo == null || termo.isBlank()) {
@@ -50,31 +45,17 @@ public class ClienteService {
                 .stream().limit(20).map(ClienteResponse::from).toList();
     }
 
-    // ── Detalhe (com estatísticas) ────────────────────────────────────────────
-
     public ClienteResponse buscarPorId(Usuario usuario, UUID id) {
         Cliente cliente = clienteRepository
                 .findByIdAndEmpresaId(id, usuario.getEmpresa().getId())
                 .orElseThrow(() -> new NoSuchElementException("Cliente não encontrado"));
-
         return ClienteResponse.from(cliente, calcularEstatisticas(cliente));
     }
 
-    /**
-     * Score do cliente — calculado on-demand (não armazenado).
-     *
-     * Lógica simples (V1):
-     *   - BOM: 0 atrasos OU >= 80% pagos no prazo
-     *   - ATENCAO: 1-2 atrasos
-     *   - INADIMPLENTE: 3+ atrasos OU < 50% pagos
-     */
     private ClienteResponse.Estatisticas calcularEstatisticas(Cliente cliente) {
-        long total       = recebimentoRepository.countByClienteId(cliente.getId());
-        long atrasados   = recebimentoRepository.countByClienteIdAndStatus(cliente.getId(), "ATRASADO");
-        long pagos       = recebimentoRepository.countByClienteIdAndStatus(cliente.getId(), "RECEBIDO");
-
-        // Soma valores recebidos e em atraso
-        // (poderia ser uma query SQL otimizada, mas pra V1 fazemos em Java)
+        long total     = recebimentoRepository.countByClienteId(cliente.getId());
+        long atrasados = recebimentoRepository.countByClienteIdAndStatus(cliente.getId(), "ATRASADO");
+        long pagos     = recebimentoRepository.countByClienteIdAndStatus(cliente.getId(), "RECEBIDO");
         BigDecimal totalRecebido = BigDecimal.ZERO;
         BigDecimal totalAtrasado = BigDecimal.ZERO;
         var recebimentos = recebimentoRepository.findByClienteIdOrderByDataVencimentoDesc(cliente.getId());
@@ -86,17 +67,11 @@ public class ClienteService {
                 totalAtrasado = totalAtrasado.add(r.getSaldoPendente());
             }
         }
-
-        String score = calcularScore(total, atrasados, pagos);
-
-        return new ClienteResponse.Estatisticas(
-                total, atrasados, pagos,
-                totalRecebido, totalAtrasado, score
-        );
+        return new ClienteResponse.Estatisticas(total, atrasados, pagos, totalRecebido, totalAtrasado, calcularScore(total, atrasados, pagos));
     }
 
     private String calcularScore(long total, long atrasados, long pagos) {
-        if (total == 0) return "BOM";  // cliente novo, benefício da dúvida
+        if (total == 0) return "BOM";
         if (atrasados >= 3) return "INADIMPLENTE";
         if (atrasados == 0 && (double) pagos / total >= 0.8) return "BOM";
         if (atrasados >= 1 && atrasados <= 2) return "ATENCAO";
@@ -104,20 +79,15 @@ public class ClienteService {
         return "ATENCAO";
     }
 
-    // ── Criação ───────────────────────────────────────────────────────────────
-
     @Transactional
     public ClienteResponse criar(Usuario usuario, ClienteRequest request) {
         Empresa empresa = usuario.getEmpresa();
-        String docNormalizado = normalizarDocumento(request.documento());
+        String docNormalizado = norm(request.documento());
 
-        // Anti-duplicata (se documento informado)
         if (docNormalizado != null) {
-            clienteRepository.findByEmpresaIdAndDocumento(empresa.getId(), docNormalizado)
+            clienteRepository.findByEmpresaIdAndDocumentoAndAtivoTrue(empresa.getId(), docNormalizado)
                     .ifPresent(existente -> {
-                        throw new IllegalArgumentException(
-                                "Já existe um cliente com este CPF/CNPJ: " + existente.getNome()
-                        );
+                        throw new IllegalArgumentException("Já existe um cliente com este CPF/CNPJ: " + existente.getNome());
                     });
         }
 
@@ -126,75 +96,74 @@ public class ClienteService {
                 .nome(request.nome().trim())
                 .documento(docNormalizado)
                 .tipoPessoa(request.tipoPessoa() != null ? request.tipoPessoa() : "PF")
-                .email(normalizarEmail(request.email()))
-                .telefone(normalizarTelefone(request.telefone()))
+                .dataNascimento(request.dataNascimento())
+                .email(normEmail(request.email()))
+                .telefone(normTel(request.telefone()))
+                .whatsapp(normTel(request.whatsapp()))
+                .telefone2(normTel(request.telefone2()))
+                .endereco(request.endereco())
+                .cidade(request.cidade())
+                .estado(request.estado())
+                .cep(normCep(request.cep()))
+                .origemLead(request.origemLead())
+                .responsavel(request.responsavel())
+                .tags(request.tags())
                 .categoria(request.categoria())
                 .notas(request.notas())
+                .setorId(request.setorId())
                 .ativo(true)
                 .build();
 
         Cliente salvo = clienteRepository.save(novo);
-        log.info("Cliente criado: {} (empresa={})", salvo.getNome(), empresa.getId());
+        log.info("Cliente criado: {} (empresa={}, setor={})", salvo.getNome(), empresa.getId(), salvo.getSetorId());
         return ClienteResponse.from(salvo);
     }
-
-    // ── Edição ────────────────────────────────────────────────────────────────
 
     @Transactional
     public ClienteResponse atualizar(Usuario usuario, UUID id, ClienteRequest request) {
-        Cliente cliente = clienteRepository
-                .findByIdAndEmpresaId(id, usuario.getEmpresa().getId())
+        Cliente c = clienteRepository.findByIdAndEmpresaId(id, usuario.getEmpresa().getId())
                 .orElseThrow(() -> new NoSuchElementException("Cliente não encontrado"));
 
-        cliente.setNome(request.nome().trim());
-        cliente.setDocumento(normalizarDocumento(request.documento()));
-        if (request.tipoPessoa() != null) cliente.setTipoPessoa(request.tipoPessoa());
-        cliente.setEmail(normalizarEmail(request.email()));
-        cliente.setTelefone(normalizarTelefone(request.telefone()));
-        cliente.setCategoria(request.categoria());
-        cliente.setNotas(request.notas());
+        c.setNome(request.nome().trim());
+        c.setDocumento(norm(request.documento()));
+        if (request.tipoPessoa() != null) c.setTipoPessoa(request.tipoPessoa());
+        c.setDataNascimento(request.dataNascimento());
+        c.setEmail(normEmail(request.email()));
+        c.setTelefone(normTel(request.telefone()));
+        c.setWhatsapp(normTel(request.whatsapp()));
+        c.setTelefone2(normTel(request.telefone2()));
+        c.setEndereco(request.endereco());
+        c.setCidade(request.cidade());
+        c.setEstado(request.estado());
+        c.setCep(normCep(request.cep()));
+        c.setOrigemLead(request.origemLead());
+        c.setResponsavel(request.responsavel());
+        c.setTags(request.tags());
+        c.setCategoria(request.categoria());
+        c.setNotas(request.notas());
+        c.setSetorId(request.setorId());
 
-        Cliente salvo = clienteRepository.save(cliente);
-        log.info("Cliente atualizado: {}", salvo.getId());
+        Cliente salvo = clienteRepository.save(c);
+        log.info("Cliente atualizado: {} (setor={})", salvo.getId(), salvo.getSetorId());
         return ClienteResponse.from(salvo);
     }
 
-    // ── Inativação (soft delete) ──────────────────────────────────────────────
-
     @Transactional
     public void inativar(Usuario usuario, UUID id) {
-        Cliente cliente = clienteRepository
-                .findByIdAndEmpresaId(id, usuario.getEmpresa().getId())
+        Cliente c = clienteRepository.findByIdAndEmpresaId(id, usuario.getEmpresa().getId())
                 .orElseThrow(() -> new NoSuchElementException("Cliente não encontrado"));
-
-        cliente.setAtivo(false);
-        clienteRepository.save(cliente);
+        c.setAtivo(false);
+        clienteRepository.save(c);
         log.info("Cliente inativado: {}", id);
     }
 
-    // ── Helpers de normalização ───────────────────────────────────────────────
-
-    private String normalizarDocumento(String doc) {
-        if (doc == null || doc.isBlank()) return null;
-        String digitos = doc.replaceAll("\\D", "");
-        return digitos.isBlank() ? null : digitos;
-    }
-
-    private String normalizarTelefone(String tel) {
-        if (tel == null || tel.isBlank()) return null;
-        return tel.replaceAll("\\D", "");
-    }
-
-    private String normalizarEmail(String email) {
-        if (email == null || email.isBlank()) return null;
-        return email.trim().toLowerCase();
-    }
-
-    // ── Buscar entidade (uso interno por outros services) ─────────────────────
+    private String norm(String doc) { if (doc == null || doc.isBlank()) return null; String d = doc.replaceAll("\\D", ""); return d.isBlank() ? null : d; }
+    private String normTel(String t) { if (t == null || t.isBlank()) return null; return t.replaceAll("\\D", ""); }
+    private String normEmail(String e) { if (e == null || e.isBlank()) return null; return e.trim().toLowerCase(); }
+    private String normCep(String c) { if (c == null || c.isBlank()) return null; return c.replaceAll("\\D", ""); }
 
     public Cliente buscarEntidadePorId(Usuario usuario, UUID id) {
-        return clienteRepository
-                .findByIdAndEmpresaId(id, usuario.getEmpresa().getId())
+        return clienteRepository.findByIdAndEmpresaId(id, usuario.getEmpresa().getId())
                 .orElseThrow(() -> new NoSuchElementException("Cliente não encontrado"));
     }
 }

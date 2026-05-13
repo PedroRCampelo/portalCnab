@@ -74,9 +74,17 @@ public class TituloService {
         }
 
         // ── Auditoria F1.1 ──
+        // ── Sprint F1.1: numeração + auditoria ──
+        String numero = gerarNumero();
+        titulo.setNumero(numero);
+        titulo.setParcelaAtual(1);
+        titulo.setParcelaTotal(1);
+        titulo.setParcela("01");
+        titulo.montarChave();
         titulo.setCriadoPor(usuario);
 
         titulo.atualizarStatus();
+
         return tituloRepository.save(titulo);
     }
 
@@ -299,10 +307,10 @@ public class TituloService {
 
         validar(req.templateTitulo());
 
-        // Todas as parcelas compartilham o mesmo numero
         String numero = gerarNumero();
 
         List<Titulo> criados = new ArrayList<>();
+
         LocalDate vencimentoBase = req.templateTitulo().getVencimento();
 
         for (int i = 0; i < req.qtdParcelas(); i++) {

@@ -203,7 +203,7 @@ public class TituloReportService {
         sheet.setColumnWidth(1, 5000);
 
         long pendentes = titulos.stream().filter(t -> "PENDENTE".equals(t.getStatus())).count();
-        long vencidos = titulos.stream().filter(t -> "DANGER".equals(t.getStatus())).count();
+        long vencidos = titulos.stream().filter(t -> "VENCIDO".equals(t.getStatus())).count();
         long pagos = titulos.stream().filter(t -> "PAGO".equals(t.getStatus())).count();
 
         BigDecimal saldoPendente = titulos.stream()
@@ -213,7 +213,7 @@ public class TituloReportService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal saldoVencido = titulos.stream()
-                .filter(t -> "DANGER".equals(t.getStatus()))
+                .filter(t -> "VENCIDO".equals(t.getStatus()))
                 .map(Titulo::getSaldo)
                 .filter(v -> v != null)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -313,7 +313,7 @@ public class TituloReportService {
                     if (t.getValor() != null) totalValor = totalValor.add(t.getValor());
                     if (t.getSaldo() != null) totalSaldo = totalSaldo.add(t.getSaldo());
                     if ("PENDENTE".equals(t.getStatus())) pendentes++;
-                    if ("DANGER".equals(t.getStatus())) {
+                    if ("VENCIDO".equals(t.getStatus())) {
                         vencidos++;
                         if (t.getSaldo() != null) saldoVencido = saldoVencido.add(t.getSaldo());
                     }
@@ -347,7 +347,7 @@ public class TituloReportService {
                 for (int i = 0; i < titulos.size(); i++) {
                     Titulo t = titulos.get(i);
                     DeviceRgb rowBg = i % 2 == 0 ? WHITE : LIGHT;
-                    DeviceRgb statusCor = "DANGER".equals(t.getStatus()) ? DANGER
+                    DeviceRgb statusCor = "VENCIDO".equals(t.getStatus()) ? DANGER
                             : "PAGO".equals(t.getStatus()) ? SUCCESS
                             : WARNING;
 

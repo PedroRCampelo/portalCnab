@@ -43,58 +43,55 @@ public class Recebimento {
     @JoinColumn(name = "cliente_id", nullable = false)
     private Cliente cliente;
 
-    // ── Identificação — padrão Protheus (Sprint F1.1) ─────────────────────────
+    // ── Identificação ─────────────────────────────────────────────────────────
 
     /**
-     * Número sequencial do recebimento: RC00001, RC00002...
-     * Auto-gerado. Agrupa parcelas (todas as parcelas de um parcelado
-     * compartilham o mesmo numero).
+     * Código legível do recebimento (RC-00001).
+     * Chave de negócio pra o usuário referenciar.
+     * Gerado automaticamente no service.
+     */
+    @Column(length = 20)
+    private String codigo;
+
+    /**
+     * Número do recebimento — agrupador de parcelas.
+     * Recebimentos parcelados compartilham o mesmo número e diferem em parcelaAtual.
      */
     @Column(length = 20)
     private String numero;
 
-    /**
-     * Parcela no formato string: "01", "02", "03".
-     * Usado na composição da chave.
-     */
     @Column(length = 3)
     @Builder.Default
     private String parcela = "01";
 
-    /**
-     * Chave composta: numero + parcela → "RC0000101".
-     * Identificador único legível por empresa (índice unique).
-     */
-    @Column(length = 20)
+    /** Chave composta: numero + parcela */
+    @Column(length = 30)
     private String chave;
+
+    public void montarChave() {
+        if (this.numero != null && this.parcela != null) {
+            this.chave = this.numero + this.parcela;
+        }
+    }
 
     @Column(nullable = false, length = 255)
     @NotBlank
     private String descricao;
 
-    /**
-     * Categoria string livre (legado, deprecado).
-     * Usar categoriaId (FK pra tabela categorias) no lugar.
-     */
     @Column(length = 50)
     private String categoria;
 
     /**
      * FK para tabela categorias (Sprint F1.2).
-     * Substitui o campo 'categoria' (string livre).
+     * Substitui o campo 'categoria' (string livre) que será deprecado.
      */
     @Column(name = "categoria_id")
     private UUID categoriaId;
 
-    // ── Parcelamento ──────────────────────────────────────────────────────────
-
-    @Column(name = "parcela_atual", nullable = false)
+    /** Canal de criação: MANUAL, WHATSAPP, IMPORTACAO, API */
+    @Column(name = "origem", nullable = false, length = 20)
     @Builder.Default
-    private Integer parcelaAtual = 1;
-
-    @Column(name = "parcela_total", nullable = false)
-    @Builder.Default
-    private Integer parcelaTotal = 1;
+    private String origem = "MANUAL";
 
     // ── Datas ─────────────────────────────────────────────────────────────────
 
@@ -126,6 +123,16 @@ public class Recebimento {
     @Column(name = "forma_pagamento", nullable = false, length = 20)
     @Builder.Default
     private String formaPagamento = "PIX";
+
+    // ── Parcelamento ──────────────────────────────────────────────────────────
+
+    @Column(name = "parcela_atual", nullable = false)
+    @Builder.Default
+    private Integer parcelaAtual = 1;
+
+    @Column(name = "parcela_total", nullable = false)
+    @Builder.Default
+    private Integer parcelaTotal = 1;
 
     // ── Recorrência ───────────────────────────────────────────────────────────
 
@@ -184,13 +191,6 @@ public class Recebimento {
     private LocalDateTime atualizadoEm;
 
     // ── Utilitários de domínio ────────────────────────────────────────────────
-
-    /** Monta a chave composta a partir do numero + parcela. */
-    public void montarChave() {
-        if (this.numero != null && this.parcela != null) {
-            this.chave = this.numero + this.parcela;
-        }
-    }
 
     public void atualizarStatus() {
         if ("CANCELADO".equals(this.status)) return;

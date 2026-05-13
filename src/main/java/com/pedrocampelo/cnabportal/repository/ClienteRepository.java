@@ -20,8 +20,8 @@ public interface ClienteRepository extends JpaRepository<Cliente, UUID> {
 
     List<Cliente> findByEmpresaIdAndAtivoTrueOrderByNomeAsc(UUID empresaId);
 
-    // Busca por documento (evita duplicar cliente)
-    Optional<Cliente> findByEmpresaIdAndDocumento(UUID empresaId, String documento);
+    // Busca por documento entre ativos (evita duplicar cliente)
+    Optional<Cliente> findByEmpresaIdAndDocumentoAndAtivoTrue(UUID empresaId, String documento);
 
     // Busca por nome (case-insensitive) — autocomplete na criação de recebimento
     @Query("""
@@ -39,4 +39,7 @@ public interface ClienteRepository extends JpaRepository<Cliente, UUID> {
 
     // Total de clientes ativos (pra dashboard)
     long countByEmpresaIdAndAtivoTrue(UUID empresaId);
+
+    // Verifica existência (multi-tenant) — Sprint F1.3
+    boolean existsByIdAndEmpresaId(UUID id, UUID empresaId);
 }

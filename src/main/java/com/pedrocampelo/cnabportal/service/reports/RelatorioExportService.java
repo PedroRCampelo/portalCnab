@@ -109,10 +109,10 @@ public class RelatorioExportService {
         XSSFCellStyle vs = wb.createCellStyle(); XSSFFont vf = wb.createFont(); vf.setColor(new XSSFColor(C_MUTED, null)); vs.setFont(vf);
         XSSFSheet sheet = wb.createSheet("Resumo"); sheet.setColumnWidth(0, 7000); sheet.setColumnWidth(1, 5000);
         long pend = titulos.stream().filter(t -> "PENDENTE".equals(t.getStatus())).count();
-        long venc = titulos.stream().filter(t -> "DANGER".equals(t.getStatus())).count();
+        long venc = titulos.stream().filter(t -> "VENCIDO".equals(t.getStatus())).count();
         long pagos = titulos.stream().filter(t -> "PAGO".equals(t.getStatus())).count();
         BigDecimal sPend = titulos.stream().filter(t -> "PENDENTE".equals(t.getStatus())).map(Titulo::getSaldo).filter(v -> v != null).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal sVenc = titulos.stream().filter(t -> "DANGER".equals(t.getStatus())).map(Titulo::getSaldo).filter(v -> v != null).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal sVenc = titulos.stream().filter(t -> "VENCIDO".equals(t.getStatus())).map(Titulo::getSaldo).filter(v -> v != null).reduce(BigDecimal.ZERO, BigDecimal::add);
         int r = 0;
         addResumoRow(sheet, r++, "Whallet · Relatório de Títulos", LocalDate.now().format(FMT_DATA), ls, vs);
         addResumoRow(sheet, r++, "Filtro de status", status == null || status.isBlank() ? "Todos" : status, ls, vs); r++;
@@ -145,7 +145,7 @@ public class RelatorioExportService {
                 doc.add(header);
                 doc.add(new Table(1).setWidth(UnitValue.createPercentValue(100)).addCell(new Cell().setHeight(3).setBackgroundColor(ACCENT).setBorder(Border.NO_BORDER)).setMarginBottom(16));
                 BigDecimal tVal = BigDecimal.ZERO, tSaldo = BigDecimal.ZERO; long pend = 0, venc = 0; BigDecimal sVenc = BigDecimal.ZERO;
-                for (Titulo t : titulos) { if (t.getValor()!=null) tVal=tVal.add(t.getValor()); if (t.getSaldo()!=null) tSaldo=tSaldo.add(t.getSaldo()); if ("PENDENTE".equals(t.getStatus())) pend++; if ("DANGER".equals(t.getStatus())) { venc++; if (t.getSaldo()!=null) sVenc=sVenc.add(t.getSaldo()); } }
+                for (Titulo t : titulos) { if (t.getValor()!=null) tVal=tVal.add(t.getValor()); if (t.getSaldo()!=null) tSaldo=tSaldo.add(t.getSaldo()); if ("PENDENTE".equals(t.getStatus())) pend++; if ("VENCIDO".equals(t.getStatus())) { venc++; if (t.getSaldo()!=null) sVenc=sVenc.add(t.getSaldo()); } }
                 Table kpis = new Table(new float[]{1,1,1,1}).setWidth(UnitValue.createPercentValue(100)).setMarginBottom(16);
                 addPdfKpi(kpis,"Total de títulos",String.valueOf(titulos.size()),PRIMARY,bold,regular,WHITE,PRIMARY);
                 addPdfKpi(kpis,"Saldo em aberto",brl(tSaldo),PRIMARY,bold,regular,LIGHT_ALT,ACCENT);
@@ -157,7 +157,7 @@ public class RelatorioExportService {
                     table.addHeaderCell(new Cell().add(new Paragraph(h).setFont(bold).setFontSize(8).setFontColor(WHITE)).setBackgroundColor(PRIMARY).setBorderBottom(new SolidBorder(ACCENT,1.5f)).setBorder(Border.NO_BORDER).setPadding(5));
                 for (int i = 0; i < titulos.size(); i++) {
                     Titulo t = titulos.get(i); DeviceRgb bg = i%2==0?WHITE:LIGHT;
-                    DeviceRgb sc = "DANGER".equals(t.getStatus())?DANGER:"PAGO".equals(t.getStatus())?SUCCESS:WARNING;
+                    DeviceRgb sc = "VENCIDO".equals(t.getStatus())?DANGER:"PAGO".equals(t.getStatus())?SUCCESS:WARNING;
                     addPdfCell(table,t.getNumero(),regular,8,PRIMARY,bg); addPdfCell(table,t.getParcela(),regular,8,PRIMARY,bg);
                     addPdfCell(table,t.getFornecedorNome(),regular,8,PRIMARY,bg); addPdfCell(table,t.getTipo(),regular,8,PRIMARY,bg);
                     addPdfCell(table,t.getVencimento()!=null?t.getVencimento().format(FMT_DATA):"—",regular,8,PRIMARY,bg);

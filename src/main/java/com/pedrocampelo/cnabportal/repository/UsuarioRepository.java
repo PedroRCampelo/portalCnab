@@ -4,6 +4,7 @@ import com.pedrocampelo.cnabportal.model.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.OffsetDateTime;
@@ -40,4 +41,8 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
 
     // Sprint Trial: busca trials expirados pra batch de expiração
     List<Usuario> findByAssinaturaStatusAndTrialExpiraEmBefore(String status, OffsetDateTime antes);
+
+    // Sprint WA-1: identifica usuário pelo telefone (WhatsApp)
+    @Query("SELECT u FROM Usuario u WHERE u.telefone = :telefone AND u.ativo = true")
+    Optional<Usuario> findByTelefoneWhatsapp(@Param("telefone") String telefone);
 }

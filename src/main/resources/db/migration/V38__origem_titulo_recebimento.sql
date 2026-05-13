@@ -1,0 +1,5 @@
+-- V38: Campo origem (canal de criação) em títulos e recebimentos
+-- Valores: MANUAL, WHATSAPP, IMPORTACAO, API
+
+ALTER TABLE titulos ADD COLUMN IF NOT EXISTS origem VARCHAR(20) NOT NULL DEFAULT 'MANUAL';
+ALTER TABLE recebimentos ADD COLUMN IF NOT EXISTS origem VARCHAR(20) NOT NULL DEFAULT 'MANUAL';

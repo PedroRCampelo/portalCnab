@@ -67,4 +67,6 @@ public interface SaldoBancarioRepository extends JpaRepository<SaldoBancario, UU
           AND m.conta.ativo = true
     """)
     BigDecimal somarMovimentosDaEmpresa(@Param("empresaId") UUID empresaId);
+    
+    List<SaldoBancario> findByEmpresaIdAndAtivoTrue(UUID empresaId);
 }

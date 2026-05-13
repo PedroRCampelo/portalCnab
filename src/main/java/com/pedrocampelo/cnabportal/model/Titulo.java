@@ -32,52 +32,37 @@ public class Titulo {
     @JoinColumn(name = "empresa_id", nullable = false)
     private Empresa empresa;
 
-    // ── Identificação — padrão Protheus (Sprint F1.1) ─────────────────────────
+    // ── Identificação ─────────────────────────────────────────────────────────
 
-    /**
-     * Prefixo legado (AP, NF, etc). Mantido pra retrocompatibilidade CNAB.
-     * Não participa mais da lógica de chave — usar numero + parcela.
-     */
     @Column(nullable = false, length = 10)
     @Builder.Default
     private String prefixo = "AP";
 
-    /**
-     * Número sequencial do título: AP00001, AP00002...
-     * Auto-gerado. Agrupa parcelas (todas as parcelas de um parcelado
-     * compartilham o mesmo numero).
-     */
     @Column(nullable = false, length = 20)
     @NotBlank
     private String numero;
 
-    /**
-     * Parcela string legada "01", "02". Mantida pra CNAB.
-     */
     @Column(nullable = false, length = 3)
     @Builder.Default
-    private String parcela = "01";
+    private String parcela = "001";
 
-    /**
-     * Chave composta: numero + parcela → "AP0000101".
-     * Identificador único legível por empresa (índice unique).
-     */
-    @Column(length = 20)
-    private String chave;
-
-    /**
-     * Parcela atual (int) — padronização com recebimentos.
-     */
     @Column(name = "parcela_atual")
     @Builder.Default
     private Integer parcelaAtual = 1;
 
-    /**
-     * Total de parcelas (int) — padronização com recebimentos.
-     */
     @Column(name = "parcela_total")
     @Builder.Default
     private Integer parcelaTotal = 1;
+
+    /** Chave composta: numero + parcela (ex: AP0000101) */
+    @Column(length = 30)
+    private String chave;
+
+    public void montarChave() {
+        if (this.numero != null && this.parcela != null) {
+            this.chave = this.numero + this.parcela;
+        }
+    }
 
     // ── Tipo de pagamento ─────────────────────────────────────────────────────
 
@@ -92,10 +77,16 @@ public class Titulo {
 
     /**
      * FK para tabela categorias (Sprint F1.2).
-     * Substitui tipoGastoId.
+     * Substitui tipoGastoId. Na migration V32, categoria_id foi populado
+     * a partir de tipo_gasto_id pra títulos existentes.
      */
     @Column(name = "categoria_id")
     private UUID categoriaId;
+
+    /** Canal de criação: MANUAL, WHATSAPP, IMPORTACAO, API */
+    @Column(name = "origem", nullable = false, length = 20)
+    @Builder.Default
+    private String origem = "MANUAL";
 
     // ── Fornecedor ────────────────────────────────────────────────────────────
 
@@ -169,7 +160,7 @@ public class Titulo {
     @Column(name = "linha_digitavel", length = 100)
     private String linhaDigitavel;
 
-    // ── Dados bancários do favorecido — Segmento A ───────────────────────────
+    // ── Dados bancários do favorecido — Segmento A (TED/DOC/Crédito) ─────────
 
     @Column(name = "favorecido_banco_code", length = 3)
     private String favorecidoBancoCode;
@@ -270,14 +261,7 @@ public class Titulo {
     @Column(name = "atualizado_em", nullable = false)
     private LocalDateTime atualizadoEm;
 
-    // ── Utilitários ───────────────────────────────────────────────────────────
-
-    /** Monta a chave composta a partir do numero + parcela (2 chars). */
-    public void montarChave() {
-        if (this.numero != null && this.parcelaAtual != null) {
-            this.chave = this.numero + String.format("%02d", this.parcelaAtual);
-        }
-    }
+    // ── Utilitário ────────────────────────────────────────────────────────────
 
     public void atualizarStatus() {
         if ("PAGO".equals(this.status)) return;

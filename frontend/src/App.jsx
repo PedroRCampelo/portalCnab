@@ -45,6 +45,7 @@ import DreMensalPage               from "./pages/app/relatorios/DreMensalPage.js
 
 import HistoricoPage             from "./pages/app/HistoricoPage.jsx";
 import AssistenteCnabPage        from "./pages/app/AssistenteCnabPage.jsx";
+import WhatsAppPage              from "./pages/app/WhatsAppPage.jsx";
 import CnabChatPage              from "./pages/app/CnabChatPage.jsx";
 
 // Páginas de retorno do checkout Stripe
@@ -139,6 +140,7 @@ function AppShell() {
 
                         {/* IA */}
                         <Route path="/assistente-cnab"     element={<AssistenteCnabPage/>}/>
+                        <Route path="/whatsapp"            element={<ProtectedRoute><WhatsAppPage/></ProtectedRoute>}/>
 
                         {/* Admin */}
                         <Route path="/admin/usuarios"       element={<AdminRoute><AdminUsuariosPage/></AdminRoute>}/>

@@ -130,4 +130,7 @@ public interface RecebimentoRepository extends JpaRepository<Recebimento, UUID> 
     @Query(value = "SELECT nextval('seq_recebimento_numero')", nativeQuery = true)
     Long proximoNumeroSequencia();
 
+
+    @Query(value = "SELECT nextval('seq_recebimento_numero')", nativeQuery = true)
+    Long proximoCodigoSequencia();
 }

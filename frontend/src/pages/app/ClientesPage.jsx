@@ -107,14 +107,18 @@ export default function ClientesPage() {
     async function salvarCliente(payload) {
         setSalvando(true);
         try {
+            let resultado;
             if (editando) {
-                await api.put(`/api/clientes/${editando.id}`, payload);
+                const { data } = await api.put(`/api/clientes/${editando.id}`, payload);
+                resultado = data;
             } else {
-                await api.post("/api/clientes", payload);
+                const { data } = await api.post("/api/clientes", payload);
+                resultado = data;
             }
             setModalAberto(false);
             setEditando(null);
             await carregar();
+            return resultado;
         } finally {
             setSalvando(false);
         }

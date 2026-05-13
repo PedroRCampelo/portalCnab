@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { FaFileAlt } from "react-icons/fa";
 import {
     LuActivity, LuHandCoins, LuWalletCards, LuUsers, LuTag,
-    LuFileText, LuBot,
+    LuFileText, LuBot, LuMessageCircle,
     LuSettings, LuPin, LuPinOff, LuBellRing, LuFileSpreadsheet,
     LuClipboardList,
 } from "react-icons/lu";
@@ -57,7 +57,8 @@ const MENU = [
     {
         label: "Inteligência",
         items: [
-            { to: "/assistente-cnab", icon: LuBot,       label: "Agente Elvis" },
+            { to: "/assistente-cnab", icon: LuBot,            label: "Agente Elvis" },
+            { to: "/whatsapp",        icon: LuMessageCircle,  label: "WhatsApp Bot" },
         ],
     },
     {

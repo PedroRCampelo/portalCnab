@@ -61,7 +61,8 @@ public class SecurityConfig {
                                 "/api/auth/reenviar-verificacao",
                                 "/api/auth/esqueci-senha",
                                 "/api/auth/redefinir-senha",
-                                "/api/stripe/webhook"
+                                "/api/stripe/webhook",
+                                "/api/whatsapp/webhook"
                         ).permitAll()
                         // Endpoints de geração — aceitam anônimos (limite de 2) e autenticados
                         .requestMatchers(
