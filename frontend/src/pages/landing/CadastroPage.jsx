@@ -76,7 +76,7 @@ export default function CadastroPage() {
         try {
             const { data } = await api.post("/api/auth/google", { idToken });
             login(data);
-            navigate("/", { replace: true });
+            navigate("/fluxo-caixa", { replace: true });
         } catch (err) {
             setErro(err.response?.data?.mensagem ?? "Erro ao cadastrar com Google.");
             setCarregando(false);

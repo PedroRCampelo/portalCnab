@@ -41,7 +41,7 @@ export default function LoginPage() {
                 return;
             }
         }
-        navigate(destino === "/login" ? "/" : destino, { replace: true });
+        navigate(destino === "/login" || destino === "/" ? "/fluxo-caixa" : destino, { replace: true });
     }
 
     async function handleSubmit(e) {

@@ -68,6 +68,11 @@ public class WhatsappService {
             throw new IllegalArgumentException("Número inválido.");
 
         sessaoRepository.findByTelefoneAndAtivaTrue(telefone).ifPresent(s -> {
+            // Se já está verificado E pertence a outro usuário → bloquear
+            if (s.getVerificada() && !s.getUsuarioId().equals(usuario.getId())) {
+                throw new IllegalArgumentException(
+                        "Este número já está vinculado a outra conta. Desvincule primeiro na conta original.");
+            }
             s.setAtiva(false); sessaoRepository.save(s);
         });
 
@@ -123,6 +128,22 @@ public class WhatsappService {
             Optional<WhatsappSessao> sessaoOpt = sessaoRepository.findByLidAndVerificadaTrueAndAtivaTrue(lid);
             if (sessaoOpt.isPresent()) { processarMensagemVinculada(sessaoOpt.get(), texto, isAudio); return; }
 
+            // Auto-link: sessão verificada pela web (sem LID) → primeira msg no WhatsApp completa o vínculo
+            List<WhatsappSessao> semLid = sessaoRepository.findAll().stream()
+                    .filter(s -> Boolean.TRUE.equals(s.getAtiva())
+                            && Boolean.TRUE.equals(s.getVerificada())
+                            && (s.getLid() == null || s.getLid().isBlank()))
+                    .toList();
+            if (semLid.size() == 1) {
+                WhatsappSessao s = semLid.get(0);
+                s.setLid(lid);
+                s.setUltimaMensagemEm(LocalDateTime.now());
+                sessaoRepository.save(s);
+                log.info("[WhatsApp] Auto-link: LID {} → sessão {} (verificação web)", lid, s.getId());
+                processarMensagemVinculada(s, texto, isAudio);
+                return;
+            }
+
             String possivelCodigo = texto.trim().replaceAll("\\s", "");
             if (possivelCodigo.matches("\\d{6}")) { tentarVerificar(lid, possivelCodigo); return; }
 
@@ -140,7 +161,7 @@ public class WhatsappService {
                                 "3️⃣ Digite seu número e confirme o código\n\n" +
                                 "Após vincular, é só mandar comandos como:\n💸 \"Gastei 200 na padaria\"\n💰 \"Recebi 1500 do João\"");
             }
-            
+
         } catch (Exception e) { log.error("[WhatsApp] Erro: {}", e.getMessage(), e); }
     }
 
@@ -485,7 +506,7 @@ public class WhatsappService {
             };
         } catch (Exception e) {
             log.error("[WhatsApp] Erro {}: {}", acao, e.getMessage(), e);
-            return "❌ Erro: " + e.getMessage();
+            return "⚠️ Não consegui processar essa operação. Tente fazer direto em *whallet.com.br*";
         }
     }
 
@@ -524,7 +545,8 @@ public class WhatsappService {
     private String executarCriarRecebimento(Usuario usuario, JsonNode dados, boolean jaRecebido, UUID contaId) {
         String clienteNome = dados.path("clienteNome").asText("");
         String clienteIdStr = dados.path("clienteId").asText("");
-        String descricao = dados.path("descricao").asText("Recebimento via WhatsApp");
+        String descricao = dados.path("descricao").asText("");
+        if (descricao.isBlank()) descricao = "Recebimento via WhatsApp";
         BigDecimal valor = new BigDecimal(dados.path("valor").asText("0"));
         String catIdStr = dados.path("categoriaId").asText("");
         UUID categoriaId = null;
