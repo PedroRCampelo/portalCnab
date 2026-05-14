@@ -68,8 +68,8 @@ public class WhatsappService {
             throw new IllegalArgumentException("Número inválido.");
 
         sessaoRepository.findByTelefoneAndAtivaTrue(telefone).ifPresent(s -> {
-            // Se já está verificado E pertence a outro usuário → bloquear
-            if (s.getVerificada() && !s.getUsuarioId().equals(usuario.getId())) {
+            // Se pertence a outro usuário (verificada ou não) → bloquear
+            if (!s.getUsuarioId().equals(usuario.getId())) {
                 throw new IllegalArgumentException(
                         "Este número já está vinculado a outra conta. Desvincule primeiro na conta original.");
             }

@@ -43,7 +43,16 @@ export default function WhatsAppPage() {
             setCodigo("");
             setTimeout(carregarStatus, 1500);
         } catch (err) {
-            setMensagem({ tipo: "erro", texto: err.response?.data?.mensagem || "Erro ao enviar código." });
+            const status = err.response?.status;
+            const data = err.response?.data;
+            const msg = typeof data === "string" ? data : data?.mensagem;
+            if (status === 403) {
+                setMensagem({ tipo: "erro", texto: msg || "O Bot WhatsApp está disponível apenas no plano Whallet+." });
+            } else if (msg && msg.includes("vinculado")) {
+                setMensagem({ tipo: "erro", texto: "⚠️ Este número já está vinculado a outra conta Whallet. Peça ao titular para desvincular primeiro." });
+            } else {
+                setMensagem({ tipo: "erro", texto: msg || "Erro ao enviar código. Tente novamente." });
+            }
         }
         setEnviando(false);
     }
@@ -358,7 +367,7 @@ const CSS = `
 .wa-vinculado{margin-top:4px}
 .wa-actions{display:flex;gap:10px}
 
-.wa-msg{display:flex;align-items:center;gap:8px;padding:12px 16px;border-radius:10px;font-size:13px;line-height:1.4;margin-bottom:16px}
+.wa-msg{display:flex;align-items:center;gap:8px;padding:12px 16px;border-radius:10px;font-size:13px;line-height:1.4;margin-bottom:16px;opacity:1;transform:none;max-width:100%}
 .wa-msg--ok{background:rgba(37,211,102,.08);color:#128C7E;border:1px solid rgba(37,211,102,.2)}
 .wa-msg--erro{background:var(--error-bg);color:var(--error);border:1px solid rgba(229,72,77,.2)}
 

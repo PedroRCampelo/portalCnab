@@ -4,6 +4,7 @@ import com.pedrocampelo.cnabportal.model.Usuario;
 import com.pedrocampelo.cnabportal.service.whatsappsv.WhatsappService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -47,6 +48,15 @@ public class WhatsappWebhookController {
         }
     }
 
+    // Planos com acesso ao Bot WhatsApp
+    private static final java.util.UUID PLANO_WHALLET_PLUS =
+            java.util.UUID.fromString("10000000-0000-0000-0000-000000000003");
+
+    private boolean temAcessoBot(Usuario usuario) {
+        return (usuario.getPerfil() != null && usuario.getPerfil().name().equals("ADMIN"))
+                || PLANO_WHALLET_PLUS.equals(usuario.getPlanoId());
+    }
+
     /**
      * Usuário solicita ativação do WhatsApp.
      * Body: { "telefone": "81996774063" }
@@ -57,6 +67,11 @@ public class WhatsappWebhookController {
             @AuthenticationPrincipal Usuario usuario,
             @RequestBody Map<String, String> body) {
         try {
+            if (!temAcessoBot(usuario)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("mensagem", "O Bot WhatsApp está disponível apenas no plano Whallet+. Assine para ativar."));
+            }
+
             String telefone = body.get("telefone");
             if (telefone == null || telefone.isBlank()) {
                 return ResponseEntity.badRequest()
