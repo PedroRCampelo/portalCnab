@@ -223,20 +223,32 @@ public class WhatsappAIService {
                 "max_tokens", 500
         );
 
-        String response = restClient.post()
-                .uri("/chat/completions")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(body)
-                .retrieve()
-                .body(String.class);
+        int maxRetries = 3;
+        for (int tentativa = 1; tentativa <= maxRetries; tentativa++) {
+            try {
+                String response = restClient.post()
+                        .uri("/chat/completions")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(body)
+                        .retrieve()
+                        .body(String.class);
 
-        try {
-            JsonNode root = objectMapper.readTree(response);
-            return root.path("choices").get(0).path("message").path("content").asText();
-        } catch (Exception e) {
-            throw new IllegalStateException("Erro ao parsear resposta GPT", e);
+                JsonNode root = objectMapper.readTree(response);
+                return root.path("choices").get(0).path("message").path("content").asText();
+            } catch (org.springframework.web.client.ResourceAccessException e) {
+                log.warn("[WhatsApp IA] Tentativa {}/{} falhou ({}), {}",
+                        tentativa, maxRetries, e.getMessage(),
+                        tentativa < maxRetries ? "retentando..." : "desistindo.");
+                if (tentativa >= maxRetries) throw e;
+                try { Thread.sleep(800L * tentativa); } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt(); throw e;
+                }
+            } catch (Exception e) {
+                throw new IllegalStateException("Erro ao parsear resposta GPT", e);
+            }
         }
+        throw new IllegalStateException("Falha após " + maxRetries + " tentativas");
     }
 
     private AcaoInterpretada parseResposta(String json) {
