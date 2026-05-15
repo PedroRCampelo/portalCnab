@@ -8,6 +8,8 @@ import screenshotReceb from "../../assets/screenshots/recebimentos.png";
 import screenshotRelat from "../../assets/screenshots/relatorios.png";
 import screenshotElvis from "../../assets/screenshots/elvis.png";
 import logo from '../../assets/logos/logo.svg';
+import logoIcon from '../../assets/logos/logo-icon.svg';
+import heroVisual from '../../assets/lp-hero-visual.webp';
 /* ──────────────────────────────────────────────────────────────
    DATA
    ────────────────────────────────────────────────────────────── */
@@ -30,15 +32,11 @@ const MARQUEE_ITEMS = [
     "Sem planilha, sem estresse",
     "Gestão financeira por voz",
     "Bot WhatsApp inteligente",
-    "CNAB decodificado em 1 clique",
     "IA que entende seu caixa",
-    "R$ 39,90/mês — tudo incluso",
     "Setup em 2 minutos",
     "Transcrição de áudio",
     "Alertas de vencimento",
     "Relatórios automáticos",
-    "Multi-banco, multi-convênio",
-    "7 dias grátis p/ testar",
 ];
 
 const FEATURES = [
@@ -383,7 +381,8 @@ export default function HomePage() {
             <nav className={`lp-nav${navScrolled ? " scrolled" : ""}`}>
                 <div className="lp-container lp-nav-inner">
                     <button className="lp-brand" onClick={() => scrollTo("hero")}>
-                        whallet<span className="dot" />
+                        <img src={logoIcon} alt="" className="lp-brand-icon" />
+                        whallet
                     </button>
                     <div className="lp-nav-links">
                         <button className="lp-nav-link" onClick={() => scrollTo("recursos")}>Recursos</button>
@@ -398,7 +397,9 @@ export default function HomePage() {
                             <>
                                 <button className="lp-nav-link always-show" onClick={() => navigate("/login")}>Entrar</button>
                                 <button className="lp-nav-cta" onClick={() => navigate("/cadastro")}>
-                                    Começar grátis <span className="arrow">→</span>
+                                    <span className="lp-nav-cta-full">Começar grátis</span>
+                                    <span className="lp-nav-cta-short">Começar</span>
+                                    <span className="arrow">→</span>
                                 </button>
                             </>
                         )}
@@ -410,14 +411,14 @@ export default function HomePage() {
             <section className="lp-hero" id="hero">
                 <div className="lp-container">
                     <div className="lp-hero-grid">
-                        <div>
-                            <span className="lp-hero-kicker">comece grátis · 7 dias de whallet+</span>
+                        <div style={{ paddingTop: "61px" }}>
                             <h1 className="lp-hero-title">
-                                O dinheiro do seu negócio<br />merece mais que uma <em>planilha.</em>
+                                Seu financeiro<br />
+                                <span className="lp-hero-highlight">organizado.</span>
                             </h1>
                             <p className="lp-hero-sub">
-                                Plataforma financeira completa — fluxo de caixa, recebimentos, relatórios e IA.
-                                E o diferencial: um bot no WhatsApp que registra, consulta e cobra por você.
+                                Controle financeiro com IA e WhatsApp.<br />
+                                Organize, acompanhe e cresça.
                             </p>
                             <div className="lp-hero-ctas">
                                 <button className="lp-cta-primary" onClick={() => navigate("/cadastro")}>
@@ -431,41 +432,7 @@ export default function HomePage() {
                         </div>
 
                         <div className="lp-hero-visual">
-                            {/* Browser frame com screenshot real */}
-                            <div className="lp-hero-frame">
-                                <div className="lp-frame-bar">
-                                    <div className="lp-frame-dots">
-                                        <span className="lp-frame-dot r" />
-                                        <span className="lp-frame-dot y" />
-                                        <span className="lp-frame-dot g" />
-                                    </div>
-                                    <div className="lp-frame-url">whallet.com.br/fluxo-caixa</div>
-                                    <span className="lp-frame-live">AO VIVO</span>
-                                </div>
-                                <img src={screenshotFluxo} alt="Fluxo de Caixa — Whallet" loading="eager" />
-                            </div>
-
-                            {/* Floating cards */}
-                            <div className="lp-float-card fc-sobra">
-                                <div className="lp-float-icon" style={{ background: "var(--cyan)", color: "var(--navy-deep)" }}>↗</div>
-                                <div>
-                                    <small>Sobra projetada</small>
-                                    <strong style={{ color: "var(--cyan-deep)" }}>R$ 38.507,60</strong>
-                                </div>
-                            </div>
-
-                            <div className="lp-float-card fc-receive">
-                                <div className="lp-float-icon" style={{ background: "var(--success)" }}>+</div>
-                                <div>
-                                    <small>Recebido hoje</small>
-                                    <strong>R$ 4.850,00</strong>
-                                </div>
-                            </div>
-
-                            <div className="fc-notif">
-                                <span>BOT</span>
-                                <strong>"Você tem 3 títulos vencendo amanhã"</strong>
-                            </div>
+                            <img src={heroVisual} alt="Whallet — App mobile e dashboard web" className="lp-hero-visual-img" loading="eager" />
                         </div>
                     </div>
                 </div>
@@ -473,8 +440,8 @@ export default function HomePage() {
 
             {/* ═══ MARQUEE ═══ */}
             <div className="lp-strip">
-                <div className="lp-marquee">
-                    {[...MARQUEE_ITEMS, ...MARQUEE_ITEMS].map((t, i) => (
+                <div className="lp-strip-inner">
+                    {MARQUEE_ITEMS.map((t, i) => (
                         <span key={i} className="lp-marquee-item">{t}</span>
                     ))}
                 </div>
