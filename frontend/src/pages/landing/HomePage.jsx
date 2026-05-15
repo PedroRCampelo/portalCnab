@@ -336,138 +336,6 @@ function FeatureShowcase({ features }) {
     );
 }
 
-/* ── Dashboard Mockup ── */
-function DashboardMockup() {
-    const chartPath = "M0,140 C30,130 55,100 90,85 C125,70 145,105 180,90 C215,75 235,45 275,35 C315,25 335,55 375,42 C415,30 440,18 480,12 C510,8 540,10 580,4 L580,180 L0,180 Z";
-    const chartLine = "M0,140 C30,130 55,100 90,85 C125,70 145,105 180,90 C215,75 235,45 275,35 C315,25 335,55 375,42 C415,30 440,18 480,12 C510,8 540,10 580,4";
-
-    return (
-        <div className="lp-dash-wrap">
-            {/* Browser chrome */}
-            <div className="lp-dash-chrome">
-                <div className="lp-frame-dots">
-                    <span className="lp-frame-dot r" />
-                    <span className="lp-frame-dot y" />
-                    <span className="lp-frame-dot g" />
-                </div>
-                <div className="lp-frame-url">whallet.com.br/fluxo-caixa</div>
-                <span className="lp-frame-live">AO VIVO</span>
-            </div>
-
-            {/* App layout */}
-            <div className="lp-dash-body">
-                {/* Sidebar */}
-                <div className="lp-dash-sidebar">
-                    <div className="lp-dash-sb-brand">w<span /></div>
-                    <div className="lp-dash-sb-nav">
-                        <span className="lp-dash-sb-item active">▦</span>
-                        <span className="lp-dash-sb-item">◎</span>
-                        <span className="lp-dash-sb-item">⊟</span>
-                        <span className="lp-dash-sb-item">↗</span>
-                    </div>
-                </div>
-
-                {/* Main */}
-                <div className="lp-dash-main">
-                    {/* Header */}
-                    <div className="lp-dash-header">
-                        <span className="lp-dash-header-title">▦ Dashboard</span>
-                        <div className="lp-dash-header-actions">
-                            <span className="lp-dash-icon-btn">🔍</span>
-                            <span className="lp-dash-icon-btn">🔔</span>
-                        </div>
-                    </div>
-
-                    {/* Total */}
-                    <div className="lp-dash-total-row">
-                        <div>
-                            <div className="lp-dash-total-label">Total em vendas</div>
-                            <div className="lp-dash-total-value">R$ 28.538,40 <span className="lp-dash-total-arrow">›</span></div>
-                        </div>
-                    </div>
-
-                    {/* Period filters */}
-                    <div className="lp-dash-filters">
-                        <button className="lp-dash-filter active">Hoje</button>
-                        <button className="lp-dash-filter">Ontem</button>
-                        <button className="lp-dash-filter">Essa semana</button>
-                        <button className="lp-dash-filter">Esse mês</button>
-                        <button className="lp-dash-filter lp-dash-filter-date">📅 Escolher data</button>
-                    </div>
-
-                    {/* Chart area */}
-                    <div className="lp-dash-chart-wrap">
-                        <div className="lp-dash-chart-title">
-                            <span>◎ Desempenho de vendas</span>
-                            <span className="lp-dash-chart-info">ⓘ</span>
-                        </div>
-                        <svg className="lp-dash-svg" viewBox="0 0 580 180" preserveAspectRatio="none">
-                            <defs>
-                                <linearGradient id="dashGrad" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stopColor="#15C3DD" stopOpacity="0.25" />
-                                    <stop offset="100%" stopColor="#15C3DD" stopOpacity="0.02" />
-                                </linearGradient>
-                            </defs>
-                            {/* Grid lines */}
-                            {[36, 72, 108, 144].map(y => (
-                                <line key={y} x1="0" y1={y} x2="580" y2={y}
-                                    stroke="#E3E7ED" strokeWidth="1" />
-                            ))}
-                            {/* Y labels */}
-                            {[["500", 30], ["375", 66], ["250", 102], ["125", 138], ["0", 174]].map(([l, y]) => (
-                                <text key={l} x="2" y={y} fontSize="9" fill="#6B7A92">{l}</text>
-                            ))}
-                            {/* Area fill */}
-                            <path d={chartPath} fill="url(#dashGrad)" />
-                            {/* Line */}
-                            <path d={chartLine} fill="none" stroke="#15C3DD" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                            {/* Highlight dot */}
-                            <circle cx="375" cy="42" r="5" fill="#15C3DD" />
-                            <circle cx="375" cy="42" r="9" fill="#15C3DD" fillOpacity="0.2" />
-                            {/* Tooltip */}
-                            <rect x="340" y="10" width="88" height="26" rx="6" fill="#0B1E36" />
-                            <text x="384" y="27" fontSize="10" fill="#fff" textAnchor="middle" fontWeight="600">R$ 28.538,40</text>
-                        </svg>
-                        {/* X axis */}
-                        <div className="lp-dash-xaxis">
-                            {["00:00","02:00","04:00","06:00","08:00","10:00","12:00","14:00","16:00","18:00","20:00","22:00"].map(t => (
-                                <span key={t}>{t}</span>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Metric cards */}
-                    <div className="lp-dash-metrics">
-                        <div className="lp-dash-metric">
-                            <div className="lp-dash-metric-top">
-                                <span className="lp-dash-metric-label">Pedidos feitos</span>
-                                <span className="lp-dash-metric-badge up">+12 ●</span>
-                            </div>
-                            <div className="lp-dash-metric-sub">Todos</div>
-                            <div className="lp-dash-metric-value">652</div>
-                        </div>
-                        <div className="lp-dash-metric">
-                            <div className="lp-dash-metric-top">
-                                <span className="lp-dash-metric-label">Pedidos pagos</span>
-                                <span className="lp-dash-metric-badge down">-04 ●</span>
-                            </div>
-                            <div className="lp-dash-metric-sub">Todos</div>
-                            <div className="lp-dash-metric-value">231</div>
-                        </div>
-                        <div className="lp-dash-metric">
-                            <div className="lp-dash-metric-top">
-                                <span className="lp-dash-metric-label">Pedidos pendentes</span>
-                            </div>
-                            <div className="lp-dash-metric-sub">Todos</div>
-                            <div className="lp-dash-metric-value">245</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-}
-
 /* ──────────────────────────────────────────────────────────────
    MAIN PAGE
    ────────────────────────────────────────────────────────────── */
@@ -563,14 +431,26 @@ export default function HomePage() {
                         </div>
 
                         <div className="lp-hero-visual">
-                            <DashboardMockup />
+                            {/* Browser frame com screenshot real */}
+                            <div className="lp-hero-frame">
+                                <div className="lp-frame-bar">
+                                    <div className="lp-frame-dots">
+                                        <span className="lp-frame-dot r" />
+                                        <span className="lp-frame-dot y" />
+                                        <span className="lp-frame-dot g" />
+                                    </div>
+                                    <div className="lp-frame-url">whallet.com.br/fluxo-caixa</div>
+                                    <span className="lp-frame-live">AO VIVO</span>
+                                </div>
+                                <img src={screenshotFluxo} alt="Fluxo de Caixa — Whallet" loading="eager" />
+                            </div>
 
                             {/* Floating cards */}
                             <div className="lp-float-card fc-sobra">
                                 <div className="lp-float-icon" style={{ background: "var(--cyan)", color: "var(--navy-deep)" }}>↗</div>
                                 <div>
                                     <small>Sobra projetada</small>
-                                    <strong style={{ color: "var(--cyan-deep)" }}>R$ 8.420,30</strong>
+                                    <strong style={{ color: "var(--cyan-deep)" }}>R$ 38.507,60</strong>
                                 </div>
                             </div>
 
@@ -578,8 +458,13 @@ export default function HomePage() {
                                 <div className="lp-float-icon" style={{ background: "var(--success)" }}>+</div>
                                 <div>
                                     <small>Recebido hoje</small>
-                                    <strong>R$ 2.500,00</strong>
+                                    <strong>R$ 4.850,00</strong>
                                 </div>
+                            </div>
+
+                            <div className="fc-notif">
+                                <span>BOT</span>
+                                <strong>"Você tem 3 títulos vencendo amanhã"</strong>
                             </div>
                         </div>
                     </div>
