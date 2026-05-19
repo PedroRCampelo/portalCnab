@@ -411,7 +411,7 @@ export default function HomePage() {
             <section className="lp-hero" id="hero">
                 <div className="lp-container">
                     <div className="lp-hero-grid">
-                        <div style={{ paddingTop: "61px" }}>
+                        <div>
                             <h1 className="lp-hero-title">
                                 Seu financeiro<br />
                                 <span className="lp-hero-highlight">organizado.</span>
