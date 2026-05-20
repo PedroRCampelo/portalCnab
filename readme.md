@@ -1,56 +1,62 @@
 # Portal CNAB (Whallet)
 
-[![Screenshot-2026-03-28-at-12-02-17.png](https://i.postimg.cc/9M9NJm9v/Screenshot-2026-03-28-at-12-02-17.png)](https://postimg.cc/MMWDG8dD)
+[![Screenshot-2026-05-20-at-07-55-34.png](https://i.postimg.cc/YS2HXG68/Screenshot-2026-05-20-at-07-55-34.png)](https://postimg.cc/bZ5WrvF2)
 
-# [whallet.com.br](whallet.com.br)
+https://whallet.com.br/
 
 API desenvolvida em Java + Spring Boot para interpretar arquivos de
-remessa CNAB a partir de um arquivo de layout/configuração e gerar uma
-planilha Excel estruturada com os dados extraídos.
+remessa CNAB a partir de um arquivo de layout/configuração e gerar PDF ou planilha Excel estruturada com os dados extraídos.
 
-O objetivo do projeto é facilitar a análise de arquivos CNAB, permitindo
-que usuários transformem arquivos de remessa bancária em um formato
-tabular fácil de analisar.
+O objetivo do projeto é facilitar a análise de arquivos CNAB, permitindo que usuários transformem arquivos de remessa bancária em um formato tabular fácil de analisar.
 
-## FUNCIONALIDADES
+## Atualização
 
--   Upload de arquivo de layout CNAB
--   Upload de arquivo de remessa CNAB
--   Interpretação automática baseada no layout
--   Identificação de tipos de registro
--   Extração automática dos campos
--   Geração de Excel (.xlsx) com abas separadas
+Com o passar do tempo o portal CNAB ganhou o nome de **Whallet** e evoluiu de uma ferramenta de validação CNAB para uma **plataforma completa de gestão financeira** voltada para MEIs e autônomos.
 
-## PRÓXIMOS PASSOS
-- Não necessidade de arquivo layout
-```
-Validação de LAYOUTS do Protheus
+### Funcionalidades Adicionadas
 
-Se você precisa validar arquivos de layout do Protheus, será possível:
+**🏦 Gestão Financeira Completa**
+- **Contas a Pagar**: Cadastro e controle de títulos com suporte a CNAB (Boleto, PIX, TED)
+- **Contas a Receber**: Gestão de recebimentos com vínculo a clientes e categorias
+- **Fluxo de Caixa**: Visualização consolidada de entradas, saídas e saldo projetado
+- **Saldos Bancários**: Controle multi-conta com histórico de movimentações
 
-Enviar o layout desejado
-Gerar automaticamente um arquivo Excel com base nesse layout
-Utilizar o Excel como apoio para conferência e validação dos dados
+**💬 Automação e Integrações**
+- **Bot WhatsApp**: Integração com Evolution API para lançamentos via mensagem
+- **Transcrição de Áudio**: Criação de lançamentos a partir de notas de voz
 
-Essa opção é ideal para quem trabalha diretamente com estruturas personalizadas de layout.
-``` 
-```
-Validação de arquivos de REMESSA
+**📊 Relatórios e Inteligência**
+- **DRE (Demonstração do Resultado)**: Análise de receitas, despesas e margem mensal
+- **Relatórios por Categoria**: Visualização de gastos e receitas categorizados
+- **Aurora IA**: Assistente financeira que gera insights narrativos sobre a saúde financeira
 
-Caso sua necessidade seja apenas validar arquivos de remessa:
 
-Não será necessário enviar um layout personalizado
-O sistema utilizará como base os layouts padrão dos bancos
-A validação será feita automaticamente seguindo essas estruturas já conhecidas
+**📱 App Mobile (Em desenvolvimento)**
+- **React Native + Expo**: Aplicativo nativo para iOS e Android
+- **Interface redesenhada**: Dashboard, lançamento rápido, relatórios e mais
+- **Sincronização em tempo real** com backend
 
-Essa opção é recomendada para validações mais rápidas e padronizadas.
-``` 
+### Stack Tecnológica
 
-- Suporte a layout 240 posições
-- Dashboard de análise de remessas
-- Validação de inconsistências
-- Integração com sistemas ERP
+**Backend**
+- Java 17 + Spring Boot 3.x
+- PostgreSQL
+- JWT Authentication
+- Render (hospedagem)
+
+**Frontend Web**
+- React + Vite
+- Tailwind CSS
+- Cloudflare DNS
+
+**Mobile**
+- React Native
+- Expo
+- Auto-detect IP (dev)
+
+**Integrações**
+- Evolution API (WhatsApp)
+- DigitalOcean (Evolution hosting)
 
 ## Autor
-
 - [Pedro Campelo](https://github.com/PedroRCampelo)
