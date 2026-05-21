@@ -168,9 +168,10 @@ const TOOL_LAYOUT_CSS = `
 /* ── Header ──────────────────────────────────────────────────────────── */
 
 .tool-header {
-    background: var(--surface);
+    background: var(--bg);
     border-bottom: 1px solid var(--hair);
     flex-shrink: 0;
+    padding-top: env(safe-area-inset-top);
 }
 
 .tool-header-inner {
