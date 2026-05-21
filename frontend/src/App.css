@@ -1826,7 +1826,7 @@ a     { color: inherit; text-decoration: none; }
   }
 
   /* Conteudo principal */
-  .app-shell             { padding-top: 104px; } /* topbar mobile: 10px padding + 80px inner + 14px folga */
+  .app-shell             { padding-top: 63px; } /* topbar mobile */
   .app-shell--auth       { padding-top: 0; }     /* auth pages gerenciam seu próprio padding */
   .app-shell--fullscreen { padding-top: 0; }     /* landing/auth split-screen ocupam 100vh */
 
