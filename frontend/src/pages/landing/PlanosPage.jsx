@@ -182,11 +182,17 @@ export default function PlanosPage() {
         }
         setCarregandoPlus(true);
         try {
-            const { data } = await api.post("/api/stripe/checkout/whallet-plus");
-            window.location.href = data.url;
+            await api.post("/api/stripe/ativar-gratuito");
+            await atualizarUsuario();
+            navigate("/fluxo-caixa");
         } catch (err) {
             setCarregandoPlus(false);
-            alert(err.response?.data?.mensagem ?? "Erro ao iniciar assinatura.");
+            const msg = err.response?.data?.mensagem ?? "";
+            if (msg.includes("e-mail")) {
+                alert("Confirme seu e-mail primeiro. Verifique sua caixa de entrada.");
+            } else {
+                alert(msg || "Erro ao ativar plano.");
+            }
         }
     }
 
@@ -295,10 +301,17 @@ export default function PlanosPage() {
                             <span className="pp-plan-tag">Recomendado</span>
                             <h3 className="pp-plan-name">Whallet+</h3>
                             <div className="pp-plan-price">
-                                <span className="pp-plan-price-value">R$ 39,90</span>
-                                <span className="pp-plan-price-period">/ mês</span>
+                                <span className="pp-plan-price-value" style={{ textDecoration: "line-through", opacity: 0.4, fontSize: "0.75em" }}>R$ 39,90</span>
+                                <span className="pp-plan-price-value" style={{ color: "var(--cyan)" }}>Grátis</span>
                             </div>
-                            <div className="pp-plan-trial">7 dias grátis · sem cartão</div>
+                            <div style={{
+                                display: "inline-flex", alignItems: "center", gap: 6,
+                                background: "rgba(21,195,221,0.1)", border: "1px solid rgba(21,195,221,0.25)",
+                                color: "var(--cyan-deep)", borderRadius: 999,
+                                padding: "4px 12px", fontSize: 12, fontWeight: 600, marginBottom: 8,
+                            }}>
+                                🎉 Gratuito durante o período beta
+                            </div>
 
                             {!autenticado ? (
                                 <button
@@ -355,7 +368,7 @@ export default function PlanosPage() {
                                                 disabled={carregandoPlus}
                                                 style={{ marginTop: 6 }}
                                             >
-                                                {carregandoPlus ? "Carregando..." : "Assinar direto"}
+                                                {carregandoPlus ? "Ativando..." : "Ativar sem trial"}
                                             </button>
                                         </>
                                     ) : (
@@ -364,7 +377,7 @@ export default function PlanosPage() {
                                             onClick={handleAssinarPlus}
                                             disabled={carregandoPlus}
                                         >
-                                            {carregandoPlus ? "Carregando..." : "Assinar Whallet+"}
+                                            {carregandoPlus ? "Ativando..." : "Ativar grátis"}
                                             {!carregandoPlus && <LuArrowRight size={14}/>}
                                         </button>
                                     )}
@@ -602,23 +615,13 @@ export default function PlanosPage() {
                         </>
                     ) : !temWhalletPlus ? (
                         <>
-                            {trial && !trial.jaUsou ? (
-                                <button
-                                    className="pp-cta-final-button"
-                                    onClick={handleAtivarTrial}
-                                    disabled={ativandoTrial}
-                                >
-                                    {ativandoTrial ? "Ativando..." : "Experimentar grátis 7 dias →"}
-                                </button>
-                            ) : (
-                                <button
-                                    className="pp-cta-final-button"
-                                    onClick={handleAssinarPlus}
-                                    disabled={carregandoPlus}
-                                >
-                                    {carregandoPlus ? "Carregando..." : "Assinar Whallet+ →"}
-                                </button>
-                            )}
+                            <button
+                                className="pp-cta-final-button"
+                                onClick={handleAssinarPlus}
+                                disabled={carregandoPlus}
+                            >
+                                {carregandoPlus ? "Ativando..." : "Ativar Whallet+ grátis →"}
+                            </button>
                         </>
                     ) : (
                         <button

@@ -66,6 +66,17 @@ public class StripeController {
         }
     }
 
+    // Ativação gratuita (modo beta) — sem Stripe, requer e-mail verificado
+    @PostMapping("/ativar-gratuito")
+    public ResponseEntity<?> ativarGratuito(@AuthenticationPrincipal Usuario usuario) {
+        try {
+            stripeService.ativarGratuito(usuario);
+            return ResponseEntity.ok(Map.of("mensagem", "Whallet+ ativado com sucesso!"));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(Map.of("mensagem", e.getMessage()));
+        }
+    }
+
     // Status da assinatura — lê do banco (sem chamada ao Stripe)
     @GetMapping("/status-assinatura")
     public ResponseEntity<?> statusAssinatura(@AuthenticationPrincipal Usuario usuario) {

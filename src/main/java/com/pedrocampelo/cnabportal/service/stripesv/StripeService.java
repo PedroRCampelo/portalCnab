@@ -144,6 +144,22 @@ public class StripeService {
         return result;
     }
 
+    // ── Ativação gratuita (beta) — sem Stripe ─────────────────────────────────
+    @org.springframework.transaction.annotation.Transactional
+    public void ativarGratuito(Usuario usuario) {
+        if (!Boolean.TRUE.equals(usuario.getEmailVerificado())) {
+            throw new IllegalStateException("Confirme seu e-mail antes de ativar o plano.");
+        }
+        if (PLANO_WHALLET_PLUS.equals(usuario.getPlanoId())
+                && ("ATIVA".equals(usuario.getAssinaturaStatus()) || "TRIAL".equals(usuario.getAssinaturaStatus()))) {
+            throw new IllegalStateException("Você já possui o Whallet+ ativo.");
+        }
+        usuario.setPlanoId(PLANO_WHALLET_PLUS);
+        usuario.setAssinaturaStatus("ATIVA");
+        usuarioRepository.save(usuario);
+        log.info("Whallet+ gratuito ativado: usuario={}", usuario.getEmail());
+    }
+
     // ── Cancelamento ao fim do período ────────────────────────────────────────
     public Map<String, Object> cancelarAssinatura(Usuario usuario) throws StripeException {
         com.stripe.model.Subscription subscription = buscarAssinaturaAtiva(usuario);
