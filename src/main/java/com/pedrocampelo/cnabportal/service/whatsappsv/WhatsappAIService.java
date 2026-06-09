@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -37,7 +38,15 @@ public class WhatsappAIService {
 
     private final RestClient restClient = RestClient.builder()
             .baseUrl("https://api.openai.com/v1")
+            .requestFactory(timeoutFactory(12_000, 25_000))
             .build();
+
+    private static SimpleClientHttpRequestFactory timeoutFactory(int connectMs, int readMs) {
+        var f = new SimpleClientHttpRequestFactory();
+        f.setConnectTimeout(connectMs);
+        f.setReadTimeout(readMs);
+        return f;
+    }
 
     public AcaoInterpretada interpretar(WhatsappSessao sessao, String mensagem,
                                         List<WhatsappMensagem> historico) {
@@ -47,9 +56,10 @@ public class WhatsappAIService {
             String resposta = chamarGPT(prompt, mensagem);
             return parseResposta(resposta);
         } catch (Exception e) {
-            log.error("[WhatsApp IA] Erro: {}", e.getMessage(), e);
+            log.error("[WhatsApp IA] Erro ao processar mensagem: {}", e.getMessage());
             return new AcaoInterpretada("CONVERSA", null,
-                    "Desculpe, tive um problema. Pode tentar de novo?");
+                    "⚠️ Estou com instabilidade no momento. Sua mensagem foi recebida!\n\n" +
+                    "Tente novamente em alguns instantes ou acesse *whallet.com.br* para lançar diretamente.");
         }
     }
 
@@ -223,7 +233,7 @@ public class WhatsappAIService {
                 "max_tokens", 500
         );
 
-        int maxRetries = 3;
+        int maxRetries = 2;
         for (int tentativa = 1; tentativa <= maxRetries; tentativa++) {
             try {
                 String response = restClient.post()
@@ -239,9 +249,9 @@ public class WhatsappAIService {
             } catch (org.springframework.web.client.ResourceAccessException e) {
                 log.warn("[WhatsApp IA] Tentativa {}/{} falhou ({}), {}",
                         tentativa, maxRetries, e.getMessage(),
-                        tentativa < maxRetries ? "retentando..." : "desistindo.");
+                        tentativa < maxRetries ? "retentando em 1s..." : "desistindo.");
                 if (tentativa >= maxRetries) throw e;
-                try { Thread.sleep(800L * tentativa); } catch (InterruptedException ie) {
+                try { Thread.sleep(1_000L); } catch (InterruptedException ie) {
                     Thread.currentThread().interrupt(); throw e;
                 }
             } catch (Exception e) {
