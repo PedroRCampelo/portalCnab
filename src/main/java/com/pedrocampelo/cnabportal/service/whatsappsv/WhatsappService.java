@@ -49,7 +49,7 @@ public class WhatsappService {
 
     @Value("${whatsapp.evolution.url:http://157.245.90.220:8080}")
     private String evolutionUrl;
-    @Value("${whatsapp.evolution.apikey:daffa157541e2a24191d0d07910db7760c2b6330}")
+    @Value("${whatsapp.evolution.apikey:}")
     private String evolutionApiKey;
     @Value("${whatsapp.evolution.instance:whallet}")
     private String evolutionInstance;
