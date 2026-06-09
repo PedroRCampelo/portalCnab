@@ -149,8 +149,7 @@ public class WhatsappService {
 
             // Mensagem de instrução para não cadastrados
             log.warn("[WhatsApp] LID {} não vinculado", lid);
-            // Tenta encontrar telefone real pelo sender
-            String sender = (String) payload.get("sender");  // "558183581478@s.whatsapp.net"
+            String sender = (String) payload.get("sender");
             if (sender != null) {
                 String numSender = sender.split("@")[0];
                 enviarMensagem(numSender,
@@ -717,10 +716,15 @@ public class WhatsappService {
     public void enviarMensagem(String numero, String texto) {
         try {
             HttpHeaders h = new HttpHeaders(); h.setContentType(MediaType.APPLICATION_JSON); h.set("apikey", evolutionApiKey);
-            restTemplate.postForEntity(evolutionUrl + "/message/sendText/" + evolutionInstance,
+            log.info("[WhatsApp] Enviando para {} | url={} | instance={} | keyLen={}",
+                    numero, evolutionUrl, evolutionInstance,
+                    evolutionApiKey != null ? evolutionApiKey.length() : 0);
+            var resp = restTemplate.postForEntity(evolutionUrl + "/message/sendText/" + evolutionInstance,
                     new HttpEntity<>(Map.of("number", numero, "textMessage", Map.of("text", texto)), h), String.class);
-            log.info("[WhatsApp] Enviado para {}: {}...", numero, texto.substring(0, Math.min(50, texto.length())));
-        } catch (Exception e) { log.error("[WhatsApp] Erro envio: {}", e.getMessage()); }
+            log.info("[WhatsApp] Enviado para {} | status={} | body={}",
+                    numero, resp.getStatusCode(),
+                    resp.getBody() != null ? resp.getBody().substring(0, Math.min(120, resp.getBody().length())) : "null");
+        } catch (Exception e) { log.error("[WhatsApp] Erro envio para {}: {}", numero, e.getMessage()); }
     }
 
     @Transactional
