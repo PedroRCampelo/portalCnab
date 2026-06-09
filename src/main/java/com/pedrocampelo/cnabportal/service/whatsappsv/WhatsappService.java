@@ -147,20 +147,8 @@ public class WhatsappService {
             String possivelCodigo = texto.trim().replaceAll("\\s", "");
             if (possivelCodigo.matches("\\d{6}")) { tentarVerificar(lid, possivelCodigo); return; }
 
-            // Mensagem de instrução para não cadastrados
-            log.warn("[WhatsApp] LID {} não vinculado", lid);
-            // Tenta encontrar telefone real pelo sender
-            String sender = (String) payload.get("sender");  // "558183581478@s.whatsapp.net"
-            if (sender != null) {
-                String numSender = sender.split("@")[0];
-                enviarMensagem(numSender,
-                        "👋 Olá! Sou o assistente financeiro da *Whallet*.\n\n" +
-                                "Para usar, você precisa vincular seu WhatsApp na plataforma:\n\n" +
-                                "1️⃣ Acesse *whallet.com.br*\n" +
-                                "2️⃣ Vá em *WhatsApp Bot* no menu lateral\n" +
-                                "3️⃣ Digite seu número e confirme o código\n\n" +
-                                "Após vincular, é só mandar comandos como:\n💸 \"Gastei 200 na padaria\"\n💰 \"Recebi 1500 do João\"");
-            }
+            // LID não vinculado — silêncio total (não responder evita loop com o próprio número do bot)
+            log.warn("[WhatsApp] LID {} não vinculado — ignorando", lid);
 
         } catch (Exception e) { log.error("[WhatsApp] Erro: {}", e.getMessage(), e); }
     }
