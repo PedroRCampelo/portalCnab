@@ -607,7 +607,19 @@ export default function HomePage() {
                         <div className="lp-plan featured">
                             <span className="lp-plan-badge">MAIS POPULAR</span>
                             <div className="lp-plan-name">WHALLET+</div>
-                            <div className="lp-plan-price">R$ 39,90 <span className="per">/ mês</span></div>
+                            <div className="lp-plan-price">
+                                <span style={{ textDecoration: "line-through", opacity: 0.4, fontSize: "0.65em", marginRight: 6 }}>R$ 39,90</span>
+                                Grátis <span className="per">/ beta</span>
+                            </div>
+                            <div style={{
+                                display: "inline-flex", alignItems: "center", gap: 6,
+                                background: "rgba(21,195,221,0.15)", border: "1px solid rgba(21,195,221,0.3)",
+                                color: "#4CDDE8", borderRadius: 999,
+                                padding: "4px 12px", fontSize: 12, fontWeight: 600,
+                                marginBottom: 12,
+                            }}>
+                                🎉 Gratuito durante o período beta
+                            </div>
                             <p className="lp-plan-desc">Gestão completa + Bot WhatsApp + IA sem limites práticos.</p>
                             <ul className="lp-plan-feats">
                                 <li>Tudo do Free</li>
@@ -617,7 +629,7 @@ export default function HomePage() {
                                 <li>Relatórios avançados</li>
                                 <li>Suporte prioritário</li>
                             </ul>
-                            <button className="lp-plan-cta pro" onClick={() => navigate("/cadastro")}>Começar 7 dias grátis</button>
+                            <button className="lp-plan-cta pro" onClick={() => navigate("/cadastro")}>Ativar grátis agora</button>
                         </div>
                     </div>
                 </div>
