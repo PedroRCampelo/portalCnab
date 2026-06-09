@@ -113,8 +113,11 @@ public class WhatsappService {
                 isAudio = true;
                 if (texto == null || texto.isBlank()) {
                     Optional<WhatsappSessao> sessaoOpt = sessaoRepository.findByLidAndVerificadaTrueAndAtivaTrue(lid);
-                    if (sessaoOpt.isPresent())
-                        enviarMensagem(sessaoOpt.get().getTelefone(), "🎙️ Não consegui entender o áudio. Tente novamente ou envie por texto.");
+                    if (sessaoOpt.isPresent()) {
+                        WhatsappSessao s = sessaoOpt.get();
+                        String dest = (s.getRemoteJid() != null && !s.getRemoteJid().isBlank()) ? s.getRemoteJid() : s.getTelefone();
+                        enviarMensagem(dest, "🎙️ Não consegui entender o áudio. Tente novamente ou envie por texto.");
+                    }
                     return;
                 }
                 log.info("[WhatsApp] Transcrição: \"{}\"", texto);
@@ -126,7 +129,16 @@ public class WhatsappService {
             log.info("[WhatsApp] {} de {}: {}", isAudio ? "Áudio" : "Texto", lid, texto);
 
             Optional<WhatsappSessao> sessaoOpt = sessaoRepository.findByLidAndVerificadaTrueAndAtivaTrue(lid);
-            if (sessaoOpt.isPresent()) { processarMensagemVinculada(sessaoOpt.get(), texto, isAudio); return; }
+            if (sessaoOpt.isPresent()) {
+                WhatsappSessao sessao = sessaoOpt.get();
+                // Armazena o remoteJid (formato @lid) para replies diretos sem depender do telefone
+                if (!remoteJid.equals(sessao.getRemoteJid())) {
+                    sessao.setRemoteJid(remoteJid);
+                    sessaoRepository.save(sessao);
+                }
+                processarMensagemVinculada(sessao, texto, isAudio);
+                return;
+            }
 
             // Auto-link: sessão verificada pela web (sem LID) → primeira msg no WhatsApp completa o vínculo
             List<WhatsappSessao> semLid = sessaoRepository.findAll().stream()
@@ -137,6 +149,7 @@ public class WhatsappService {
             if (semLid.size() == 1) {
                 WhatsappSessao s = semLid.get(0);
                 s.setLid(lid);
+                s.setRemoteJid(remoteJid);
                 s.setUltimaMensagemEm(LocalDateTime.now());
                 sessaoRepository.save(s);
                 log.info("[WhatsApp] Auto-link: LID {} → sessão {} (verificação web)", lid, s.getId());
@@ -272,7 +285,10 @@ public class WhatsappService {
             default -> respostaFinal = acao.resposta();
         }
 
-        enviarMensagem(sessao.getTelefone(), respostaFinal);
+        // Usa remoteJid (@lid) se disponível — evita truncamento do 9 pela Evolution API
+        String destino = (sessao.getRemoteJid() != null && !sessao.getRemoteJid().isBlank())
+                ? sessao.getRemoteJid() : sessao.getTelefone();
+        enviarMensagem(destino, respostaFinal);
         salvarMensagem(sessao.getId(), "SAIDA", "TEXTO", respostaFinal, null);
     }
 

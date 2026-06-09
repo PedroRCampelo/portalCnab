@@ -31,6 +31,10 @@ public class WhatsappSessao {
     @Column(length = 50)
     private String lid;
 
+    /** remoteJid completo (ex: 196219892703351@lid) — usado para replies diretos */
+    @Column(name = "remote_jid", length = 80)
+    private String remoteJid;
+
     /** Código de verificação de 6 dígitos enviado via WhatsApp */
     @Column(name = "codigo_verificacao", length = 6)
     private String codigoVerificacao;
