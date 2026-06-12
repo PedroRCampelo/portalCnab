@@ -45,6 +45,7 @@ public class WhatsappService {
     private final RecebimentoService recebimentoService;
     private final TituloService tituloService;
     private final ObjectMapper objectMapper;
+    private final WhatsappProviderFactory providerFactory;
     private final RestTemplate restTemplate = new RestTemplate();
 
     @Value("${whatsapp.evolution.url:http://157.245.90.220:8080}")
@@ -703,12 +704,78 @@ public class WhatsappService {
     }
 
     public void enviarMensagem(String numero, String texto) {
+        providerFactory.get().enviarMensagem(numero, texto);
+    }
+
+    // ═══ WEBHOOK META ════════════════════════════════════════════════════════
+
+    @SuppressWarnings("unchecked")
+    public void processarMensagemMeta(Map<String, Object> payload) {
         try {
-            HttpHeaders h = new HttpHeaders(); h.setContentType(MediaType.APPLICATION_JSON); h.set("apikey", evolutionApiKey);
-            restTemplate.postForEntity(evolutionUrl + "/message/sendText/" + evolutionInstance,
-                    new HttpEntity<>(Map.of("number", numero, "textMessage", Map.of("text", texto)), h), String.class);
-            log.info("[WhatsApp] Enviado para {}: {}...", numero, texto.substring(0, Math.min(50, texto.length())));
-        } catch (Exception e) { log.error("[WhatsApp] Erro envio: {}", e.getMessage()); }
+            var entries = (List<Map<String, Object>>) payload.get("entry");
+            if (entries == null) return;
+            for (var entry : entries) {
+                var changes = (List<Map<String, Object>>) entry.get("changes");
+                if (changes == null) continue;
+                for (var change : changes) {
+                    if (!"messages".equals(change.get("field"))) continue;
+                    var value = (Map<String, Object>) change.get("value");
+                    if (value == null) continue;
+                    var messages = (List<Map<String, Object>>) value.get("messages");
+                    if (messages == null) continue;
+                    for (var msg : messages) {
+                        String from = (String) msg.get("from"); // ex: "5581996774063"
+                        String type = (String) msg.get("type");
+                        String texto = null;
+                        boolean isAudio = false;
+
+                        if ("text".equals(type)) {
+                            var textObj = (Map<String, Object>) msg.get("text");
+                            if (textObj != null) texto = (String) textObj.get("body");
+                        } else if ("audio".equals(type)) {
+                            // áudio: por ora trata como não suportado — pode integrar depois
+                            log.info("[WhatsApp/Meta] Áudio recebido de {} — não suportado ainda", from);
+                        }
+
+                        if (texto == null && !isAudio) continue;
+                        log.info("[WhatsApp/Meta] Mensagem de {}: {}", from, texto);
+
+                        // Reutiliza a mesma lógica de sessão — LID = número sem código do país
+                        String lid = from;
+                        Optional<WhatsappSessao> sessaoOpt = sessaoRepository.findByLidAndVerificadaTrueAndAtivaTrue(lid);
+                        if (sessaoOpt.isPresent()) {
+                            processarMensagemVinculada(sessaoOpt.get(), texto, false);
+                            continue;
+                        }
+
+                        // Auto-link
+                        List<WhatsappSessao> semLid = sessaoRepository.findAll().stream()
+                                .filter(s -> Boolean.TRUE.equals(s.getAtiva())
+                                        && Boolean.TRUE.equals(s.getVerificada())
+                                        && (s.getLid() == null || s.getLid().isBlank()))
+                                .toList();
+                        if (semLid.size() == 1) {
+                            WhatsappSessao s = semLid.get(0);
+                            s.setLid(lid);
+                            s.setUltimaMensagemEm(LocalDateTime.now());
+                            sessaoRepository.save(s);
+                            processarMensagemVinculada(s, texto, false);
+                            continue;
+                        }
+
+                        // Código de verificação
+                        if (texto != null && texto.trim().replaceAll("\\s", "").matches("\\d{6}")) {
+                            tentarVerificar(lid, texto.trim().replaceAll("\\s", ""));
+                            continue;
+                        }
+
+                        log.warn("[WhatsApp/Meta] Número {} não vinculado — ignorando", from);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("[WhatsApp/Meta] Erro: {}", e.getMessage(), e);
+        }
     }
 
     @Transactional

@@ -125,6 +125,19 @@ export default function WhatsAppPage() {
 
     return (
         <div className="wa-page">
+            {/* ── Aviso de manutenção ── */}
+            <div className="wa-manutencao">
+                <div className="wa-manutencao-icon">🔧</div>
+                <div className="wa-manutencao-body">
+                    <strong>Bot WhatsApp em manutenção</strong>
+                    <p>
+                        Estamos migrando nossa infraestrutura de WhatsApp para a <strong>API Oficial do Meta</strong>,
+                        garantindo maior estabilidade e confiabilidade. O serviço ficará indisponível durante esse período.
+                        Avisaremos assim que a migração for concluída.
+                    </p>
+                </div>
+            </div>
+
             {/* Header */}
             <div className="wa-header">
                 <div className="wa-header-icon"><LuMessageCircle size={28} /></div>
@@ -379,4 +392,9 @@ const CSS = `
 .wa-cmd-desc{font-size:12px;color:var(--text-dim)}
 
 @media(max-width:600px){.wa-input-row{flex-direction:column}.wa-input-wrap{min-width:100%}.wa-actions{flex-direction:column}.wa-code-row{flex-direction:column;align-items:stretch}.wa-code-wrap{max-width:100%}}
+
+.wa-manutencao{display:flex;align-items:flex-start;gap:14px;padding:16px 20px;border-radius:12px;background:rgba(245,166,35,.08);border:1.5px solid rgba(245,166,35,.35);margin-bottom:24px}
+.wa-manutencao-icon{font-size:22px;flex-shrink:0;margin-top:2px}
+.wa-manutencao-body strong{display:block;font-size:14px;color:var(--warning);font-weight:700;margin-bottom:4px}
+.wa-manutencao-body p{font-size:13px;color:var(--ink-2);margin:0;line-height:1.55}
 `;

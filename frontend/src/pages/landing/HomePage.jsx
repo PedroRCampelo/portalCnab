@@ -80,7 +80,7 @@ const FEATURES = [
 
 const STEPS = [
     { n: "1", title: "Crie sua conta", desc: "Cadastro rápido com e-mail ou Google. Sem cartão, sem compromisso." },
-    { n: "2", title: "Vincule o WhatsApp", desc: "Código de 6 dígitos no app → bot ativo. Comece a conversar com sua gestão financeira." },
+    { n: "2", title: "Vincule o WhatsApp", desc: "Código de 6 dígitos no app → bot ativo. (Em breve — migrando para API Oficial do Meta)" },
     { n: "3", title: "Gerencie pelo chat", desc: "Envie áudios, pergunte saldos, peça relatórios. Tudo pelo WhatsApp que você já usa." },
 ];
 
@@ -106,7 +106,7 @@ const PERSONAS = [
 ];
 
 const FAQ_DATA = [
-    { q: "Como funciona o Bot WhatsApp?", a: "Depois de vincular seu número com um código de 6 dígitos, o bot fica disponível 24h. Você envia mensagens de texto ou áudio e ele responde com dados reais do seu caixa — saldos, vencimentos, relatórios." },
+    { q: "Como funciona o Bot WhatsApp?", a: "Depois de vincular seu número com um código de 6 dígitos, o bot fica disponível 24h. Você envia mensagens de texto ou áudio e ele responde com dados reais do seu caixa — saldos, vencimentos, relatórios. Atualmente estamos migrando para a API Oficial do Meta para garantir maior estabilidade. O serviço volta em breve." },
     { q: "Preciso instalar algum app?", a: "Não. O Whallet é 100% web. O bot funciona no seu WhatsApp normal — sem apps extras, sem configurações complexas." },
     { q: "Meus dados financeiros estão seguros?", a: "Sim. Usamos criptografia em trânsito e em repouso, autenticação JWT, e não armazenamos dados bancários de acesso. Hospedagem em servidores certificados." },
     { q: "Posso testar antes de pagar?", a: "Sim! O plano Free é permanente e inclui validação CNAB + 5 consultas Elvis/mês. O Whallet+ tem 7 dias grátis, sem cartão obrigatório no cadastro." },
@@ -454,8 +454,24 @@ export default function HomePage() {
                         <div className="lp-wa-content reveal">
                             <span className="lp-section-eyebrow">BOT WHATSAPP</span>
                             <h2>Sua gestão financeira a uma <em>mensagem</em> de distância.</h2>
+
+                            {/* Aviso de manutenção */}
+                            <div style={{
+                                display: "flex", alignItems: "flex-start", gap: 12,
+                                padding: "14px 18px", borderRadius: 10,
+                                background: "rgba(245,166,35,.1)", border: "1.5px solid rgba(245,166,35,.3)",
+                                marginBottom: 20,
+                            }}>
+                                <span style={{ fontSize: 18, flexShrink: 0 }}>🔧</span>
+                                <div style={{ fontSize: 13, lineHeight: 1.55 }}>
+                                    <strong style={{ display: "block", marginBottom: 3, color: "#c87f00" }}>Em manutenção — retornando em breve</strong>
+                                    Estamos migrando para a <strong>API Oficial do Meta</strong> para garantir maior estabilidade.
+                                    Cadastre-se e seja notificado quando o bot voltar.
+                                </div>
+                            </div>
+
                             <p className="lp-wa-sub">
-                                Vinculou? Pronto. Mande texto ou áudio — o bot transcreve, interpreta e
+                                Mande texto ou áudio — o bot transcreve, interpreta e
                                 responde com dados reais do seu caixa. É como ter um CFO no bolso.
                             </p>
                             <div className="lp-wa-actions">
@@ -465,7 +481,7 @@ export default function HomePage() {
                                 <div className="lp-wa-action"><strong>🔔 Alertas</strong><br/>Notificações proativas de vencimentos</div>
                             </div>
                             <button className="lp-wa-cta-btn" onClick={() => navigate("/cadastro")}>
-                                Ativar Bot WhatsApp →
+                                Cadastrar e ser notificado →
                             </button>
                         </div>
                         <div className="lp-wa-mockup reveal reveal-d2">

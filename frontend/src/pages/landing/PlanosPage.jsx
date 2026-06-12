@@ -35,7 +35,7 @@ const FEATURE_GROUPS = [
         features: [
             { name: "Visualizar telas (somente leitura)",   free: true,  plus: true },
             { name: "Recebimentos · criar e editar",        free: false, plus: true },
-            { name: "Cobrança via WhatsApp",                free: false, plus: true },
+            { name: "Cobrança via WhatsApp",                sub: "em manutenção · migração Meta API", free: false, plus: true },
             { name: "Títulos a pagar · criar e editar",     free: false, plus: true },
             { name: "Lançamento parcelado",                 free: false, plus: true },
             { name: "Importar títulos via Excel",           free: false, plus: true },
@@ -228,6 +228,22 @@ export default function PlanosPage() {
 
     return (
         <div className="pp">
+
+            {/* Aviso de manutenção do WhatsApp */}
+            <div style={{
+                background: "rgba(245,166,35,.08)",
+                borderBottom: "1px solid rgba(245,166,35,.25)",
+                padding: "12px 24px",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                gap: 10, fontSize: 13, color: "var(--warning)", textAlign: "center",
+                flexWrap: "wrap",
+            }}>
+                <span>🔧</span>
+                <span>
+                    <strong>Bot WhatsApp em manutenção.</strong>{" "}
+                    Estamos migrando para a API Oficial do Meta. O serviço voltará em breve com mais estabilidade.
+                </span>
+            </div>
 
             <button
                 onClick={() => navigate("/")}
