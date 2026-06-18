@@ -25,8 +25,8 @@
     --wa-dark: #0B141A;
     --wa-bubble-in: #202C33;
     --wa-bubble-out: #005C4B;
-    --ff-sans: 'Geist', -apple-system, sans-serif;
-    --ff-mono: 'Geist Mono', monospace;
+    --ff-sans: 'Space Grotesk', -apple-system, sans-serif;
+    --ff-mono: 'Space Mono', monospace;
     --ff-serif: 'Instrument Serif', serif;
     background: var(--bg-page);
     color: var(--ink);
