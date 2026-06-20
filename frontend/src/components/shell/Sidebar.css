@@ -89,6 +89,13 @@
     color: var(--navy-deep);
 }
 
+/* Item desabilitado */
+.sb-item--disabled {
+    opacity: 0.38;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
 /* Item ativo */
 .sb-item.active {
     background: var(--cyan-soft);

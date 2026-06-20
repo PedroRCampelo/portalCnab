@@ -58,7 +58,7 @@ const MENU = [
         label: "Inteligência",
         items: [
             { to: "/assistente-cnab", icon: LuBot,            label: "Agente Elvis" },
-            { to: "/whatsapp",        icon: LuMessageCircle,  label: "WhatsApp Bot" },
+            { to: "/whatsapp",        icon: LuMessageCircle,  label: "WhatsApp Bot", disabled: true },
         ],
     },
     {
@@ -105,6 +105,18 @@ export default function Sidebar({ onItemClick }) {
                             {grupo.items.map(item => {
                                 const Icon = item.icon;
                                 const ativo = isActive(item.to);
+                                if (item.disabled) {
+                                    return (
+                                        <span
+                                            key={item.to}
+                                            className="sb-item sb-item--disabled"
+                                            data-tooltip={`${item.label} (em breve)`}
+                                        >
+                                            <span className="sb-item-icon"><Icon size={16}/></span>
+                                            <span className="sb-item-label">{item.label}</span>
+                                        </span>
+                                    );
+                                }
                                 return (
                                     <Link
                                         key={item.to}
