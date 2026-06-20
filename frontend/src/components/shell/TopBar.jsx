@@ -95,7 +95,10 @@ export default function TopBar({ onMobileMenuToggle, mobileOpen = false }) {
                     {/* Seletor de empresa — TODO: dropdown quando multi-empresa */}
                     <button className="tb-empresa">
                         <div className="tb-empresa-icon">
-                            {empresaIniciais}
+                            {empresa?.logoBase64
+                                ? <img src={empresa.logoBase64} alt="" className="tb-empresa-logo"/>
+                                : empresaIniciais
+                            }
                         </div>
                         <div className="tb-empresa-text">
                             <span className="tb-empresa-label">Empresa</span>

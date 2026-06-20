@@ -1,5 +1,7 @@
+import { useState } from "react";
 import Modal from "../../../components/ui/Modal.jsx";
-import { LuPencil, LuCircleCheck } from "react-icons/lu";
+import { LuPencil, LuCircleCheck, LuPrinter } from "react-icons/lu";
+import OrcamentoPrint from "./OrcamentoPrint.jsx";
 
 function fmt(valor) {
     return Number(valor ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -28,6 +30,11 @@ const FORMA_PAG_LABELS = {
 
 export default function OrcamentoDetalhes({ orcamento: orc, onFechar, onEditar, onMudarStatus }) {
     const emPedido = orc.status === "EM_PEDIDO";
+    const [imprimindo, setImprimindo] = useState(false);
+
+    if (imprimindo) {
+        return <OrcamentoPrint orcamento={orc} onFechar={() => setImprimindo(false)}/>;
+    }
 
     return (
         <Modal
@@ -36,40 +43,45 @@ export default function OrcamentoDetalhes({ orcamento: orc, onFechar, onEditar, 
             onClose={onFechar}
             size="lg"
             actions={
-                !emPedido && (
-                    <div style={{ display: "flex", gap: "8px" }}>
-                        {orc.editavel && (
-                            <button className="ph-btn" onClick={onEditar}>
-                                <LuPencil size={14}/> Editar
-                            </button>
-                        )}
-                        {orc.status === "RASCUNHO" && (
-                            <button className="ph-btn ph-btn--primary" onClick={() => onMudarStatus("ENVIADO")}>
-                                Marcar como enviado
-                            </button>
-                        )}
-                        {orc.status === "ENVIADO" && (
-                            <>
+                <div style={{ display: "flex", gap: "8px" }}>
+                    <button className="ph-btn" onClick={() => setImprimindo(true)}>
+                        <LuPrinter size={14}/> Imprimir
+                    </button>
+                    {!emPedido && (
+                        <>
+                            {orc.editavel && (
+                                <button className="ph-btn" onClick={onEditar}>
+                                    <LuPencil size={14}/> Editar
+                                </button>
+                            )}
+                            {orc.status === "RASCUNHO" && (
+                                <button className="ph-btn ph-btn--primary" onClick={() => onMudarStatus("ENVIADO")}>
+                                    Marcar como enviado
+                                </button>
+                            )}
+                            {orc.status === "ENVIADO" && (
+                                <>
+                                    <button className="ph-btn" onClick={() => onMudarStatus("RASCUNHO")}>
+                                        Voltar para rascunho
+                                    </button>
+                                    <button className="ph-btn ph-btn--primary" onClick={() => onMudarStatus("APROVADO")}>
+                                        <LuCircleCheck size={14}/> Aprovar
+                                    </button>
+                                </>
+                            )}
+                            {orc.status === "APROVADO" && (
+                                <button className="ph-btn" onClick={() => onMudarStatus("RECUSADO")}>
+                                    Marcar como recusado
+                                </button>
+                            )}
+                            {orc.status === "RECUSADO" && (
                                 <button className="ph-btn" onClick={() => onMudarStatus("RASCUNHO")}>
-                                    Voltar para rascunho
+                                    Reabrir como rascunho
                                 </button>
-                                <button className="ph-btn ph-btn--primary" onClick={() => onMudarStatus("APROVADO")}>
-                                    <LuCircleCheck size={14}/> Aprovar
-                                </button>
-                            </>
-                        )}
-                        {orc.status === "APROVADO" && (
-                            <button className="ph-btn" onClick={() => onMudarStatus("RECUSADO")}>
-                                Marcar como recusado
-                            </button>
-                        )}
-                        {orc.status === "RECUSADO" && (
-                            <button className="ph-btn" onClick={() => onMudarStatus("RASCUNHO")}>
-                                Reabrir como rascunho
-                            </button>
-                        )}
-                    </div>
-                )
+                            )}
+                        </>
+                    )}
+                </div>
             }
         >
             <Modal.Body>

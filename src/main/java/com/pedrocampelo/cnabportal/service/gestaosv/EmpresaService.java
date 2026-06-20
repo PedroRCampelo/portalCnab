@@ -173,10 +173,22 @@ public class EmpresaService {
             }
         }
 
+        if (request.telefone() != null)     empresa.setTelefone(request.telefone().trim());
+        if (request.emailEmpresa() != null) empresa.setEmailEmpresa(request.emailEmpresa().trim());
+
         Empresa salva = empresaRepository.save(empresa);
         log.info("Empresa atualizada: {} (regime={}, dasAtivo={})",
                 salva.getId(), salva.getRegimeTributario(), salva.getDasAtivo());
 
+        return EmpresaResponse.from(salva, valorDasEfetivo(salva));
+    }
+
+    public EmpresaResponse salvarLogo(Usuario usuario, String logoBase64) {
+        Empresa empresa = empresaRepository.findById(usuario.getEmpresa().getId())
+                .orElseThrow(() -> new java.util.NoSuchElementException("Empresa não encontrada"));
+        empresa.setLogoBase64(logoBase64);
+        Empresa salva = empresaRepository.save(empresa);
+        log.info("Logo {} para empresa {}", logoBase64 == null ? "removida" : "salva", salva.getId());
         return EmpresaResponse.from(salva, valorDasEfetivo(salva));
     }
 
