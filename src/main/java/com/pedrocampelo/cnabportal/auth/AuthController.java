@@ -6,6 +6,7 @@ import com.pedrocampelo.cnabportal.auth.dto.CadastroRequest;
 import com.pedrocampelo.cnabportal.auth.dto.GoogleAuthRequest;
 import com.pedrocampelo.cnabportal.auth.dto.RegisterRequest;
 import com.pedrocampelo.cnabportal.config.LoginRateLimiter;
+import com.pedrocampelo.cnabportal.dto.EmpresaDtos.EmpresaResumo;
 import com.pedrocampelo.cnabportal.model.Empresa;
 import com.pedrocampelo.cnabportal.model.Usuario;
 import com.pedrocampelo.cnabportal.model.Usuario.PapelEmpresa;
@@ -83,7 +84,8 @@ public class AuthController {
                     usuario.getPlanoId(),
                     Boolean.TRUE.equals(usuario.getEmailVerificado()),
                     usuario.getAssinaturaStatus(),
-                    usuario.getAssinaturaExpiraEm()
+                    usuario.getAssinaturaExpiraEm(),
+                    usuario.getEmpresa() != null ? EmpresaResumo.from(usuario.getEmpresa()) : null
             ));
 
         } catch (DisabledException e) {
@@ -151,7 +153,8 @@ public class AuthController {
                 usuario.getPlanoId(),
                 Boolean.TRUE.equals(usuario.getEmailVerificado()),
                 usuario.getAssinaturaStatus(),
-                usuario.getAssinaturaExpiraEm()
+                usuario.getAssinaturaExpiraEm(),
+                usuario.getEmpresa() != null ? EmpresaResumo.from(usuario.getEmpresa()) : null
         ));
     }
 
@@ -310,7 +313,8 @@ public class AuthController {
                 usuario.getPlanoId(),
                 Boolean.TRUE.equals(usuario.getEmailVerificado()),
                 usuario.getAssinaturaStatus(),
-                usuario.getAssinaturaExpiraEm()
+                usuario.getAssinaturaExpiraEm(),
+                usuario.getEmpresa() != null ? EmpresaResumo.from(usuario.getEmpresa()) : null
         ));
     }
 

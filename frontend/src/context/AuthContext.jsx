@@ -49,11 +49,32 @@ export function AuthProvider({ children }) {
         }
     }, []);
 
+    // Atualiza dados da empresa no contexto (logo, nome, telefone, etc.)
+    // chamado após ConfiguracoesPage salvar ou fazer upload de logo
+    const atualizarEmpresa = useCallback(async () => {
+        try {
+            const { data } = await api.get("/api/empresa");
+            setUsuario(prev => {
+                if (!prev) return prev;
+                const empresa = {
+                    id:          data.id,
+                    nome:        data.nome,
+                    logoBase64:  data.logoBase64 ?? null,
+                };
+                const atualizado = { ...prev, empresa };
+                localStorage.setItem("auth", JSON.stringify(atualizado));
+                return atualizado;
+            });
+        } catch {
+            // Silencioso — falha não quebra a sessão
+        }
+    }, []);
+
     const token = usuario?.token ?? null;
     const autenticado = !!token;
 
     return (
-        <AuthContext.Provider value={{ usuario, token, autenticado, login, logout, atualizarUsuario }}>
+        <AuthContext.Provider value={{ usuario, token, autenticado, login, logout, atualizarUsuario, atualizarEmpresa }}>
             {children}
         </AuthContext.Provider>
     );

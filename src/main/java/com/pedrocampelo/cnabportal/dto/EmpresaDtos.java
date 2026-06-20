@@ -19,6 +19,15 @@ public final class EmpresaDtos {
     /**
      * Resposta com dados da empresa do MEI logado.
      */
+    /**
+     * Resumo da empresa para o token de autenticação e topbar.
+     */
+    public record EmpresaResumo(UUID id, String nome, String logoBase64) {
+        public static EmpresaResumo from(Empresa e) {
+            return new EmpresaResumo(e.getId(), e.getNome(), e.getLogoBase64());
+        }
+    }
+
     public record EmpresaResponse(
             UUID id,
             String nome,
@@ -35,7 +44,12 @@ public final class EmpresaDtos {
 
             // DAS
             Boolean dasAtivo,
-            BigDecimal dasValorEfetivo    // calculado pelo service
+            BigDecimal dasValorEfetivo,   // calculado pelo service
+
+            // Identidade / contato
+            String logoBase64,
+            String telefone,
+            String emailEmpresa
     ) {
         public static EmpresaResponse from(Empresa e, BigDecimal valorEfetivo) {
             return new EmpresaResponse(
@@ -48,20 +62,17 @@ public final class EmpresaDtos {
                     e.getMeiCategoria(),
                     e.getMeiValorDasMensal(),
                     e.getDasAtivo(),
-                    valorEfetivo
+                    valorEfetivo,
+                    e.getLogoBase64(),
+                    e.getTelefone(),
+                    e.getEmailEmpresa()
             );
         }
     }
 
     /**
      * Request de atualização da empresa.
-     *
      * Todos os campos são opcionais (null = não atualiza).
-     *
-     * Mudanças Sprint 2.2-A1.5:
-     *   - regimeTributario: substitui flag implícita "isMei"
-     *   - limiteFaturamentoAnual: substitui limiteAnualMei
-     *   - meiCategoria + meiValorDasMensal: substituem dasCategoria + dasValorMensal
      */
     public record EmpresaUpdateRequest(
             String nome,
@@ -70,7 +81,9 @@ public final class EmpresaDtos {
             BigDecimal limiteFaturamentoAnual,
             CategoriaMei meiCategoria,
             BigDecimal meiValorDasMensal,
-            Boolean meiValorDasMensalEditado,  // flag explícita (null vs reset)
-            Boolean dasAtivo
+            Boolean meiValorDasMensalEditado,
+            Boolean dasAtivo,
+            String telefone,
+            String emailEmpresa
     ) {}
 }
