@@ -4,7 +4,7 @@ import {
     LuActivity, LuHandCoins, LuWalletCards, LuUsers, LuTag,
     LuFileText, LuBot, LuMessageCircle,
     LuSettings, LuPin, LuPinOff, LuBellRing, LuFileSpreadsheet,
-    LuClipboardList,
+    LuClipboardList, LuShoppingCart, LuFileCheck,
 } from "react-icons/lu";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useShell } from "./ShellContext.jsx";
@@ -48,6 +48,13 @@ const MENU = [
         ],
     },
     {
+        label: "Comercial",
+        items: [
+            { to: "/orcamentos",    icon: LuFileCheck,    label: "Orçamentos"       },
+            { to: "/pedidos-venda", icon: LuShoppingCart, label: "Pedidos de Venda" },
+        ],
+    },
+    {
         label: "Relatórios",
         items: [
             { to: "/relatorios", icon: LuFileText,      label: "Relatórios" },
@@ -58,7 +65,7 @@ const MENU = [
         label: "Inteligência",
         items: [
             { to: "/assistente-cnab", icon: LuBot,            label: "Agente Elvis" },
-            { to: "/whatsapp",        icon: LuMessageCircle,  label: "WhatsApp Bot" },
+            { to: "/whatsapp",        icon: LuMessageCircle,  label: "WhatsApp Bot", disabled: true },
         ],
     },
     {
@@ -105,6 +112,18 @@ export default function Sidebar({ onItemClick }) {
                             {grupo.items.map(item => {
                                 const Icon = item.icon;
                                 const ativo = isActive(item.to);
+                                if (item.disabled) {
+                                    return (
+                                        <span
+                                            key={item.to}
+                                            className="sb-item sb-item--disabled"
+                                            data-tooltip={`${item.label} (em breve)`}
+                                        >
+                                            <span className="sb-item-icon"><Icon size={16}/></span>
+                                            <span className="sb-item-label">{item.label}</span>
+                                        </span>
+                                    );
+                                }
                                 return (
                                     <Link
                                         key={item.to}
