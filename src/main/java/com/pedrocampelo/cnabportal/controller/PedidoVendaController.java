@@ -93,4 +93,11 @@ public class PedidoVendaController {
     public ResponseEntity<Map<String, String>> handleIllegalArg(IllegalArgumentException e) {
         return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
     }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, String>> handleGeneric(Exception e) {
+        log.error("Erro inesperado em PedidoVenda: {}", e.getMessage(), e);
+        String msg = e.getCause() != null ? e.getCause().getMessage() : e.getMessage();
+        return ResponseEntity.internalServerError().body(Map.of("erro", msg != null ? msg : "Erro interno ao processar pedido de venda."));
+    }
 }
