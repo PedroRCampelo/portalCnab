@@ -11,6 +11,16 @@ const STATUS_LABELS = {
     CANCELADO: "Cancelado",
 };
 
+const FORMA_PAG_LABELS = {
+    PIX:            "Pix",
+    BOLETO:         "Boleto",
+    DINHEIRO:       "Dinheiro",
+    CARTAO_CREDITO: "Cartão de crédito",
+    CARTAO_DEBITO:  "Cartão de débito",
+    TRANSFERENCIA:  "Transferência",
+    OUTROS:         "Outros",
+};
+
 export default function PedidoVendaDetalhes({ pedido: p, onFechar, onEditar, onEfetivar, onCancelar }) {
     return (
         <Modal
@@ -38,6 +48,7 @@ export default function PedidoVendaDetalhes({ pedido: p, onFechar, onEditar, onE
                 </div>
             }
         >
+            <Modal.Body>
             <dl className="detalhe-grid">
                 <div>
                     <dt>Cliente</dt>
@@ -49,11 +60,15 @@ export default function PedidoVendaDetalhes({ pedido: p, onFechar, onEditar, onE
                 </div>
                 <div>
                     <dt>Forma de pagamento</dt>
-                    <dd>{p.formaPagamento?.replace("_", " ")}</dd>
+                    <dd>{FORMA_PAG_LABELS[p.formaPagamento] ?? p.formaPagamento}</dd>
                 </div>
                 <div>
                     <dt>Parcelas</dt>
-                    <dd>{p.numParcelas}x a cada {p.intervaloDias} dias</dd>
+                    <dd>
+                        {p.numParcelas === 1
+                            ? "À vista"
+                            : `${p.numParcelas}x de ${fmt(Number(p.valorTotal ?? 0) / p.numParcelas)} a cada ${p.intervaloDias} dias`}
+                    </dd>
                 </div>
                 <div>
                     <dt>Primeiro vencimento</dt>
@@ -109,6 +124,7 @@ export default function PedidoVendaDetalhes({ pedido: p, onFechar, onEditar, onE
                     </table>
                 </div>
             )}
+            </Modal.Body>
         </Modal>
     );
 }

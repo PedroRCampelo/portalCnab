@@ -173,36 +173,41 @@ public class PedidoVendaService {
         String descricaoRec = "Pedido " + pedido.getNumero()
                 + (pedido.getDescricao() != null ? " — " + pedido.getDescricao() : "");
 
-        if (pedido.getNumParcelas() > 1) {
-            var parceladoReq = new RecebimentoParceladoRequest(
-                    pedido.getCliente().getId(),
-                    descricaoRec,
-                    null,
-                    pedido.getPrimeiroVencimento(),
-                    pedido.getValorTotal(),
-                    pedido.getNumParcelas(),
-                    pedido.getIntervaloDias(),
-                    pedido.getFormaPagamento(),
-                    "Gerado automaticamente pelo Pedido de Venda " + pedido.getNumero()
-            );
-            recebimentoService.criarParcelado(usuario, parceladoReq);
-        } else {
-            var req = new RecebimentoRequest(
-                    pedido.getCliente().getId(),        // clienteId
-                    descricaoRec,                       // descricao
-                    null,                               // categoria (legado)
-                    pedido.getCategoriaId(),             // categoriaId
-                    null,                               // dataEmissao (hoje no service)
-                    pedido.getPrimeiroVencimento(),      // dataVencimento
-                    pedido.getValorTotal(),              // valor
-                    pedido.getFormaPagamento(),          // formaPagamento
-                    1,                                  // parcelaAtual
-                    1,                                  // parcelaTotal
-                    false,                              // recorrente
-                    null,                               // recorrenciaTipo
-                    "Gerado automaticamente pelo Pedido de Venda " + pedido.getNumero()
-            );
-            recebimentoService.criar(usuario, req);
+        try {
+            if (pedido.getNumParcelas() > 1) {
+                var parceladoReq = new RecebimentoParceladoRequest(
+                        pedido.getCliente().getId(),
+                        descricaoRec,
+                        null,
+                        pedido.getPrimeiroVencimento(),
+                        pedido.getValorTotal(),
+                        pedido.getNumParcelas(),
+                        pedido.getIntervaloDias(),
+                        pedido.getFormaPagamento(),
+                        "Gerado automaticamente pelo Pedido de Venda " + pedido.getNumero()
+                );
+                recebimentoService.criarParcelado(usuario, parceladoReq);
+            } else {
+                var req = new RecebimentoRequest(
+                        pedido.getCliente().getId(),
+                        descricaoRec,
+                        null,
+                        pedido.getCategoriaId(),
+                        null,
+                        pedido.getPrimeiroVencimento(),
+                        pedido.getValorTotal(),
+                        pedido.getFormaPagamento(),
+                        1,
+                        1,
+                        false,
+                        null,
+                        "Gerado automaticamente pelo Pedido de Venda " + pedido.getNumero()
+                );
+                recebimentoService.criar(usuario, req);
+            }
+        } catch (Exception ex) {
+            log.error("Falha ao gerar recebimentos para pedido {}: {}", pedido.getNumero(), ex.getMessage(), ex);
+            throw ex;
         }
 
         pedido.setStatus("EFETIVADO");
