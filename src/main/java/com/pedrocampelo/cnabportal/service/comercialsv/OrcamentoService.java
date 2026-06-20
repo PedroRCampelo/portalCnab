@@ -74,6 +74,7 @@ public class OrcamentoService {
                 .cliente(cliente)
                 .numero(gerarNumero())
                 .status("RASCUNHO")
+                .dataEmissao(req.dataEmissao() != null ? req.dataEmissao() : java.time.LocalDate.now())
                 .validade(req.validade())
                 .descricao(req.descricao().trim())
                 .observacoes(req.observacoes())
@@ -102,6 +103,7 @@ public class OrcamentoService {
 
         Cliente cliente = clienteService.buscarEntidadePorId(usuario, req.clienteId());
         orc.setCliente(cliente);
+        if (req.dataEmissao() != null) orc.setDataEmissao(req.dataEmissao());
         orc.setValidade(req.validade());
         orc.setDescricao(req.descricao().trim());
         orc.setObservacoes(req.observacoes());

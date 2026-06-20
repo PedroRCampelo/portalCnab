@@ -1,7 +1,7 @@
-import { useState } from "react";
 import Modal from "../../../components/ui/Modal.jsx";
 import { LuPencil, LuCircleCheck, LuPrinter } from "react-icons/lu";
-import OrcamentoPrint from "./OrcamentoPrint.jsx";
+import { imprimirOrcamento } from "./OrcamentoPrint.jsx";
+import { useAuth } from "../../../context/AuthContext.jsx";
 
 function fmt(valor) {
     return Number(valor ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -30,11 +30,7 @@ const FORMA_PAG_LABELS = {
 
 export default function OrcamentoDetalhes({ orcamento: orc, onFechar, onEditar, onMudarStatus }) {
     const emPedido = orc.status === "EM_PEDIDO";
-    const [imprimindo, setImprimindo] = useState(false);
-
-    if (imprimindo) {
-        return <OrcamentoPrint orcamento={orc} onFechar={() => setImprimindo(false)}/>;
-    }
+    const { usuario } = useAuth();
 
     return (
         <Modal
@@ -44,7 +40,7 @@ export default function OrcamentoDetalhes({ orcamento: orc, onFechar, onEditar, 
             size="lg"
             actions={
                 <div style={{ display: "flex", gap: "8px" }}>
-                    <button className="ph-btn" onClick={() => setImprimindo(true)}>
+                    <button className="ph-btn" onClick={() => imprimirOrcamento(orc, usuario?.empresa)}>
                         <LuPrinter size={14}/> Imprimir
                     </button>
                     {!emPedido && (
@@ -94,6 +90,12 @@ export default function OrcamentoDetalhes({ orcamento: orc, onFechar, onEditar, 
                     <dt>Status</dt>
                     <dd>{STATUS_LABELS[orc.status] ?? orc.status}</dd>
                 </div>
+                {orc.dataEmissao && (
+                    <div>
+                        <dt>Data de emissão</dt>
+                        <dd>{orc.dataEmissao}</dd>
+                    </div>
+                )}
                 <div>
                     <dt>Validade</dt>
                     <dd>{orc.validade}</dd>
