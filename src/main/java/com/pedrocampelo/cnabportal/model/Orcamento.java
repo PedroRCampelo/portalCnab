@@ -57,6 +57,9 @@ public class Orcamento {
     @Builder.Default
     private String status = "RASCUNHO";
 
+    @Column(name = "data_emissao")
+    private LocalDate dataEmissao;
+
     @Column(nullable = false)
     @NotNull
     private LocalDate validade;

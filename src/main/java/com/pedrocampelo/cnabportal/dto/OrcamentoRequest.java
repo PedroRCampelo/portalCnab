@@ -19,6 +19,8 @@ public record OrcamentoRequest(
 
         String observacoes,
 
+        LocalDate dataEmissao,
+
         @NotNull(message = "Validade é obrigatória")
         @FutureOrPresent(message = "Validade não pode ser no passado")
         LocalDate validade,

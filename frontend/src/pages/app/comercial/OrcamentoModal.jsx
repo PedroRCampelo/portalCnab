@@ -38,10 +38,11 @@ export default function OrcamentoModal({ inicial, onSalvar, onFechar }) {
     const wrapperRef  = useRef(null);
 
     // ── Campos principais ─────────────────────────────────────────────────────
-    const [descricao, setDescricao]   = useState(inicial?.descricao ?? "");
-    const [observacoes, setObs]       = useState(inicial?.observacoes ?? "");
-    const [validade, setValidade]     = useState(inicial?.validade ?? emTrintaDias());
-    const [descGeral, setDescGeral]   = useState(inicial?.descontoGeral ?? "0");
+    const [descricao,   setDescricao]   = useState(inicial?.descricao ?? "");
+    const [observacoes, setObs]         = useState(inicial?.observacoes ?? "");
+    const [dataEmissao, setDataEmissao] = useState(inicial?.dataEmissao ?? hoje());
+    const [validade,    setValidade]    = useState(inicial?.validade ?? emTrintaDias());
+    const [descGeral,   setDescGeral]   = useState(inicial?.descontoGeral ?? "0");
 
     // ── Pagamento ─────────────────────────────────────────────────────────────
     const [formaPag, setFormaPag]       = useState(inicial?.formaPagamento ?? "A_DEFINIR");
@@ -122,6 +123,7 @@ export default function OrcamentoModal({ inicial, onSalvar, onFechar }) {
                 clienteId,
                 descricao: descricao.trim(),
                 observacoes: observacoes.trim() || null,
+                dataEmissao,
                 validade,
                 descontoGeral: parseFloat(descGeral) || 0,
                 formaPagamento: formaPag,
@@ -220,7 +222,18 @@ export default function OrcamentoModal({ inicial, onSalvar, onFechar }) {
                         />
                     </div>
 
-                    {/* Validade + Desconto */}
+                    {/* Emissão + Validade */}
+                    <div>
+                        <label className="form-label">Data de emissão *</label>
+                        <input
+                            className="form-input"
+                            type="date"
+                            value={dataEmissao}
+                            onChange={e => setDataEmissao(e.target.value)}
+                            required
+                        />
+                    </div>
+
                     <div>
                         <label className="form-label">Validade *</label>
                         <input
