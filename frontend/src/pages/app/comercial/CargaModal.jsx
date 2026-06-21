@@ -14,7 +14,7 @@ export default function CargaModal({ onSalvar, onFechar }) {
         try {
             await onSalvar({ descricao: descricao.trim(), enderecoOrigem: enderecoOrigem.trim() || null });
         } catch (err) {
-            setErro(err?.response?.data?.erro ?? "Erro ao criar carga.");
+            setErro(err?.response?.data?.erro ?? err?.response?.data?.mensagem ?? "Erro ao criar carga.");
         } finally {
             setSalvando(false);
         }

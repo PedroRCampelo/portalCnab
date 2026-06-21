@@ -83,6 +83,15 @@ public class CargaController {
         return ResponseEntity.ok(cargaService.atualizarEndereco(usuario, id, pedidoId, body.get("enderecoEntrega")));
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> excluir(
+            @AuthenticationPrincipal Usuario usuario,
+            @PathVariable UUID id) {
+
+        cargaService.excluir(usuario, id);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/{id}/finalizar")
     public ResponseEntity<CargaResponse> finalizar(
             @AuthenticationPrincipal Usuario usuario,

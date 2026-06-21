@@ -320,3 +320,114 @@ textarea.form-input {
     margin: 0;
     font-weight: 500;
 }
+
+/* ── CargasPage — filtros e busca ────────────────────────────── */
+
+.com-filtros {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.com-busca-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+    max-width: 340px;
+}
+
+.com-busca-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-dim);
+    pointer-events: none;
+}
+
+.com-busca {
+    width: 100%;
+    height: 36px;
+    padding: 0 32px 0 32px;
+    border: 1px solid var(--hair);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--ink);
+    font-family: var(--ff-sans);
+    font-size: 13px;
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.com-busca:focus {
+    border-color: var(--cyan);
+    box-shadow: 0 0 0 3px rgba(6,182,212,.1);
+}
+
+.com-busca-clear {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border: none;
+    background: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.com-busca-clear:hover { color: var(--ink); }
+
+.com-filtro-status {
+    display: flex;
+    gap: 4px;
+}
+
+.com-filtro-btn {
+    height: 36px;
+    padding: 0 14px;
+    border: 1px solid var(--hair);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text-muted);
+    font-family: var(--ff-sans);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s, border-color 0.12s;
+    white-space: nowrap;
+}
+
+.com-filtro-btn:hover {
+    background: var(--bg);
+    color: var(--navy-deep);
+    border-color: var(--text-dim);
+}
+
+.com-filtro-btn.active {
+    background: var(--navy-deep);
+    color: #fff;
+    border-color: var(--navy-deep);
+}
+
+.com-paginacao {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 16px 0 0;
+}
+
+.com-pag-info {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-family: var(--ff-mono);
+}

@@ -128,6 +128,11 @@ export default function PedidoVendaModal({ inicial, onSalvar, onFechar }) {
     // ── Cliente ───────────────────────────────────────────────────────────────
     const cliente = useClienteAutocomplete();
 
+    useEffect(() => {
+        if (inicial?.cliente) cliente.definir(inicial.cliente.nome, inicial.cliente.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     // ── Campos ────────────────────────────────────────────────────────────────
     const [descricao, setDescricao]     = useState(inicial?.descricao ?? "");
     const [observacoes, setObs]         = useState(inicial?.observacoes ?? "");

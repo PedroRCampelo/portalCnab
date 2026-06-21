@@ -64,14 +64,21 @@ export default function CargasPage() {
     useEffect(() => { carregar(0); }, [carregar]);
 
     async function criarCarga(dados) {
-        await api.post("/api/cargas", dados);
+        const { data: nova } = await api.post("/api/cargas", dados);
         setModalAberto(false);
         carregar(0);
+        // Abre os detalhes automaticamente para o usuário já adicionar pedidos
+        const { data } = await api.get(`/api/cargas/${nova.id}`);
+        setDetalhes(data);
     }
 
     async function abrirDetalhes(carga) {
-        const { data } = await api.get(`/api/cargas/${carga.id}`);
-        setDetalhes(data);
+        try {
+            const { data } = await api.get(`/api/cargas/${carga.id}`);
+            setDetalhes(data);
+        } catch {
+            setErro("Erro ao abrir detalhes da carga.");
+        }
     }
 
     const cargasFiltradas = busca.trim()
@@ -92,7 +99,9 @@ export default function CargasPage() {
                     </div>
                     <div>
                         <div style={{ fontFamily: "var(--ff-mono)", fontSize: 12, fontWeight: 700, color: "var(--cyan-dark)" }}>{c.numero}</div>
-                        <div style={{ fontSize: 12, color: "var(--text-muted)", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.descricao}</div>
+                        <div style={{ fontSize: 12, color: "var(--text-muted)", maxWidth: 220, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {c.descricao || <span style={{ fontStyle: "italic" }}>Sem descrição</span>}
+                        </div>
                     </div>
                 </div>
             ),
@@ -102,7 +111,18 @@ export default function CargasPage() {
             header: "Status",
             render: c => {
                 const s = STATUS_INFO[c.status] ?? { label: c.status, variant: "default" };
-                return <span className={`ph-badge ph-badge--${s.variant}`}>{s.label}</span>;
+                const colors = {
+                    ABERTA:     { color: "var(--cyan-dark)",  bg: "var(--cyan-soft)"  },
+                    FINALIZADA: { color: "var(--success)",    bg: "var(--success-bg)" },
+                };
+                const col = colors[c.status] ?? { color: "var(--text-muted)", bg: "var(--bg)" };
+                return (
+                    <span style={{ display: "inline-flex", alignItems: "center", padding: "3px 10px",
+                        borderRadius: 100, background: col.bg, color: col.color,
+                        fontFamily: "var(--ff-mono)", fontSize: 11, fontWeight: 700, letterSpacing: ".04em" }}>
+                        {s.label}
+                    </span>
+                );
             },
         },
         {
@@ -167,13 +187,13 @@ export default function CargasPage() {
 
             <DataTable
                 columns={COLUMNS}
-                rows={cargasFiltradas}
+                data={cargasFiltradas}
                 loading={carregando}
                 onRowClick={abrirDetalhes}
-                emptyState={
+                empty={
                     <EmptyState icon={LuTruck} title="Nenhuma carga encontrada"
                                 description="Crie uma carga para agrupar pedidos e gerar o JSON de roteirização."
-                                action={{ label: "Nova carga", onClick: () => setModalAberto(true) }}/>
+                                action={<button className="ph-btn ph-btn--primary" onClick={() => setModalAberto(true)}><LuPlus size={14}/> Nova carga</button>}/>
                 }
             />
 

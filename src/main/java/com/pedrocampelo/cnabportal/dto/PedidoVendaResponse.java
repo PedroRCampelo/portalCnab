@@ -36,7 +36,8 @@ public record PedidoVendaResponse(
         LocalDateTime canceladoEm
 ) {
 
-    public record ClienteResumo(UUID id, String nome, String email, String documento) {}
+    public record ClienteResumo(UUID id, String nome, String email, String documento,
+                                String endereco, String cidade, String estado) {}
 
     public record ItemResumo(
             UUID id,
@@ -53,7 +54,10 @@ public record PedidoVendaResponse(
                 p.getCliente().getId(),
                 p.getCliente().getNome(),
                 p.getCliente().getEmail(),
-                p.getCliente().getDocumento()
+                p.getCliente().getDocumento(),
+                p.getCliente().getEndereco(),
+                p.getCliente().getCidade(),
+                p.getCliente().getEstado()
         );
 
         List<ItemResumo> itens = p.getItens().stream()

@@ -168,6 +168,26 @@ public class CargaService {
         return CargaResponse.from(cargaRepository.save(carga));
     }
 
+    // ─── Excluir carga ───────────────────────────────────────────────────────────
+
+    public void excluir(Usuario usuario, UUID cargaId) {
+        UUID empresaId = usuario.getEmpresa().getId();
+        Carga carga = cargaOuErro(cargaId, empresaId);
+
+        if ("FINALIZADA".equals(carga.getStatus())) {
+            throw new IllegalStateException("Não é possível excluir uma carga finalizada. Reabra-a primeiro.");
+        }
+
+        // Desvincula todos os pedidos antes de excluir
+        for (PedidoVenda pedido : carga.getPedidos()) {
+            pedido.setCarga(null);
+            pedido.setStatus("ABERTO");
+            pedidoVendaRepository.save(pedido);
+        }
+
+        cargaRepository.delete(carga);
+    }
+
     // ─── Gerar JSON de roteirização ──────────────────────────────────────────────
 
     @Transactional(readOnly = true)

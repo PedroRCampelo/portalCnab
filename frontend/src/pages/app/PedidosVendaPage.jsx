@@ -1,7 +1,8 @@
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import {
     LuPlus, LuFileText, LuSearch, LuPencil, LuCircleCheck, LuCircleX,
     LuChevronLeft, LuChevronRight, LuRotateCcw, LuX, LuCopy,
+    LuColumns3, LuChevronUp, LuChevronDown, LuCheck,
 } from "react-icons/lu";
 import api from "../../services/api.js";
 import PageHeader          from "../../components/shell/PageHeader.jsx";
@@ -28,6 +29,30 @@ const FILTROS_STATUS = [
     { value: "EFETIVADO", label: "Efetivado" },
     { value: "CANCELADO", label: "Cancelado" },
 ];
+
+// Colunas configuráveis (fixas: numero, cliente, _actions)
+const COLS_CONFIG = [
+    { key: "descricao",          label: "Descrição"   },
+    { key: "criadoEm",           label: "Emissão"     },
+    { key: "primeiroVencimento", label: "Vencimento"  },
+    { key: "parcelas",           label: "Parcelas"    },
+    { key: "valorTotal",         label: "Total"       },
+    { key: "status",             label: "Status"      },
+];
+
+const LS_KEY = "pv_colunas_v1";
+
+function carregarPrefs() {
+    try {
+        const raw = localStorage.getItem(LS_KEY);
+        if (raw) return JSON.parse(raw);
+    } catch { /* */ }
+    return COLS_CONFIG.map(c => ({ key: c.key, visivel: true }));
+}
+
+function salvarPrefs(prefs) {
+    localStorage.setItem(LS_KEY, JSON.stringify(prefs));
+}
 
 function fmtData(d) {
     if (!d) return "—";
@@ -62,6 +87,45 @@ export default function PedidosVendaPage() {
     const [confirmCancelar, setConfirmCancelar] = useState(null);
     const [efetivando, setEfetivando]           = useState(false);
     const [cancelando, setCancelando]           = useState(false);
+
+    // Gerenciar colunas
+    const [prefs, setPrefs]           = useState(carregarPrefs);
+    const [colsAberto, setColsAberto] = useState(false);
+    const colsRef                     = useRef(null);
+
+    useEffect(() => {
+        function onClickFora(e) {
+            if (colsRef.current && !colsRef.current.contains(e.target)) setColsAberto(false);
+        }
+        document.addEventListener("mousedown", onClickFora);
+        return () => document.removeEventListener("mousedown", onClickFora);
+    }, []);
+
+    function toggleColuna(key) {
+        setPrefs(prev => {
+            const next = prev.map(p => p.key === key ? { ...p, visivel: !p.visivel } : p);
+            salvarPrefs(next);
+            return next;
+        });
+    }
+
+    function moverColuna(key, dir) {
+        setPrefs(prev => {
+            const idx = prev.findIndex(p => p.key === key);
+            const novo = idx + dir;
+            if (novo < 0 || novo >= prev.length) return prev;
+            const next = [...prev];
+            [next[idx], next[novo]] = [next[novo], next[idx]];
+            salvarPrefs(next);
+            return next;
+        });
+    }
+
+    function restaurarPadrao() {
+        const padrao = COLS_CONFIG.map(c => ({ key: c.key, visivel: true }));
+        salvarPrefs(padrao);
+        setPrefs(padrao);
+    }
 
     /* ── Carregamento ───────────────────────────────────────────────────── */
 
@@ -125,12 +189,10 @@ export default function PedidosVendaPage() {
             setConfirmEfetivar(null);
             carregar();
         } catch (err) {
-            const msg = err?.response?.data?.erro ?? err?.response?.data?.message ?? "Erro ao efetivar pedido.";
-            setErro(msg);
+            setErro(err?.response?.data?.erro ?? err?.response?.data?.message ?? "Erro ao efetivar pedido.");
             setConfirmEfetivar(null);
         } finally {
-            setEfetivando(false);
-        }
+            setEfetivando(false); }
     }
 
     async function cancelar(id) {
@@ -141,8 +203,7 @@ export default function PedidosVendaPage() {
             setConfirmCancelar(null);
             carregar();
         } catch (err) {
-            const msg = err?.response?.data?.erro ?? err?.response?.data?.message ?? "Erro ao cancelar pedido.";
-            setErro(msg);
+            setErro(err?.response?.data?.erro ?? err?.response?.data?.message ?? "Erro ao cancelar pedido.");
             setConfirmCancelar(null);
         } finally {
             setCancelando(false);
@@ -155,101 +216,95 @@ export default function PedidosVendaPage() {
             await api.post(`/api/pedidos-venda/${id}/copiar`);
             carregar();
         } catch (err) {
-            const msg = err?.response?.data?.erro ?? err?.response?.data?.message ?? "Erro ao copiar pedido.";
-            setErro(msg);
+            setErro(err?.response?.data?.erro ?? err?.response?.data?.message ?? "Erro ao copiar pedido.");
         }
     }
 
-    /* ── Colunas ────────────────────────────────────────────────────────── */
+    /* ── Definição de todas as colunas ──────────────────────────────────── */
 
-    const colunas = useMemo(() => [
-        {
-            key: "numero",
-            label: "Número",
-            sortable: true,
+    const TODAS_COLUNAS = useMemo(() => ({
+        descricao: {
+            key: "descricao", label: "Descrição", sortable: true,
             render: p => (
-                <span style={{
-                    fontFamily: "var(--ff-mono)", fontSize: 13, fontWeight: 600,
-                    color: "var(--navy-deep)", letterSpacing: "0.02em",
-                }}>
-                    {p.numero}
-                </span>
+                <span style={{ color: "var(--ink-2)", fontSize: 13,
+                    display: "block", maxWidth: 180,
+                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                    title={p.descricao || ""}
+                >{p.descricao || "—"}</span>
             ),
         },
-        {
-            key: "cliente",
-            label: "Cliente",
-            sortable: true,
-            render: p => (
-                <div className="ui-cell-avatar">
-                    <div className="ui-cell-avatar-img">{iniciais(p.cliente?.nome)}</div>
-                    <div className="ui-cell-avatar-text">
-                        <div className="ui-cell-avatar-name">{p.cliente?.nome || "—"}</div>
-                    </div>
-                </div>
-            ),
-        },
-        {
-            key: "descricao",
-            label: "Descrição",
-            sortable: true,
-            render: p => (
-                <span style={{ color: "var(--ink-2)", fontSize: 13 }}>{p.descricao || "—"}</span>
-            ),
-        },
-        {
-            key: "criadoEm",
-            label: "Emissão",
-            sortable: true,
+        criadoEm: {
+            key: "criadoEm", label: "Emissão", sortable: true,
             render: p => (
                 <span className="ui-table-num" style={{ fontSize: 13 }}>
                     {p.criadoEm ? fmtData(p.criadoEm.slice(0, 10)) : "—"}
                 </span>
             ),
         },
-        {
-            key: "primeiroVencimento",
-            label: "Vencimento",
-            sortable: true,
+        primeiroVencimento: {
+            key: "primeiroVencimento", label: "Vencimento", sortable: true,
             render: p => (
                 <span className="ui-table-num" style={{ fontSize: 13 }}>{fmtData(p.primeiroVencimento)}</span>
             ),
         },
-        {
-            key: "parcelas",
-            label: "Parcelas",
+        parcelas: {
+            key: "parcelas", label: "Parcelas",
             render: p => (
                 <span style={{ fontSize: 13, color: "var(--ink-2)" }}>
-                    {p.numParcelas === 1
-                        ? "À vista"
-                        : `${p.numParcelas}x / ${p.intervaloDias}d`}
+                    {p.numParcelas === 1 ? "À vista" : `${p.numParcelas}x / ${p.intervaloDias}d`}
                 </span>
             ),
         },
-        {
-            key: "valorTotal",
-            label: "Total",
-            sortable: true,
-            align: "right",
+        valorTotal: {
+            key: "valorTotal", label: "Total", sortable: true, align: "right",
             render: p => (
                 <span className="ui-table-num" style={{ fontSize: 14, fontWeight: 600, color: "var(--navy-deep)" }}>
                     {fmtValor(p.valorTotal)}
                 </span>
             ),
         },
-        {
-            key: "status",
-            label: "Status",
-            align: "center",
+        status: {
+            key: "status", label: "Status", align: "center",
             render: p => {
                 const info = STATUS_INFO[p.status] ?? { label: p.status, variant: "neutral" };
                 return <span className={`ui-badge ui-badge--${info.variant}`}>{info.label}</span>;
             },
         },
-        {
-            key: "_actions",
-            label: "",
-            align: "right",
+    }), []);
+
+    /* ── Colunas ativas (fixas + configuráveis na ordem salva) ─────────── */
+
+    const colunas = useMemo(() => {
+        const fixasEsq = [
+            {
+                key: "numero", label: "Número", sortable: true,
+                render: p => (
+                    <span style={{ fontFamily: "var(--ff-mono)", fontSize: 13, fontWeight: 600,
+                        color: "var(--navy-deep)", letterSpacing: "0.02em" }}>
+                        {p.numero}
+                    </span>
+                ),
+            },
+            {
+                key: "cliente", label: "Cliente", sortable: true,
+                render: p => (
+                    <div className="ui-cell-avatar">
+                        <div className="ui-cell-avatar-img">{iniciais(p.cliente?.nome)}</div>
+                        <div className="ui-cell-avatar-text">
+                            <div className="ui-cell-avatar-name">{p.cliente?.nome || "—"}</div>
+                        </div>
+                    </div>
+                ),
+            },
+        ];
+
+        const configuradas = prefs
+            .filter(p => p.visivel)
+            .map(p => TODAS_COLUNAS[p.key])
+            .filter(Boolean);
+
+        const fixaDir = {
+            key: "_actions", label: "", align: "right",
             render: p => (
                 <AcoesInline
                     pedido={p}
@@ -259,9 +314,11 @@ export default function PedidosVendaPage() {
                     onCopiar={() => copiarPedido(p.id)}
                 />
             ),
-        },
+        };
+
+        return [...fixasEsq, ...configuradas, fixaDir];
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    ], []);
+    }, [prefs, TODAS_COLUNAS]);
 
     /* ── Render ─────────────────────────────────────────────────────────── */
 
@@ -313,6 +370,71 @@ export default function PedidosVendaPage() {
                             <button className="orc-busca-clear" onClick={() => setBusca("")}>
                                 <LuX size={12}/>
                             </button>
+                        )}
+                    </div>
+
+                    {/* Gerenciar colunas */}
+                    <div className="pv-cols-wrap" ref={colsRef}>
+                        <button
+                            className={`ph-btn${colsAberto ? " ph-btn--ghost-active" : " ph-btn--ghost"}`}
+                            onClick={() => setColsAberto(v => !v)}
+                            title="Gerenciar colunas"
+                        >
+                            <LuColumns3 size={14}/>
+                            Colunas
+                        </button>
+
+                        {colsAberto && (
+                            <div className="pv-cols-popover">
+                                <div className="pv-cols-header">
+                                    <span>Colunas visíveis</span>
+                                    <button className="pv-cols-reset" onClick={restaurarPadrao}>
+                                        <LuRotateCcw size={11}/> Padrão
+                                    </button>
+                                </div>
+
+                                <div className="pv-cols-fixas">
+                                    <span>Número</span>
+                                    <span>Cliente</span>
+                                    <span>Ações</span>
+                                </div>
+
+                                <div className="pv-cols-list">
+                                    {prefs.map((pref, idx) => {
+                                        const meta = COLS_CONFIG.find(c => c.key === pref.key);
+                                        if (!meta) return null;
+                                        return (
+                                            <div key={pref.key} className="pv-cols-row">
+                                                <button
+                                                    className={`pv-cols-check ${pref.visivel ? "on" : ""}`}
+                                                    onClick={() => toggleColuna(pref.key)}
+                                                >
+                                                    {pref.visivel && <LuCheck size={10}/>}
+                                                </button>
+                                                <span className={`pv-cols-label ${pref.visivel ? "" : "off"}`}>
+                                                    {meta.label}
+                                                </span>
+                                                <div className="pv-cols-arrows">
+                                                    <button
+                                                        disabled={idx === 0}
+                                                        onClick={() => moverColuna(pref.key, -1)}
+                                                        title="Mover para cima"
+                                                    >
+                                                        <LuChevronUp size={11}/>
+                                                    </button>
+                                                    <button
+                                                        disabled={idx === prefs.length - 1}
+                                                        onClick={() => moverColuna(pref.key, 1)}
+                                                        title="Mover para baixo"
+                                                    >
+                                                        <LuChevronDown size={11}/>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
                         )}
                     </div>
                 </div>
@@ -399,36 +521,22 @@ export default function PedidosVendaPage() {
                 const n = confirmEfetivar.numParcelas ?? 1;
                 const porParcela = n > 1 ? total / n : null;
                 return (
-                    <Modal
-                        open
-                        title="Efetivar pedido"
-                        onClose={() => setConfirmEfetivar(null)}
+                    <Modal open title="Efetivar pedido" onClose={() => setConfirmEfetivar(null)}
                         actions={
                             <>
-                                <button className="ph-btn" onClick={() => setConfirmEfetivar(null)} disabled={efetivando}>
-                                    Cancelar
-                                </button>
-                                <button
-                                    className="ph-btn ph-btn--primary"
-                                    onClick={() => efetivar(confirmEfetivar.id)}
-                                    disabled={efetivando}
-                                >
+                                <button className="ph-btn" onClick={() => setConfirmEfetivar(null)} disabled={efetivando}>Cancelar</button>
+                                <button className="ph-btn ph-btn--primary" onClick={() => efetivar(confirmEfetivar.id)} disabled={efetivando}>
                                     {efetivando ? "Efetivando..." : "Efetivar"}
                                 </button>
                             </>
                         }
                     >
                         <Modal.Body>
-                            <p>
-                                Efetivar o pedido <strong>{confirmEfetivar.numero}</strong>?
-                            </p>
+                            <p>Efetivar o pedido <strong>{confirmEfetivar.numero}</strong>?</p>
                             <p style={{ marginTop: 8, color: "var(--text-secondary)", fontSize: 13 }}>
                                 {n === 1
-                                    ? <>Será gerado <strong>1</strong> recebimento de{" "}
-                                        <strong>{fmtValor(total)}</strong> no módulo financeiro.</>
-                                    : <>Serão gerados <strong>{n}</strong> recebimentos de{" "}
-                                        <strong>{fmtValor(porParcela)}</strong> cada (total:{" "}
-                                        <strong>{fmtValor(total)}</strong>) no módulo financeiro.</>
+                                    ? <>Será gerado <strong>1</strong> recebimento de <strong>{fmtValor(total)}</strong> no módulo financeiro.</>
+                                    : <>Serão gerados <strong>{n}</strong> recebimentos de <strong>{fmtValor(porParcela)}</strong> cada (total: <strong>{fmtValor(total)}</strong>) no módulo financeiro.</>
                                 }
                             </p>
                         </Modal.Body>
@@ -438,20 +546,11 @@ export default function PedidosVendaPage() {
 
             {/* Confirmar cancelar */}
             {confirmCancelar && (
-                <Modal
-                    open
-                    title="Cancelar pedido"
-                    onClose={() => setConfirmCancelar(null)}
+                <Modal open title="Cancelar pedido" onClose={() => setConfirmCancelar(null)}
                     actions={
                         <>
-                            <button className="ph-btn" onClick={() => setConfirmCancelar(null)} disabled={cancelando}>
-                                Voltar
-                            </button>
-                            <button
-                                className="ph-btn ph-btn--danger"
-                                onClick={() => cancelar(confirmCancelar.id)}
-                                disabled={cancelando}
-                            >
+                            <button className="ph-btn" onClick={() => setConfirmCancelar(null)} disabled={cancelando}>Voltar</button>
+                            <button className="ph-btn ph-btn--danger" onClick={() => cancelar(confirmCancelar.id)} disabled={cancelando}>
                                 {cancelando ? "Cancelando..." : "Cancelar pedido"}
                             </button>
                         </>
@@ -499,7 +598,7 @@ function AcoesInline({ pedido: p, onEditar, onEfetivar, onCancelar, onCopiar }) 
 
 const COMPONENT_CSS = `
 
-/* ─── Toolbar (reutiliza classes .orc-* do OrcamentosPage) ──────────────── */
+/* ─── Toolbar ────────────────────────────────────────────────────────────── */
 
 .orc-toolbar {
     display: flex;
@@ -598,10 +697,142 @@ const COMPONENT_CSS = `
     border-radius: 4px;
 }
 
-.orc-busca-clear:hover {
-    color: var(--navy-deep);
-    background: var(--bg);
+.orc-busca-clear:hover { color: var(--navy-deep); background: var(--bg); }
+
+/* ─── Gerenciar colunas ──────────────────────────────────────────────────── */
+
+.pv-cols-wrap {
+    position: relative;
 }
+
+.pv-cols-popover {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    width: 220px;
+    background: var(--surface);
+    border: 1px solid var(--hair);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.10), 0 2px 6px rgba(0,0,0,.06);
+    z-index: 200;
+    overflow: hidden;
+}
+
+.pv-cols-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px 8px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--navy-deep);
+    border-bottom: 1px solid var(--hair);
+}
+
+.pv-cols-reset {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 5px;
+}
+
+.pv-cols-reset:hover { background: var(--bg); color: var(--navy-deep); }
+
+.pv-cols-fixas {
+    display: flex;
+    gap: 6px;
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--hair);
+    flex-wrap: wrap;
+}
+
+.pv-cols-fixas span {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 100px;
+    background: var(--bg);
+    color: var(--text-dim);
+    border: 1px solid var(--hair);
+}
+
+.pv-cols-list {
+    padding: 6px 0;
+}
+
+.pv-cols-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 14px;
+    transition: background .1s;
+}
+
+.pv-cols-row:hover { background: var(--bg); }
+
+.pv-cols-check {
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
+    border: 1.5px solid var(--hair);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all .12s;
+}
+
+.pv-cols-check.on {
+    border-color: var(--cyan-dark);
+    background: var(--cyan-dark);
+    color: #fff;
+}
+
+.pv-cols-check:hover { border-color: var(--cyan-dark); }
+
+.pv-cols-label {
+    flex: 1;
+    font-size: 13px;
+    color: var(--ink);
+    font-family: var(--ff-sans);
+    user-select: none;
+}
+
+.pv-cols-label.off { color: var(--text-dim); }
+
+.pv-cols-arrows {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.pv-cols-arrows button {
+    width: 18px;
+    height: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-dim);
+    border-radius: 3px;
+    padding: 0;
+}
+
+.pv-cols-arrows button:hover:not(:disabled) { background: var(--bg); color: var(--navy-deep); }
+.pv-cols-arrows button:disabled { opacity: 0.3; cursor: default; }
+
+/* ─── Ações inline ───────────────────────────────────────────────────────── */
 
 .orc-actions {
     display: inline-flex;
@@ -624,23 +855,11 @@ const COMPONENT_CSS = `
     flex-shrink: 0;
 }
 
-.orc-action:hover {
-    border-color: var(--text-dim);
-    color: var(--navy-deep);
-    background: var(--bg);
-}
+.orc-action:hover { border-color: var(--text-dim); color: var(--navy-deep); background: var(--bg); }
+.orc-action--aprovar:hover { border-color: var(--success); background: var(--success-bg); color: var(--success); }
+.orc-action--cancelar:hover { border-color: var(--error, #ef4444); background: rgba(239,68,68,.06); color: var(--error, #ef4444); }
 
-.orc-action--aprovar:hover {
-    border-color: var(--success);
-    background: var(--success-bg);
-    color: var(--success);
-}
-
-.orc-action--cancelar:hover {
-    border-color: var(--error, #ef4444);
-    background: rgba(239, 68, 68, 0.06);
-    color: var(--error, #ef4444);
-}
+/* ─── Paginação ──────────────────────────────────────────────────────────── */
 
 .orc-paginacao {
     display: flex;
@@ -659,10 +878,7 @@ const COMPONENT_CSS = `
     letter-spacing: -0.005em;
 }
 
-.orc-paginacao-texto strong {
-    color: var(--navy-deep);
-    font-weight: 600;
-}
+.orc-paginacao-texto strong { color: var(--navy-deep); font-weight: 600; }
 
 /* ─── Erro banner ────────────────────────────────────────────────────────── */
 
@@ -699,5 +915,6 @@ const COMPONENT_CSS = `
     .orc-toolbar { flex-direction: column; align-items: stretch; }
     .orc-filtros-extras { margin-left: 0; }
     .orc-busca { max-width: 100%; min-width: 0; }
+    .pv-cols-popover { right: auto; left: 0; }
 }
 `;
