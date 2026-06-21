@@ -34,7 +34,7 @@ public record OrcamentoResponse(
         LocalDateTime canceladoEm
 ) {
 
-    public record ClienteResumo(UUID id, String nome, String email, String documento) {}
+    public record ClienteResumo(UUID id, String nome, String email, String documento, String telefone) {}
 
     public record ItemResumo(
             UUID id,
@@ -51,7 +51,8 @@ public record OrcamentoResponse(
                 o.getCliente().getId(),
                 o.getCliente().getNome(),
                 o.getCliente().getEmail(),
-                o.getCliente().getDocumento()
+                o.getCliente().getDocumento(),
+                o.getCliente().getTelefone()
         );
 
         List<ItemResumo> itens = o.getItens().stream()
