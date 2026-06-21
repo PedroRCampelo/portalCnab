@@ -16,6 +16,7 @@ import "./comercial/Comercial.css";
 
 const STATUS_INFO = {
     ABERTO:    { label: "Aberto",    variant: "default"  },
+    EM_CARGA:  { label: "Em carga",  variant: "info"     },
     EFETIVADO: { label: "Efetivado", variant: "success"  },
     CANCELADO: { label: "Cancelado", variant: "error"    },
 };
@@ -23,6 +24,7 @@ const STATUS_INFO = {
 const FILTROS_STATUS = [
     { value: "",          label: "Todos"     },
     { value: "ABERTO",    label: "Aberto"    },
+    { value: "EM_CARGA",  label: "Em carga"  },
     { value: "EFETIVADO", label: "Efetivado" },
     { value: "CANCELADO", label: "Cancelado" },
 ];

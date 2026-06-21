@@ -43,6 +43,11 @@ public class PedidoVenda {
     @JoinColumn(name = "cliente_id", nullable = false)
     private Cliente cliente;
 
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "carga_id")
+    private Carga carga;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "orcamento_id")
     private Orcamento orcamento;
@@ -95,6 +100,9 @@ public class PedidoVenda {
     @Column(name = "categoria_id")
     private UUID categoriaId;
 
+    @Column(name = "endereco_entrega", length = 500)
+    private String enderecoEntrega;
+
     // ── Auditoria ─────────────────────────────────────────────────────────────
 
     @JsonIgnore
@@ -134,11 +142,15 @@ public class PedidoVenda {
     // ── Utilitários de domínio ────────────────────────────────────────────────
 
     public boolean isEditavel() {
-        return "ABERTO".equals(this.status);
+        return "ABERTO".equals(this.status) || "EM_CARGA".equals(this.status);
     }
 
     public boolean isEfetivavel() {
-        return "ABERTO".equals(this.status) && !this.itens.isEmpty();
+        return ("ABERTO".equals(this.status) || "EM_CARGA".equals(this.status)) && !this.itens.isEmpty();
+    }
+
+    public boolean isEmCarga() {
+        return "EM_CARGA".equals(this.status);
     }
 
     public void recalcularTotal() {

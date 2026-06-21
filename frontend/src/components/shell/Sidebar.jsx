@@ -4,7 +4,7 @@ import {
     LuActivity, LuHandCoins, LuWalletCards, LuUsers, LuTag,
     LuFileText, LuBot, LuMessageCircle,
     LuSettings, LuPin, LuPinOff, LuBellRing, LuFileSpreadsheet,
-    LuClipboardList, LuShoppingCart, LuFileCheck,
+    LuClipboardList, LuShoppingCart, LuFileCheck, LuTruck,
 } from "react-icons/lu";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useShell } from "./ShellContext.jsx";
@@ -52,6 +52,7 @@ const MENU = [
         items: [
             { to: "/orcamentos",    icon: LuFileCheck,    label: "Orçamentos"       },
             { to: "/pedidos-venda", icon: LuShoppingCart, label: "Pedidos de Venda" },
+            { to: "/cargas",        icon: LuTruck,        label: "Cargas"           },
         ],
     },
     {

@@ -54,6 +54,7 @@ import WhatsAppPage              from "./pages/app/WhatsAppPage.jsx";
 import CnabChatPage              from "./pages/app/CnabChatPage.jsx";
 import OrcamentosPage            from "./pages/app/OrcamentosPage.jsx";
 import PedidosVendaPage          from "./pages/app/PedidosVendaPage.jsx";
+import CargasPage               from "./pages/app/CargasPage.jsx";
 
 // Páginas de retorno do checkout Stripe
 import { UpgradeSucessoPage, UpgradeCanceladoPage } from "./pages/app/UpgradePages.jsx";
@@ -153,6 +154,7 @@ function AppShell() {
                         {/* Módulo Comercial */}
                         <Route path="/orcamentos"    element={<ProtectedRoute><OrcamentosPage/></ProtectedRoute>}/>
                         <Route path="/pedidos-venda" element={<ProtectedRoute><PedidosVendaPage/></ProtectedRoute>}/>
+                        <Route path="/cargas"        element={<ProtectedRoute><CargasPage/></ProtectedRoute>}/>
 
                         {/* IA */}
                         <Route path="/assistente-cnab"     element={<AssistenteCnabPage/>}/>
