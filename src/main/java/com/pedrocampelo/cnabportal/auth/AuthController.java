@@ -85,7 +85,7 @@ public class AuthController {
                     Boolean.TRUE.equals(usuario.getEmailVerificado()),
                     usuario.getAssinaturaStatus(),
                     usuario.getAssinaturaExpiraEm(),
-                    usuario.getEmpresa() != null ? EmpresaResumo.from(usuario.getEmpresa()) : null
+                    resolverEmpresaResumo(usuario)
             ));
 
         } catch (DisabledException e) {
@@ -154,7 +154,7 @@ public class AuthController {
                 Boolean.TRUE.equals(usuario.getEmailVerificado()),
                 usuario.getAssinaturaStatus(),
                 usuario.getAssinaturaExpiraEm(),
-                usuario.getEmpresa() != null ? EmpresaResumo.from(usuario.getEmpresa()) : null
+                resolverEmpresaResumo(usuario)
         ));
     }
 
@@ -314,7 +314,7 @@ public class AuthController {
                 Boolean.TRUE.equals(usuario.getEmailVerificado()),
                 usuario.getAssinaturaStatus(),
                 usuario.getAssinaturaExpiraEm(),
-                usuario.getEmpresa() != null ? EmpresaResumo.from(usuario.getEmpresa()) : null
+                resolverEmpresaResumo(usuario)
         ));
     }
 
@@ -437,6 +437,13 @@ public class AuthController {
     record ErroResponse(String mensagem) {}
     record EmailRequest(String email) {}
     record RedefinirSenhaRequest(String token, String novaSenha) {}
+
+    private EmpresaResumo resolverEmpresaResumo(Usuario usuario) {
+        if (usuario.getEmpresa() == null) return null;
+        return empresaRepository.findById(usuario.getEmpresa().getId())
+                .map(EmpresaResumo::from)
+                .orElse(null);
+    }
 
     private String obterIp(HttpServletRequest request) {
         String forwarded = request.getHeader("X-Forwarded-For");
