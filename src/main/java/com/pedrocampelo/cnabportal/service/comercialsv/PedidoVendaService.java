@@ -11,6 +11,7 @@ import com.pedrocampelo.cnabportal.model.Orcamento;
 import com.pedrocampelo.cnabportal.model.PedidoVenda;
 import com.pedrocampelo.cnabportal.model.Usuario;
 import com.pedrocampelo.cnabportal.repository.PedidoVendaRepository;
+import com.pedrocampelo.cnabportal.service.NumeradorEmpresaService;
 import com.pedrocampelo.cnabportal.service.recebimentossv.ClienteService;
 import com.pedrocampelo.cnabportal.service.recebimentossv.RecebimentoService;
 import lombok.RequiredArgsConstructor;
@@ -33,10 +34,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Slf4j
 public class PedidoVendaService {
 
-    private final PedidoVendaRepository pedidoVendaRepository;
-    private final ClienteService         clienteService;
-    private final OrcamentoService       orcamentoService;
-    private final RecebimentoService     recebimentoService;
+    private final PedidoVendaRepository  pedidoVendaRepository;
+    private final ClienteService          clienteService;
+    private final OrcamentoService        orcamentoService;
+    private final RecebimentoService      recebimentoService;
+    private final NumeradorEmpresaService numeradorService;
 
     // ─────────────────────────────────────────────────────────────────────────
     // Listagem
@@ -87,7 +89,7 @@ public class PedidoVendaService {
                 .usuario(usuario)
                 .cliente(cliente)
                 .orcamento(orcamento)
-                .numero(gerarNumero())
+                .numero(gerarNumero(usuario.getEmpresa().getId()))
                 .status("ABERTO")
                 .descricao(req.descricao() != null ? req.descricao().trim() : "Pedido de Venda")
                 .observacoes(req.observacoes())
@@ -220,6 +222,43 @@ public class PedidoVendaService {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    // Copiar pedido
+    // ─────────────────────────────────────────────────────────────────────────
+
+    @Transactional
+    public PedidoVendaResponse copiarPedido(Usuario usuario, UUID id) {
+        PedidoVenda original = buscarEntidade(usuario, id);
+
+        List<ItemRequest> itensReq = original.getItens().stream()
+                .map(i -> new ItemRequest(i.getDescricao(), i.getQuantidade(),
+                        i.getValorUnitario(), i.getDesconto(), i.getOrdem()))
+                .toList();
+
+        PedidoVenda copia = PedidoVenda.builder()
+                .empresa(usuario.getEmpresa())
+                .usuario(usuario)
+                .cliente(original.getCliente())
+                .numero(gerarNumero(usuario.getEmpresa().getId()))
+                .status("ABERTO")
+                .descricao("Cópia — " + (original.getDescricao() != null ? original.getDescricao() : original.getNumero()))
+                .observacoes(original.getObservacoes())
+                .formaPagamento(original.getFormaPagamento())
+                .numParcelas(original.getNumParcelas())
+                .intervaloDias(original.getIntervaloDias())
+                .primeiroVencimento(original.getPrimeiroVencimento())
+                .categoriaId(original.getCategoriaId())
+                .criadoPor(usuario)
+                .build();
+
+        adicionarItens(copia, itensReq);
+        copia.recalcularTotal();
+
+        PedidoVenda salvo = pedidoVendaRepository.save(copia);
+        log.info("Pedido {} copiado como {}", original.getNumero(), salvo.getNumero());
+        return PedidoVendaResponse.from(salvo);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     // Converter orçamento → pedido
     // ─────────────────────────────────────────────────────────────────────────
 
@@ -298,8 +337,8 @@ public class PedidoVendaService {
         });
     }
 
-    private String gerarNumero() {
-        Long seq = pedidoVendaRepository.proximoNumeroSequencia();
+    private String gerarNumero(java.util.UUID empresaId) {
+        long seq = numeradorService.proximoNumero(empresaId, "PV");
         return String.format("PV-%05d", seq);
     }
 }

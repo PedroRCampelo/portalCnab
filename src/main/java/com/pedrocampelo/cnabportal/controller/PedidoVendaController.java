@@ -71,6 +71,14 @@ public class PedidoVendaController {
         return ResponseEntity.ok(pedidoVendaService.efetivar(usuario, id));
     }
 
+    @PostMapping("/{id}/copiar")
+    public ResponseEntity<PedidoVendaResponse> copiar(
+            @AuthenticationPrincipal Usuario usuario,
+            @PathVariable UUID id) {
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(pedidoVendaService.copiarPedido(usuario, id));
+    }
+
     @PostMapping("/{id}/cancelar")
     public ResponseEntity<PedidoVendaResponse> cancelar(
             @AuthenticationPrincipal Usuario usuario,

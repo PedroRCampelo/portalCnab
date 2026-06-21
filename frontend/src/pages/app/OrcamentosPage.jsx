@@ -182,6 +182,16 @@ export default function OrcamentosPage() {
             ),
         },
         {
+            key: "dataEmissao",
+            label: "Emissão",
+            sortable: true,
+            render: o => (
+                <span className="ui-table-num" style={{ fontSize: 13 }}>
+                    {fmtData(o.dataEmissao)}
+                </span>
+            ),
+        },
+        {
             key: "validade",
             label: "Validade",
             sortable: true,

@@ -9,6 +9,7 @@ import com.pedrocampelo.cnabportal.model.Recebimento;
 import com.pedrocampelo.cnabportal.model.SaldoBancario;
 import com.pedrocampelo.cnabportal.model.Usuario;
 import com.pedrocampelo.cnabportal.repository.RecebimentoRepository;
+import com.pedrocampelo.cnabportal.service.NumeradorEmpresaService;
 import com.pedrocampelo.cnabportal.service.fluxocaixasv.MovimentoBancarioService;
 import com.pedrocampelo.cnabportal.service.fluxocaixasv.SaldoBancarioService;
 import lombok.RequiredArgsConstructor;
@@ -47,6 +48,7 @@ public class RecebimentoService {
     private final ClienteService             clienteService;
     private final SaldoBancarioService       saldoBancarioService;
     private final MovimentoBancarioService   movimentoBancarioService;
+    private final NumeradorEmpresaService    numeradorService;
 
     // ─────────────────────────────────────────────────────────────────────────
     // Listagem e resumo
@@ -109,7 +111,7 @@ public class RecebimentoService {
                 .empresa(usuario.getEmpresa())
                 .usuario(usuario)
                 .cliente(cliente)
-                .codigo(gerarCodigo())
+                .codigo(gerarCodigo(usuario.getEmpresa().getId()))
                 .numero(gerarNumero())
                 .descricao(request.descricao().trim())
                 .categoria(request.categoria())
@@ -169,7 +171,7 @@ public class RecebimentoService {
                     .empresa(usuario.getEmpresa())
                     .usuario(usuario)
                     .cliente(cliente)
-                    .codigo(gerarCodigo())
+                    .codigo(gerarCodigo(usuario.getEmpresa().getId()))
                     .numero(numeroSerie)
                     .descricao(request.descricao().trim() + " (" + numeroParcela + "/" + qtd + ")")
                     .categoria(request.categoria())
@@ -407,8 +409,8 @@ public class RecebimentoService {
      * Gera código legível sequencial: RC-00001, RC-00002...
      * Usa sequence do PostgreSQL pra garantir unicidade mesmo sob concorrência.
      */
-    private String gerarCodigo() {
-        Long seq = recebimentoRepository.proximoCodigoSequencia();
+    private String gerarCodigo(java.util.UUID empresaId) {
+        long seq = numeradorService.proximoNumero(empresaId, "RC");
         return "RC-" + String.format("%05d", seq);
     }
 
