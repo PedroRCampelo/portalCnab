@@ -468,15 +468,6 @@ export default function HomePage() {
                 </div>
             </section>
 
-            {/* ═══ MARQUEE ═══ */}
-            <div className="lp-strip">
-                <div className="lp-strip-inner">
-                    {MARQUEE_ITEMS.map((t, i) => (
-                        <span key={i} className="lp-marquee-item">{t}</span>
-                    ))}
-                </div>
-            </div>
-
             {/* ═══ PROBLEM ═══ */}
             <section className="lp-section lp-section--dark">
                 <div className="lp-container">
