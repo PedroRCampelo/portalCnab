@@ -1,5 +1,6 @@
 package com.pedrocampelo.cnabportal.auth.dto;
 
+import com.pedrocampelo.cnabportal.dto.EmpresaDtos.EmpresaResumo;
 import com.pedrocampelo.cnabportal.model.Usuario.PerfilUsuario;
 import java.time.LocalDate;
 import java.util.UUID;
@@ -17,5 +18,7 @@ public record AuthResponse(
         boolean   emailVerificado,
         // Assinatura
         String    assinaturaStatus,
-        LocalDate assinaturaExpiraEm
+        LocalDate assinaturaExpiraEm,
+        // Empresa resumida (para topbar + orçamento PDF)
+        EmpresaResumo empresa
 ) {}

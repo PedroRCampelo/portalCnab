@@ -30,13 +30,15 @@ const WA_MESSAGES = [
 
 const MARQUEE_ITEMS = [
     "Sem planilha, sem estresse",
-    "Gestão financeira por voz",
-    "Bot WhatsApp inteligente",
+    "Orçamentos profissionais em PDF",
+    "Pedidos de venda integrados",
     "IA que entende seu caixa",
     "Setup em 2 minutos",
-    "Transcrição de áudio",
+    "Módulo Comercial completo",
     "Alertas de vencimento",
     "Relatórios automáticos",
+    "Conversão orçamento → pedido",
+    "Numeração por empresa",
 ];
 
 const FEATURES = [
@@ -84,24 +86,51 @@ const STEPS = [
     { n: "3", title: "Gerencie pelo chat", desc: "Envie áudios, pergunte saldos, peça relatórios. Tudo pelo WhatsApp que você já usa." },
 ];
 
+const COMERCIAL_CARDS = [
+    {
+        icon: "📋",
+        title: "Orçamentos",
+        desc: "Crie propostas profissionais com itens, descontos, frete e prazo de entrega. Gere PDF com layout pronto para envio ao cliente.",
+        bullets: ["PDF profissional com logo e dados da empresa", "Status: Rascunho → Enviado → Aprovado", "Converta para Pedido de Venda com um clique", "Frete, desconto e prazo de entrega"],
+    },
+    {
+        icon: "🛒",
+        title: "Pedidos de Venda",
+        desc: "Controle completo dos pedidos. Ao efetivar, os recebimentos são gerados automaticamente no módulo financeiro.",
+        bullets: ["Geração automática de recebimentos", "Parcelamento configurável", "Copiar pedido existente", "Vinculação com orçamento de origem"],
+    },
+    {
+        icon: "🔄",
+        title: "Fluxo integrado",
+        desc: "Do orçamento ao recebimento sem retrabalho. Cada etapa alimenta a próxima automaticamente.",
+        bullets: ["Orçamento aprovado → Pedido com mesmo código", "Pedido efetivado → Recebimento gerado", "Numeração sequencial por empresa", "Rastreabilidade completa"],
+    },
+    {
+        icon: "📊",
+        title: "Relatórios Comerciais",
+        desc: "Acompanhe vendas, ticket médio e inadimplência. Cruzamento entre o financeiro e o comercial em tempo real.",
+        bullets: ["Receitas por cliente e período", "Aging de recebíveis", "Análise DRE mensal", "Fluxo de caixa projetado"],
+    },
+];
+
 const PERSONAS = [
     {
         tag: "MEI",
         title: "Microempreendedor",
         desc: "Quem fatura até R$ 81mil/ano e precisa de controle sem burocracia.",
-        items: ["Fluxo de caixa simplificado","Bot WhatsApp para consultas rápidas","Relatório mensal automático"],
+        items: ["Orçamentos em PDF com sua marca", "Fluxo de caixa simplificado", "Relatório mensal automático"],
     },
     {
         tag: "PME",
         title: "Pequena Empresa",
-        desc: "Equipes de 2-20 pessoas que lidam com CNAB, bancos e fornecedores todo dia.",
-        items: ["Importação CNAB multi-banco","Elvis para dúvidas técnicas","Dashboard consolidado"],
+        desc: "Equipes de 2-20 pessoas que lidam com clientes, bancos e fornecedores todo dia.",
+        items: ["Módulo Comercial completo (orçamentos + pedidos)", "Importação CNAB multi-banco", "Dashboard consolidado"],
     },
     {
         tag: "CONTADOR",
         title: "Escritório Contábil",
         desc: "Profissionais que gerenciam o financeiro de múltiplos clientes.",
-        items: ["Multi-empresa num painel só","Relatórios exportáveis por cliente","Auditoria e rastreabilidade"],
+        items: ["Multi-empresa num painel só", "Relatórios exportáveis por cliente", "Auditoria e rastreabilidade"],
     },
 ];
 
@@ -386,6 +415,7 @@ export default function HomePage() {
                     </button>
                     <div className="lp-nav-links">
                         <button className="lp-nav-link" onClick={() => scrollTo("recursos")}>Recursos</button>
+                        <button className="lp-nav-link" onClick={() => scrollTo("comercial")}>Comercial</button>
                         <button className="lp-nav-link" onClick={() => scrollTo("pra-quem")}>Pra quem</button>
                         <button className="lp-nav-link" onClick={() => scrollTo("precos")}>Preços</button>
                         <button className="lp-nav-link" onClick={() => scrollTo("duvidas")}>Dúvidas</button>
@@ -424,7 +454,7 @@ export default function HomePage() {
                                 <button className="lp-cta-primary" onClick={() => navigate("/cadastro")}>
                                     Começar grátis <span className="arrow">→</span>
                                 </button>
-                                <button className="lp-cta-secondary" onClick={() => scrollTo("whatsapp")}>
+                                <button className="lp-cta-secondary" onClick={() => scrollTo("recursos")}>
                                     Ver como funciona ↓
                                 </button>
                             </div>
@@ -433,67 +463,6 @@ export default function HomePage() {
 
                         <div className="lp-hero-visual">
                             <img src={heroVisual} alt="Whallet — App mobile e dashboard web" className="lp-hero-visual-img" loading="eager" />
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* ═══ MARQUEE ═══ */}
-            <div className="lp-strip">
-                <div className="lp-strip-inner">
-                    {MARQUEE_ITEMS.map((t, i) => (
-                        <span key={i} className="lp-marquee-item">{t}</span>
-                    ))}
-                </div>
-            </div>
-
-            {/* ═══ WHATSAPP SECTION ═══ */}
-            <section className="lp-wa-section" id="whatsapp">
-                <div className="lp-container">
-                    <div className="lp-wa-grid">
-                        <div className="lp-wa-content reveal">
-                            <span className="lp-section-eyebrow">BOT WHATSAPP</span>
-                            <h2>Sua gestão financeira a uma <em>mensagem</em> de distância.</h2>
-
-                            {/* Aviso de manutenção */}
-                            <div style={{
-                                display: "flex", alignItems: "flex-start", gap: 12,
-                                padding: "14px 18px", borderRadius: 10,
-                                background: "rgba(245,166,35,.1)", border: "1.5px solid rgba(245,166,35,.3)",
-                                marginBottom: 20,
-                            }}>
-                                <span style={{ fontSize: 18, flexShrink: 0 }}>🔧</span>
-                                <div style={{ fontSize: 13, lineHeight: 1.55 }}>
-                                    <strong style={{ display: "block", marginBottom: 3, color: "#c87f00" }}>Em manutenção — retornando em breve</strong>
-                                    Estamos migrando para a <strong>API Oficial do Meta</strong> para garantir maior estabilidade.
-                                    Cadastre-se e seja notificado quando o bot voltar.
-                                </div>
-                            </div>
-
-                            <p className="lp-wa-sub">
-                                Mande texto ou áudio — o bot transcreve, interpreta e
-                                responde com dados reais do seu caixa. É como ter um CFO no bolso.
-                            </p>
-                            <div className="lp-wa-actions">
-                                <div className="lp-wa-action"><strong>💬 Texto</strong><br/>Pergunte saldos, vencimentos, receita</div>
-                                <div className="lp-wa-action"><strong>🎤 Áudio</strong><br/>Transcrição automática + resposta IA</div>
-                                <div className="lp-wa-action"><strong>📊 Relatórios</strong><br/>Peça e receba PDF no chat</div>
-                                <div className="lp-wa-action"><strong>🔔 Alertas</strong><br/>Notificações proativas de vencimentos</div>
-                            </div>
-                            <button className="lp-wa-cta-btn" onClick={() => navigate("/cadastro")}>
-                                Cadastrar e ser notificado →
-                            </button>
-                        </div>
-                        <div className="lp-wa-mockup reveal reveal-d2">
-                            <IPhoneMockup messages={WA_MESSAGES} />
-                            <div className="wa-float wa-float-1">
-                                <div className="wa-float-icon" style={{ background: "#25D366" }}>🎤</div>
-                                <div><small>ÁUDIO PROCESSADO</small><strong>Transcrição IA</strong></div>
-                            </div>
-                            <div className="wa-float wa-float-2">
-                                <div className="wa-float-icon" style={{ background: "#15C3DD" }}>📄</div>
-                                <div><small>RELATÓRIO</small><strong>PDF gerado</strong></div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -522,6 +491,56 @@ export default function HomePage() {
                                 <p className="lp-pain-text">{p.t}</p>
                             </div>
                         ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* ═══ MÓDULO COMERCIAL ═══ */}
+            <section className="lp-section" id="comercial" style={{ background: "#fff" }}>
+                <div className="lp-container">
+                    <div className="lp-section-head reveal" style={{ marginBottom: 48 }}>
+                        <div>
+                            <span className="lp-section-eyebrow" style={{ color: "var(--cyan-deep)" }}>MÓDULO COMERCIAL</span>
+                            <h2 className="lp-section-title" style={{ color: "var(--navy-deep)" }}>
+                                Do orçamento ao recebimento <em>sem retrabalho.</em>
+                            </h2>
+                        </div>
+                        <p className="lp-section-desc" style={{ color: "var(--ink-2)" }}>
+                            Orçamentos profissionais em PDF, pedidos de venda integrados e geração automática de recebimentos — tudo conectado.
+                        </p>
+                    </div>
+                    <div className="lp-comercial-grid">
+                        {COMERCIAL_CARDS.map((card, i) => (
+                            <div key={i} className={`lp-comercial-card reveal reveal-d${i + 1}`}>
+                                <div className="lp-comercial-icon">{card.icon}</div>
+                                <h3 className="lp-comercial-title">{card.title}</h3>
+                                <p className="lp-comercial-desc">{card.desc}</p>
+                                <ul className="lp-comercial-bullets">
+                                    {card.bullets.map((b, j) => <li key={j}>{b}</li>)}
+                                </ul>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="lp-comercial-flow reveal" style={{ marginTop: 48 }}>
+                        <div className="lp-flow-step">
+                            <span className="lp-flow-icon">📋</span>
+                            <span className="lp-flow-label">Orçamento</span>
+                        </div>
+                        <div className="lp-flow-arrow">→</div>
+                        <div className="lp-flow-step">
+                            <span className="lp-flow-icon">✅</span>
+                            <span className="lp-flow-label">Aprovação</span>
+                        </div>
+                        <div className="lp-flow-arrow">→</div>
+                        <div className="lp-flow-step">
+                            <span className="lp-flow-icon">🛒</span>
+                            <span className="lp-flow-label">Pedido de Venda</span>
+                        </div>
+                        <div className="lp-flow-arrow">→</div>
+                        <div className="lp-flow-step">
+                            <span className="lp-flow-icon">💰</span>
+                            <span className="lp-flow-label">Recebimento</span>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -591,6 +610,57 @@ export default function HomePage() {
                                 </ul>
                             </div>
                         ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* ═══ WHATSAPP SECTION ═══ */}
+            <section className="lp-wa-section" id="whatsapp">
+                <div className="lp-container">
+                    <div className="lp-wa-grid">
+                        <div className="lp-wa-content reveal">
+                            <span className="lp-section-eyebrow">BOT WHATSAPP</span>
+                            <h2>Sua gestão financeira a uma <em>mensagem</em> de distância.</h2>
+
+                            <div style={{
+                                display: "flex", alignItems: "flex-start", gap: 12,
+                                padding: "14px 18px", borderRadius: 10,
+                                background: "rgba(245,166,35,.1)", border: "1.5px solid rgba(245,166,35,.3)",
+                                marginBottom: 20,
+                            }}>
+                                <span style={{ fontSize: 18, flexShrink: 0 }}>🔧</span>
+                                <div style={{ fontSize: 13, lineHeight: 1.55 }}>
+                                    <strong style={{ display: "block", marginBottom: 3, color: "#c87f00" }}>Em manutenção — retornando em breve</strong>
+                                    Estamos migrando para a <strong>API Oficial do Meta</strong> para garantir maior estabilidade.
+                                    Cadastre-se e seja notificado quando o bot voltar.
+                                </div>
+                            </div>
+
+                            <p className="lp-wa-sub">
+                                Mande texto ou áudio — o bot transcreve, interpreta e
+                                responde com dados reais do seu caixa. É como ter um CFO no bolso.
+                            </p>
+                            <div className="lp-wa-actions">
+                                <div className="lp-wa-action"><strong>💬 Texto</strong><br/>Pergunte saldos, vencimentos, receita</div>
+                                <div className="lp-wa-action"><strong>🎤 Áudio</strong><br/>Transcrição automática + resposta IA</div>
+                                <div className="lp-wa-action"><strong>📊 Relatórios</strong><br/>Peça e receba PDF no chat</div>
+                                <div className="lp-wa-action"><strong>🔔 Alertas</strong><br/>Notificações proativas de vencimentos</div>
+                            </div>
+                            <button className="lp-wa-cta-btn" onClick={() => navigate("/cadastro")}>
+                                Cadastrar e ser notificado →
+                            </button>
+                        </div>
+                        <div className="lp-wa-mockup reveal reveal-d2">
+                            <IPhoneMockup messages={WA_MESSAGES} />
+                            <div className="wa-float wa-float-1">
+                                <div className="wa-float-icon" style={{ background: "#25D366" }}>🎤</div>
+                                <div><small>ÁUDIO PROCESSADO</small><strong>Transcrição IA</strong></div>
+                            </div>
+                            <div className="wa-float wa-float-2">
+                                <div className="wa-float-icon" style={{ background: "#15C3DD" }}>📄</div>
+                                <div><small>RELATÓRIO</small><strong>PDF gerado</strong></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>

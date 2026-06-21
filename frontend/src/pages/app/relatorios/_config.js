@@ -12,7 +12,8 @@ import {
     LuClock, LuTags, LuBuilding2, LuTrendingDown,
     LuUsers, LuTrendingUp, LuHistory,
     LuChartLine, LuLandmark, LuWallet,
-    LuFileChartColumn,
+    LuFileChartColumn, LuChartBar, LuShoppingCart,
+    LuCalendarClock,
 } from "react-icons/lu";
 
 /**
@@ -38,6 +39,11 @@ export const GRUPOS = [
         key: "consolidado",
         label: "Consolidado",
         descricao: "Visões integradas do negócio",
+    },
+    {
+        key: "comercial",
+        label: "Comercial",
+        descricao: "Orçamentos, pedidos de venda e pipeline comercial",
     },
 ];
 
@@ -150,6 +156,53 @@ export const RELATORIOS = [
         icon: LuFileChartColumn,
         status: "ativo",
         rota: "/relatorios/dre-mensal",
+    },
+
+    // ── Comercial ────────────────────────────────────────────────────────
+    {
+        key: "faturamento-periodo",
+        grupo: "comercial",
+        titulo: "Faturamento por período",
+        descricao: "Evolução mensal do faturamento baseado em pedidos efetivados",
+        icon: LuTrendingUp,
+        status: "ativo",
+        rota: "/relatorios/faturamento-periodo",
+    },
+    {
+        key: "vendas-por-cliente",
+        grupo: "comercial",
+        titulo: "Vendas por cliente",
+        descricao: "Ranking de clientes por volume e valor de pedidos de venda",
+        icon: LuUsers,
+        status: "ativo",
+        rota: "/relatorios/vendas-por-cliente-comercial",
+    },
+    {
+        key: "pedidos-em-aberto",
+        grupo: "comercial",
+        titulo: "Pedidos em aberto",
+        descricao: "Todos os pedidos aguardando efetivação com alerta de vencimento",
+        icon: LuShoppingCart,
+        status: "ativo",
+        rota: "/relatorios/pedidos-em-aberto",
+    },
+    {
+        key: "funil-comercial",
+        grupo: "comercial",
+        titulo: "Funil comercial",
+        descricao: "Pipeline do orçamento ao pedido efetivado com taxa de conversão",
+        icon: LuChartBar,
+        status: "ativo",
+        rota: "/relatorios/funil-comercial",
+    },
+    {
+        key: "previsao-faturamento",
+        grupo: "comercial",
+        titulo: "Previsão de faturamento",
+        descricao: "Projeção de receita nos próximos 6 meses com base em pedidos abertos",
+        icon: LuCalendarClock,
+        status: "ativo",
+        rota: "/relatorios/previsao-faturamento",
     },
 ];
 

@@ -99,6 +99,17 @@ public class Empresa {
     @Builder.Default
     private Boolean dasAtivo = false;
 
+    // ── Identidade / contato ──────────────────────────────────────────────────
+
+    @Column(name = "logo_base64", columnDefinition = "TEXT")
+    private String logoBase64;
+
+    @Column(name = "telefone", length = 20)
+    private String telefone;
+
+    @Column(name = "email_empresa", length = 150)
+    private String emailEmpresa;
+
     // ── Auditoria ────────────────────────────────────────────────────────────
 
     @CreationTimestamp

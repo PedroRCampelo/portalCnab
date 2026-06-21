@@ -42,11 +42,18 @@ import FluxoCaixaRelPage           from "./pages/app/relatorios/FluxoCaixaRelPag
 import MovimentosBancariosRelPage  from "./pages/app/relatorios/MovimentosBancariosRelPage.jsx";
 import SaldoPorContaRelPage        from "./pages/app/relatorios/SaldoPorContaRelPage.jsx";
 import DreMensalPage               from "./pages/app/relatorios/DreMensalPage.jsx";
+import FaturamentoPorPeriodoPage    from "./pages/app/relatorios/FaturamentoPorPeriodoPage.jsx";
+import VendasPorClienteComercialPage from "./pages/app/relatorios/VendasPorClienteComercialPage.jsx";
+import PedidosEmAbertoPage          from "./pages/app/relatorios/PedidosEmAbertoPage.jsx";
+import FunilComercialPage           from "./pages/app/relatorios/FunilComercialPage.jsx";
+import PrevisaoFaturamentoPage      from "./pages/app/relatorios/PrevisaoFaturamentoPage.jsx";
 
 import HistoricoPage             from "./pages/app/HistoricoPage.jsx";
 import AssistenteCnabPage        from "./pages/app/AssistenteCnabPage.jsx";
 import WhatsAppPage              from "./pages/app/WhatsAppPage.jsx";
 import CnabChatPage              from "./pages/app/CnabChatPage.jsx";
+import OrcamentosPage            from "./pages/app/OrcamentosPage.jsx";
+import PedidosVendaPage          from "./pages/app/PedidosVendaPage.jsx";
 
 // Páginas de retorno do checkout Stripe
 import { UpgradeSucessoPage, UpgradeCanceladoPage } from "./pages/app/UpgradePages.jsx";
@@ -130,6 +137,11 @@ function AppShell() {
                         <Route path="/relatorios/movimentos-bancarios"   element={<ProtectedRoute><MovimentosBancariosRelPage/></ProtectedRoute>}/>
                         <Route path="/relatorios/saldo-por-conta"        element={<ProtectedRoute><SaldoPorContaRelPage/></ProtectedRoute>}/>
                         <Route path="/relatorios/dre-mensal"             element={<ProtectedRoute><DreMensalPage/></ProtectedRoute>}/>
+                        <Route path="/relatorios/faturamento-periodo"          element={<ProtectedRoute><FaturamentoPorPeriodoPage/></ProtectedRoute>}/>
+                        <Route path="/relatorios/vendas-por-cliente-comercial" element={<ProtectedRoute><VendasPorClienteComercialPage/></ProtectedRoute>}/>
+                        <Route path="/relatorios/pedidos-em-aberto"            element={<ProtectedRoute><PedidosEmAbertoPage/></ProtectedRoute>}/>
+                        <Route path="/relatorios/funil-comercial"              element={<ProtectedRoute><FunilComercialPage/></ProtectedRoute>}/>
+                        <Route path="/relatorios/previsao-faturamento"         element={<ProtectedRoute><PrevisaoFaturamentoPage/></ProtectedRoute>}/>
 
                         {/* Rota legada redirecionando pra nova */}
                         <Route path="/relatorios-titulos"   element={<ProtectedRoute><AgingPagarPage/></ProtectedRoute>}/>
@@ -137,6 +149,10 @@ function AppShell() {
                         <Route path="/preferencias-alerta" element={<ProtectedRoute><PreferenciasAlertaPage/></ProtectedRoute>}/>
                         <Route path="/historico"           element={<ProtectedRoute><HistoricoPage/></ProtectedRoute>}/>
                         <Route path="/paywall"             element={<ProtectedRoute><PaywallPage/></ProtectedRoute>}/>
+
+                        {/* Módulo Comercial */}
+                        <Route path="/orcamentos"    element={<ProtectedRoute><OrcamentosPage/></ProtectedRoute>}/>
+                        <Route path="/pedidos-venda" element={<ProtectedRoute><PedidosVendaPage/></ProtectedRoute>}/>
 
                         {/* IA */}
                         <Route path="/assistente-cnab"     element={<AssistenteCnabPage/>}/>

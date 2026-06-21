@@ -1,12 +1,13 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
     LuBuilding, LuLandmark, LuLoader, LuCircleCheck,
     LuTriangleAlert, LuInfo, LuPercent, LuLock, LuFileText,
-    LuSave,
+    LuSave, LuImage, LuTrash2, LuPhone, LuMail,
 } from "react-icons/lu";
 import api from "../../services/api.js";
 import PageHeader from "../../components/shell/PageHeader.jsx";
 import Card       from "../../components/ui/Card.jsx";
+import { useAuth } from "../../context/AuthContext.jsx";
 import {
     REGIMES, CATEGORIAS_MEI,
     fmtValor, mascaraMoeda, parseMoeda, formatarMoedaParaInput,
@@ -28,15 +29,24 @@ import {
  *  - PUT /api/empresa (payload com nome, cnpj, regime, limite, dasAtivo, etc)
  */
 export default function ConfiguracoesPage() {
+    const { atualizarEmpresa } = useAuth();
+
     const [empresa,    setEmpresa]    = useState(null);
     const [carregando, setCarregando] = useState(true);
     const [erro,       setErro]       = useState("");
     const [sucesso,    setSucesso]    = useState("");
     const [salvando,   setSalvando]   = useState(false);
 
+    // Logo upload state
+    const [logoSalvando,  setLogoSalvando]  = useState(false);
+    const [logoErro,      setLogoErro]      = useState("");
+    const logoInputRef = useRef(null);
+
     // Form values
     const [nome,            setNome]            = useState("");
     const [cnpj,            setCnpj]            = useState("");
+    const [telefone,        setTelefone]        = useState("");
+    const [emailEmpresa,    setEmailEmpresa]    = useState("");
     const [regime,          setRegime]          = useState("NENHUM");
     const [limiteAnual,     setLimiteAnual]     = useState("");
     const [dasAtivo,        setDasAtivo]        = useState(false);
@@ -54,6 +64,8 @@ export default function ConfiguracoesPage() {
             setEmpresa(data);
             setNome(data.nome ?? "");
             setCnpj(data.cnpj ?? "");
+            setTelefone(data.telefone ?? "");
+            setEmailEmpresa(data.emailEmpresa ?? "");
             setRegime(data.regimeTributario ?? "NENHUM");
             setLimiteAnual(formatarMoedaParaInput(data.limiteFaturamentoAnual));
             setDasAtivo(!!data.dasAtivo);
@@ -141,6 +153,8 @@ export default function ConfiguracoesPage() {
             meiValorDasMensal: ehMei ? valorCustomNum : null,
             meiValorDasMensalEditado: ehMei,
             dasAtivo: dasDisponivel ? dasAtivo : false,
+            telefone: telefone.trim() || null,
+            emailEmpresa: emailEmpresa.trim() || null,
         };
 
         setSalvando(true);
@@ -148,12 +162,52 @@ export default function ConfiguracoesPage() {
             const { data } = await api.put("/api/empresa", payload);
             setEmpresa(data);
             setCnpj(data.cnpj ?? "");
+            await atualizarEmpresa();
             setSucesso("Configurações salvas com sucesso!");
             setTimeout(() => setSucesso(""), 3000);
         } catch (err) {
             setErro(err.response?.data?.mensagem ?? "Erro ao salvar");
         } finally {
             setSalvando(false);
+        }
+    }
+
+    async function handleLogoUpload(e) {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (file.size > 500 * 1024) {
+            setLogoErro("Logo deve ter no máximo 500 KB.");
+            return;
+        }
+        setLogoErro("");
+        setLogoSalvando(true);
+        try {
+            const form = new FormData();
+            form.append("arquivo", file);
+            const { data } = await api.post("/api/empresa/logo", form, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+            setEmpresa(prev => ({ ...prev, logoBase64: data.logoBase64 }));
+            await atualizarEmpresa();
+        } catch (err) {
+            setLogoErro(err.response?.data?.mensagem ?? "Erro ao enviar logo.");
+        } finally {
+            setLogoSalvando(false);
+            if (logoInputRef.current) logoInputRef.current.value = "";
+        }
+    }
+
+    async function handleLogoRemover() {
+        setLogoErro("");
+        setLogoSalvando(true);
+        try {
+            await api.delete("/api/empresa/logo");
+            setEmpresa(prev => ({ ...prev, logoBase64: null }));
+            await atualizarEmpresa();
+        } catch {
+            setLogoErro("Erro ao remover logo.");
+        } finally {
+            setLogoSalvando(false);
         }
     }
 
@@ -211,6 +265,56 @@ export default function ConfiguracoesPage() {
                 icon={<LuBuilding size={14}/>}
                 title="Empresa"
             >
+                {/* Logo */}
+                <div className="cfg-field">
+                    <label className="cfg-label">
+                        <LuImage size={12}/> Logo da empresa
+                    </label>
+                    <div className="cfg-logo-area">
+                        {empresa?.logoBase64 ? (
+                            <div className="cfg-logo-preview-wrap">
+                                <img src={empresa.logoBase64} alt="Logo" className="cfg-logo-preview"/>
+                                <button
+                                    type="button"
+                                    className="cfg-logo-remove"
+                                    onClick={handleLogoRemover}
+                                    disabled={logoSalvando}
+                                >
+                                    <LuTrash2 size={13}/>
+                                    {logoSalvando ? "Removendo..." : "Remover"}
+                                </button>
+                            </div>
+                        ) : (
+                            <button
+                                type="button"
+                                className="cfg-logo-upload-btn"
+                                onClick={() => logoInputRef.current?.click()}
+                                disabled={logoSalvando}
+                            >
+                                <LuImage size={18}/>
+                                <span>{logoSalvando ? "Enviando..." : "Clique para enviar logo"}</span>
+                                <small>PNG, JPG ou SVG · máx. 500 KB</small>
+                            </button>
+                        )}
+                        <input
+                            ref={logoInputRef}
+                            type="file"
+                            accept="image/*"
+                            style={{ display: "none" }}
+                            onChange={handleLogoUpload}
+                        />
+                    </div>
+                    {logoErro && (
+                        <small className="cfg-hint" style={{ color: "var(--error)" }}>
+                            <LuTriangleAlert size={11}/> {logoErro}
+                        </small>
+                    )}
+                    <small className="cfg-hint">
+                        <LuInfo size={11}/>
+                        A logo aparece na topbar e nos orçamentos em PDF.
+                    </small>
+                </div>
+
                 <div className="cfg-field">
                     <label className="cfg-label">Nome da empresa</label>
                     <input
@@ -249,6 +353,40 @@ export default function ConfiguracoesPage() {
                             : "Opcional. Adicione se você é MEI/empresa pra desbloquear features fiscais."}
                     </small>
                 </div>
+
+                <div className="cfg-two-cols">
+                    <div className="cfg-field">
+                        <label className="cfg-label">
+                            <LuPhone size={12}/> Telefone
+                        </label>
+                        <input
+                            type="text"
+                            className="cfg-input"
+                            value={telefone}
+                            onChange={e => setTelefone(e.target.value)}
+                            placeholder="(11) 99999-9999"
+                            disabled={salvando}
+                            maxLength={20}
+                        />
+                    </div>
+                    <div className="cfg-field">
+                        <label className="cfg-label">
+                            <LuMail size={12}/> E-mail da empresa
+                        </label>
+                        <input
+                            type="email"
+                            className="cfg-input"
+                            value={emailEmpresa}
+                            onChange={e => setEmailEmpresa(e.target.value)}
+                            placeholder="contato@minhaempresa.com.br"
+                            disabled={salvando}
+                            maxLength={150}
+                        />
+                    </div>
+                </div>
+                <small className="cfg-hint" style={{ marginTop: -8 }}>
+                    <LuInfo size={11}/> Aparecem no cabeçalho dos orçamentos em PDF.
+                </small>
             </Secao>
 
             {/* ── Seção: Regime tributário ── */}
@@ -918,6 +1056,97 @@ const COMPONENT_CSS = `
 .cfg-valor-efetivo strong {
     color: var(--success);
     font-weight: 700;
+}
+
+/* ── Logo upload ─────────────────────────────────────────────────────── */
+
+.cfg-logo-area {
+    margin-bottom: 4px;
+}
+
+.cfg-logo-upload-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px dashed var(--hair);
+    background: var(--bg);
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+    font-size: 13px;
+    font-family: inherit;
+}
+
+.cfg-logo-upload-btn:hover:not(:disabled) {
+    border-color: var(--cyan);
+    background: var(--cyan-soft);
+    color: var(--cyan-dark);
+}
+
+.cfg-logo-upload-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.cfg-logo-upload-btn small {
+    font-size: 11px;
+    color: var(--text-dim);
+}
+
+.cfg-logo-preview-wrap {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1.5px solid var(--hair);
+    background: var(--bg);
+}
+
+.cfg-logo-preview {
+    height: 48px;
+    max-width: 120px;
+    object-fit: contain;
+    border-radius: 4px;
+}
+
+.cfg-logo-remove {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border-radius: 7px;
+    border: 1px solid var(--hair);
+    background: var(--surface);
+    color: var(--error);
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.15s;
+    margin-left: auto;
+}
+
+.cfg-logo-remove:hover:not(:disabled) {
+    background: var(--error-bg);
+}
+
+/* ── Dois colunas ────────────────────────────────────────────────────── */
+
+.cfg-two-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+@media (max-width: 520px) {
+    .cfg-two-cols {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* ── Footer com botão salvar ─────────────────────────────────────────── */

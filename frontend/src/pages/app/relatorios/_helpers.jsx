@@ -212,6 +212,49 @@ export function useRelatorioTitulos() {
     return { dados, carregando, erro, recarregar };
 }
 
+/* ─── Hook: dados do relatório comercial ─────────────────────────────────── */
+
+let _cacheComercial = null;
+let _cachePromiseComercial = null;
+
+export function useRelatorioComercial() {
+    const [dados, setDados] = useState(_cacheComercial);
+    const [carregando, setCarregando] = useState(_cacheComercial === null);
+    const [erro, setErro] = useState("");
+
+    useEffect(() => {
+        if (_cacheComercial) {
+            setDados(_cacheComercial);
+            setCarregando(false);
+            return;
+        }
+
+        if (_cachePromiseComercial) {
+            _cachePromiseComercial
+                .then(d => { setDados(d); setCarregando(false); })
+                .catch(e => { setErro(String(e)); setCarregando(false); });
+            return;
+        }
+
+        _cachePromiseComercial = api.get("/api/comercial/relatorio")
+            .then(({ data }) => {
+                _cacheComercial = data;
+                _cachePromiseComercial = null;
+                return data;
+            });
+
+        _cachePromiseComercial
+            .then(d => { setDados(d); setCarregando(false); })
+            .catch(e => {
+                setErro(e?.response?.data?.mensagem ?? "Erro ao carregar relatório comercial");
+                _cachePromiseComercial = null;
+                setCarregando(false);
+            });
+    }, []);
+
+    return { dados, carregando, erro };
+}
+
 /* ─── Hook: dados unificados do relatório de recebimentos ────────────────── */
 
 let _cacheRelReceb = null;

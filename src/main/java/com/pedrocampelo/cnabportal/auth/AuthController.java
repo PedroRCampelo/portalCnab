@@ -6,6 +6,7 @@ import com.pedrocampelo.cnabportal.auth.dto.CadastroRequest;
 import com.pedrocampelo.cnabportal.auth.dto.GoogleAuthRequest;
 import com.pedrocampelo.cnabportal.auth.dto.RegisterRequest;
 import com.pedrocampelo.cnabportal.config.LoginRateLimiter;
+import com.pedrocampelo.cnabportal.dto.EmpresaDtos.EmpresaResumo;
 import com.pedrocampelo.cnabportal.model.Empresa;
 import com.pedrocampelo.cnabportal.model.Usuario;
 import com.pedrocampelo.cnabportal.model.Usuario.PapelEmpresa;
@@ -83,7 +84,8 @@ public class AuthController {
                     usuario.getPlanoId(),
                     Boolean.TRUE.equals(usuario.getEmailVerificado()),
                     usuario.getAssinaturaStatus(),
-                    usuario.getAssinaturaExpiraEm()
+                    usuario.getAssinaturaExpiraEm(),
+                    resolverEmpresaResumo(usuario)
             ));
 
         } catch (DisabledException e) {
@@ -151,7 +153,8 @@ public class AuthController {
                 usuario.getPlanoId(),
                 Boolean.TRUE.equals(usuario.getEmailVerificado()),
                 usuario.getAssinaturaStatus(),
-                usuario.getAssinaturaExpiraEm()
+                usuario.getAssinaturaExpiraEm(),
+                resolverEmpresaResumo(usuario)
         ));
     }
 
@@ -310,7 +313,8 @@ public class AuthController {
                 usuario.getPlanoId(),
                 Boolean.TRUE.equals(usuario.getEmailVerificado()),
                 usuario.getAssinaturaStatus(),
-                usuario.getAssinaturaExpiraEm()
+                usuario.getAssinaturaExpiraEm(),
+                resolverEmpresaResumo(usuario)
         ));
     }
 
@@ -433,6 +437,13 @@ public class AuthController {
     record ErroResponse(String mensagem) {}
     record EmailRequest(String email) {}
     record RedefinirSenhaRequest(String token, String novaSenha) {}
+
+    private EmpresaResumo resolverEmpresaResumo(Usuario usuario) {
+        if (usuario.getEmpresa() == null) return null;
+        return empresaRepository.findById(usuario.getEmpresa().getId())
+                .map(EmpresaResumo::from)
+                .orElse(null);
+    }
 
     private String obterIp(HttpServletRequest request) {
         String forwarded = request.getHeader("X-Forwarded-For");
