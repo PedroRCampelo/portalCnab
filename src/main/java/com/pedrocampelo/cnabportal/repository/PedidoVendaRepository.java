@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -18,6 +19,8 @@ public interface PedidoVendaRepository extends JpaRepository<PedidoVenda, UUID> 
     Page<PedidoVenda> findByEmpresaIdAndClienteId(UUID empresaId, UUID clienteId, Pageable pageable);
 
     Optional<PedidoVenda> findByIdAndEmpresaId(UUID id, UUID empresaId);
+
+    List<PedidoVenda> findAllByEmpresaId(UUID empresaId);
 
     @Query(value = "SELECT NEXTVAL('pedido_venda_numero_seq')", nativeQuery = true)
     Long proximoNumeroSequencia();
