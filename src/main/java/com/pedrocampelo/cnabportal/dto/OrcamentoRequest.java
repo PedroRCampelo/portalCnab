@@ -28,6 +28,12 @@ public record OrcamentoRequest(
         @PositiveOrZero(message = "Desconto geral não pode ser negativo")
         BigDecimal descontoGeral,
 
+        @PositiveOrZero(message = "Frete não pode ser negativo")
+        BigDecimal valorFrete,
+
+        @Size(max = 200)
+        String prazoEntrega,
+
         @Pattern(
                 regexp = "PIX|BOLETO|DINHEIRO|CARTAO_CREDITO|CARTAO_DEBITO|TRANSFERENCIA|CHEQUE|A_DEFINIR|OUTROS",
                 message = "Forma de pagamento inválida"

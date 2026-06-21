@@ -81,6 +81,13 @@ public class Orcamento {
     @Builder.Default
     private BigDecimal descontoGeral = BigDecimal.ZERO;
 
+    @Column(name = "valor_frete", nullable = false, precision = 18, scale = 2)
+    @Builder.Default
+    private BigDecimal valorFrete = BigDecimal.ZERO;
+
+    @Column(name = "prazo_entrega", length = 200)
+    private String prazoEntrega;
+
     // ── Condições de pagamento ────────────────────────────────────────────────
 
     @Column(name = "forma_pagamento", nullable = false, length = 20)
@@ -132,7 +139,11 @@ public class Orcamento {
         BigDecimal soma = itens.stream()
                 .map(ItemOrcamento::getSubtotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        this.valorTotal = soma.subtract(this.descontoGeral.compareTo(BigDecimal.ZERO) > 0 ? this.descontoGeral : BigDecimal.ZERO);
+        BigDecimal desconto = this.descontoGeral != null && this.descontoGeral.compareTo(BigDecimal.ZERO) > 0
+                ? this.descontoGeral : BigDecimal.ZERO;
+        BigDecimal frete = this.valorFrete != null && this.valorFrete.compareTo(BigDecimal.ZERO) > 0
+                ? this.valorFrete : BigDecimal.ZERO;
+        this.valorTotal = soma.subtract(desconto).add(frete);
     }
 
     public boolean isEditavel() {

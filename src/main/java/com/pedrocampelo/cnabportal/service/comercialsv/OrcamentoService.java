@@ -79,6 +79,8 @@ public class OrcamentoService {
                 .descricao(req.descricao().trim())
                 .observacoes(req.observacoes())
                 .descontoGeral(req.descontoGeral() != null ? req.descontoGeral() : BigDecimal.ZERO)
+                .valorFrete(req.valorFrete() != null ? req.valorFrete() : BigDecimal.ZERO)
+                .prazoEntrega(req.prazoEntrega())
                 .formaPagamento(req.formaPagamento() != null ? req.formaPagamento() : "A_DEFINIR")
                 .numParcelas(req.numParcelas() != null ? req.numParcelas() : 1)
                 .intervaloDias(req.intervaloDias() != null ? req.intervaloDias() : 30)
@@ -108,9 +110,13 @@ public class OrcamentoService {
         orc.setDescricao(req.descricao().trim());
         orc.setObservacoes(req.observacoes());
         orc.setDescontoGeral(req.descontoGeral() != null ? req.descontoGeral() : BigDecimal.ZERO);
+        orc.setValorFrete(req.valorFrete() != null ? req.valorFrete() : BigDecimal.ZERO);
+        orc.setPrazoEntrega(req.prazoEntrega());
         orc.setFormaPagamento(req.formaPagamento() != null ? req.formaPagamento() : "A_DEFINIR");
         orc.setNumParcelas(req.numParcelas() != null ? req.numParcelas() : 1);
         orc.setIntervaloDias(req.intervaloDias() != null ? req.intervaloDias() : 30);
+        orc.setStatus("RASCUNHO");
+        orc.setAprovadoEm(null);
         orc.setAlteradoPor(usuario);
 
         orc.getItens().clear();
