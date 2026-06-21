@@ -194,7 +194,7 @@ export default function PedidoVendaModal({ inicial, onSalvar, onFechar }) {
             onClose={onFechar}
             size="lg"
         >
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, overflow: "hidden" }}>
             <Modal.Body>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px 20px" }}>
 
