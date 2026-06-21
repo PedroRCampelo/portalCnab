@@ -38,11 +38,13 @@ export default function OrcamentoModal({ inicial, onSalvar, onFechar }) {
     const wrapperRef  = useRef(null);
 
     // ── Campos principais ─────────────────────────────────────────────────────
-    const [descricao,   setDescricao]   = useState(inicial?.descricao ?? "");
-    const [observacoes, setObs]         = useState(inicial?.observacoes ?? "");
-    const [dataEmissao, setDataEmissao] = useState(inicial?.dataEmissao ?? hoje());
-    const [validade,    setValidade]    = useState(inicial?.validade ?? emTrintaDias());
-    const [descGeral,   setDescGeral]   = useState(inicial?.descontoGeral ?? "0");
+    const [descricao,    setDescricao]  = useState(inicial?.descricao ?? "");
+    const [observacoes,  setObs]        = useState(inicial?.observacoes ?? "");
+    const [dataEmissao,  setDataEmissao]= useState(inicial?.dataEmissao ?? hoje());
+    const [validade,     setValidade]   = useState(inicial?.validade ?? emTrintaDias());
+    const [descGeral,    setDescGeral]  = useState(String(inicial?.descontoGeral ?? "0"));
+    const [valorFrete,   setValorFrete] = useState(String(inicial?.valorFrete ?? "0"));
+    const [prazoEntrega, setPrazo]      = useState(inicial?.prazoEntrega ?? "");
 
     // ── Pagamento ─────────────────────────────────────────────────────────────
     const [formaPag, setFormaPag]       = useState(inicial?.formaPagamento ?? "A_DEFINIR");
@@ -126,6 +128,8 @@ export default function OrcamentoModal({ inicial, onSalvar, onFechar }) {
                 dataEmissao,
                 validade,
                 descontoGeral: parseFloat(descGeral) || 0,
+                valorFrete: parseFloat(valorFrete) || 0,
+                prazoEntrega: prazoEntrega.trim() || null,
                 formaPagamento: formaPag,
                 numParcelas: parseInt(numParcelas, 10) || 1,
                 intervaloDias: parseInt(intervalo, 10) || 30,
@@ -255,6 +259,28 @@ export default function OrcamentoModal({ inicial, onSalvar, onFechar }) {
                             step="0.01"
                             value={descGeral}
                             onChange={e => setDescGeral(e.target.value)}
+                        />
+                    </div>
+
+                    <div>
+                        <label className="form-label">Frete / Acréscimo (R$)</label>
+                        <input
+                            className="form-input"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={valorFrete}
+                            onChange={e => setValorFrete(e.target.value)}
+                        />
+                    </div>
+
+                    <div style={{ gridColumn: "1 / -1" }}>
+                        <label className="form-label">Prazo de entrega</label>
+                        <input
+                            className="form-input"
+                            value={prazoEntrega}
+                            onChange={e => setPrazo(e.target.value)}
+                            placeholder="Ex: 30 dias úteis após aprovação"
                         />
                     </div>
 

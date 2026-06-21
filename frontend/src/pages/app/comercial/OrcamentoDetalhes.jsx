@@ -110,6 +110,18 @@ export default function OrcamentoDetalhes({ orcamento: orc, onFechar, onEditar, 
                         <dd>{fmt(orc.descontoGeral)}</dd>
                     </div>
                 )}
+                {Number(orc.valorFrete) > 0 && (
+                    <div>
+                        <dt>Frete / Acréscimo</dt>
+                        <dd>{fmt(orc.valorFrete)}</dd>
+                    </div>
+                )}
+                {orc.prazoEntrega && (
+                    <div>
+                        <dt>Prazo de entrega</dt>
+                        <dd>{orc.prazoEntrega}</dd>
+                    </div>
+                )}
                 <div>
                     <dt>Forma de pagamento</dt>
                     <dd>{FORMA_PAG_LABELS[orc.formaPagamento] ?? orc.formaPagamento}</dd>
