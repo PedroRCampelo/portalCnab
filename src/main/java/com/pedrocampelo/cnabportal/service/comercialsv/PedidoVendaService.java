@@ -220,6 +220,60 @@ public class PedidoVendaService {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    // Converter orçamento → pedido
+    // ─────────────────────────────────────────────────────────────────────────
+
+    @Transactional
+    public PedidoVendaResponse converterDeOrcamento(Usuario usuario, UUID orcamentoId) {
+        Orcamento orc = orcamentoService.buscarEntidade(usuario, orcamentoId);
+
+        if (!"APROVADO".equals(orc.getStatus())) {
+            throw new IllegalStateException(
+                    "Apenas orçamentos APROVADOS podem ser convertidos em pedido. Status atual: " + orc.getStatus());
+        }
+
+        String formaPag = orc.getFormaPagamento();
+        if (formaPag == null || "A_DEFINIR".equals(formaPag) || "CHEQUE".equals(formaPag)) {
+            formaPag = "OUTROS";
+        }
+
+        List<ItemRequest> itensReq = orc.getItens().stream()
+                .map(i -> new ItemRequest(i.getDescricao(), i.getQuantidade(),
+                        i.getValorUnitario(), i.getDesconto(), i.getOrdem()))
+                .toList();
+
+        PedidoVenda pedido = PedidoVenda.builder()
+                .empresa(usuario.getEmpresa())
+                .usuario(usuario)
+                .cliente(orc.getCliente())
+                .orcamento(orc)
+                .numero(orc.getNumero())
+                .status("ABERTO")
+                .descricao(orc.getDescricao() != null
+                        ? orc.getDescricao()
+                        : "Pedido gerado do Orçamento " + orc.getNumero())
+                .observacoes(orc.getObservacoes())
+                .formaPagamento(formaPag)
+                .numParcelas(orc.getNumParcelas())
+                .intervaloDias(orc.getIntervaloDias())
+                .primeiroVencimento(java.time.LocalDate.now().plusDays(30))
+                .criadoPor(usuario)
+                .build();
+
+        adicionarItens(pedido, itensReq);
+        pedido.recalcularTotal();
+
+        PedidoVenda salvo = pedidoVendaRepository.save(pedido);
+
+        orc.setStatus("EM_PEDIDO");
+        orc.setAlteradoPor(usuario);
+        orcamentoService.salvarEntidade(orc);
+
+        log.info("Pedido {} gerado do Orçamento {}", salvo.getNumero(), orc.getNumero());
+        return PedidoVendaResponse.from(salvo);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     // Helpers internos
     // ─────────────────────────────────────────────────────────────────────────
 

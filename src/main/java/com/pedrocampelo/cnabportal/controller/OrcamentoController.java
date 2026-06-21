@@ -3,8 +3,10 @@ package com.pedrocampelo.cnabportal.controller;
 import com.pedrocampelo.cnabportal.config.gate.RequireWhalletPlusWrite;
 import com.pedrocampelo.cnabportal.dto.OrcamentoRequest;
 import com.pedrocampelo.cnabportal.dto.OrcamentoResponse;
+import com.pedrocampelo.cnabportal.dto.PedidoVendaResponse;
 import com.pedrocampelo.cnabportal.model.Usuario;
 import com.pedrocampelo.cnabportal.service.comercialsv.OrcamentoService;
+import com.pedrocampelo.cnabportal.service.comercialsv.PedidoVendaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +27,8 @@ import java.util.UUID;
 @Slf4j
 public class OrcamentoController {
 
-    private final OrcamentoService orcamentoService;
+    private final OrcamentoService   orcamentoService;
+    private final PedidoVendaService pedidoVendaService;
 
     @GetMapping
     public ResponseEntity<Page<OrcamentoResponse>> listar(
@@ -70,6 +73,15 @@ public class OrcamentoController {
             @RequestParam String status) {
 
         return ResponseEntity.ok(orcamentoService.mudarStatus(usuario, id, status));
+    }
+
+    @PostMapping("/{id}/converter-pedido")
+    public ResponseEntity<PedidoVendaResponse> converterEmPedido(
+            @AuthenticationPrincipal Usuario usuario,
+            @PathVariable UUID id) {
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(pedidoVendaService.converterDeOrcamento(usuario, id));
     }
 
     @ExceptionHandler(NoSuchElementException.class)
