@@ -138,6 +138,12 @@ export default function OrcamentosPage() {
         if (detalhes?.id === id) setDetalhes(null);
     }
 
+    async function converterParaPedido(id) {
+        await api.post(`/api/orcamentos/${id}/converter-pedido`);
+        carregar();
+        setDetalhes(null);
+    }
+
     /* ── Colunas ────────────────────────────────────────────────────────── */
 
     const colunas = useMemo(() => [
@@ -372,6 +378,7 @@ export default function OrcamentosPage() {
                     onFechar={() => setDetalhes(null)}
                     onEditar={() => { setDetalhes(null); abrirEditar(detalhes); }}
                     onMudarStatus={novoStatus => { mudarStatus(detalhes.id, novoStatus); setDetalhes(null); }}
+                    onConverterPedido={() => converterParaPedido(detalhes.id)}
                 />
             )}
         </>

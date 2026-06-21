@@ -1,5 +1,6 @@
+import { useState } from "react";
 import Modal from "../../../components/ui/Modal.jsx";
-import { LuPencil, LuCircleCheck, LuPrinter } from "react-icons/lu";
+import { LuPencil, LuCircleCheck, LuPrinter, LuShoppingCart } from "react-icons/lu";
 import { imprimirOrcamento } from "./OrcamentoPrint.jsx";
 import { useAuth } from "../../../context/AuthContext.jsx";
 
@@ -28,9 +29,24 @@ const FORMA_PAG_LABELS = {
     OUTROS:         "Outros",
 };
 
-export default function OrcamentoDetalhes({ orcamento: orc, onFechar, onEditar, onMudarStatus }) {
+export default function OrcamentoDetalhes({ orcamento: orc, onFechar, onEditar, onMudarStatus, onConverterPedido }) {
     const emPedido = orc.status === "EM_PEDIDO";
     const { usuario } = useAuth();
+    const [convertendo, setConvertendo] = useState(false);
+    const [erroConversao, setErroConversao] = useState("");
+
+    async function handleConverterPedido() {
+        if (!window.confirm(`Gerar pedido de venda a partir do Orçamento ${orc.numero}?`)) return;
+        setConvertendo(true);
+        setErroConversao("");
+        try {
+            await onConverterPedido();
+        } catch (err) {
+            setErroConversao(err?.response?.data?.erro ?? "Erro ao gerar pedido.");
+        } finally {
+            setConvertendo(false);
+        }
+    }
 
     return (
         <Modal
@@ -66,9 +82,19 @@ export default function OrcamentoDetalhes({ orcamento: orc, onFechar, onEditar, 
                                 </>
                             )}
                             {orc.status === "APROVADO" && (
-                                <button className="ph-btn" onClick={() => onMudarStatus("RECUSADO")}>
-                                    Marcar como recusado
-                                </button>
+                                <>
+                                    <button className="ph-btn" onClick={() => onMudarStatus("RECUSADO")}>
+                                        Marcar como recusado
+                                    </button>
+                                    <button
+                                        className="ph-btn ph-btn--primary"
+                                        onClick={handleConverterPedido}
+                                        disabled={convertendo}
+                                    >
+                                        <LuShoppingCart size={14}/>
+                                        {convertendo ? "Gerando..." : "Gerar Pedido"}
+                                    </button>
+                                </>
                             )}
                             {orc.status === "RECUSADO" && (
                                 <button className="ph-btn" onClick={() => onMudarStatus("RASCUNHO")}>
@@ -173,6 +199,18 @@ export default function OrcamentoDetalhes({ orcamento: orc, onFechar, onEditar, 
                         </tbody>
                     </table>
                 </div>
+            )}
+
+            {erroConversao && (
+                <p style={{
+                    marginTop: 16, padding: "10px 14px",
+                    background: "var(--error-bg, #fef2f2)",
+                    borderRadius: 6, fontSize: 13,
+                    color: "var(--error, #ef4444)",
+                    border: "1px solid var(--error-border, #fecaca)",
+                }}>
+                    {erroConversao}
+                </p>
             )}
 
             {emPedido && (
