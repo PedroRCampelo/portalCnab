@@ -11,7 +11,8 @@ public record RecebimentoResponse(
         UUID id,
         ClienteResumo cliente,
 
-        String numero,                  // RC00001 — sequencial
+        String codigo,                  // RC-00001 — sequencial por empresa
+        String numero,                  // R-XXXXXXXX — agrupa parcelas do mesmo recebimento
         String parcela,                 // "01", "02"
         String chave,                   // RC0000101 — numero + parcela
         String descricao,
@@ -91,6 +92,7 @@ public record RecebimentoResponse(
         return new RecebimentoResponse(
                 r.getId(),
                 clienteResumo,
+                r.getCodigo(),
                 r.getNumero(),
                 r.getParcela(),
                 r.getChave(),

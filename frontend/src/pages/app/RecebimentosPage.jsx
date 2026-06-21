@@ -110,6 +110,7 @@ export default function RecebimentosPage() {
         return recebimentos.filter(r =>
             r.descricao?.toLowerCase().includes(q) ||
             r.cliente?.nome?.toLowerCase().includes(q) ||
+            r.codigo?.toLowerCase().includes(q) ||
             r.numero?.toLowerCase().includes(q) ||
             r.chave?.toLowerCase().includes(q)
         );
@@ -192,8 +193,8 @@ export default function RecebimentosPage() {
 
     const colunas = useMemo(() => [
         {
-            key: "numero",
-            label: "Número",
+            key: "codigo",
+            label: "Código",
             sortable: true,
             render: r => (
                 <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.3 }}>
@@ -204,7 +205,7 @@ export default function RecebimentosPage() {
                         color: "var(--navy-deep)",
                         letterSpacing: "0.02em",
                     }}>
-                        {r.numero}
+                        {r.codigo ?? r.numero}
                     </span>
                     {r.parcelaTotal > 1 && (
                         <span style={{
@@ -213,10 +214,20 @@ export default function RecebimentosPage() {
                             color: "var(--text-dim)",
                             letterSpacing: "0.04em",
                         }}>
-                            Parcela {r.parcela}/{String.format ? r.parcelaTotal : String(r.parcelaTotal).padStart(2, "0")}
+                            Parcela {r.parcelaAtual}/{r.parcelaTotal}
                         </span>
                     )}
                 </div>
+            ),
+        },
+        {
+            key: "dataEmissao",
+            label: "Emissão",
+            sortable: true,
+            render: r => (
+                <span className="ui-table-num" style={{ fontSize: 13 }}>
+                    {fmtData(r.dataEmissao)}
+                </span>
             ),
         },
         {

@@ -1,5 +1,5 @@
 import Modal from "../../../components/ui/Modal.jsx";
-import { LuPencil, LuCircleCheck, LuCircleX } from "react-icons/lu";
+import { LuPencil, LuCircleCheck, LuCircleX, LuCopy } from "react-icons/lu";
 
 function fmt(valor) {
     return Number(valor ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -21,7 +21,7 @@ const FORMA_PAG_LABELS = {
     OUTROS:         "Outros",
 };
 
-export default function PedidoVendaDetalhes({ pedido: p, onFechar, onEditar, onEfetivar, onCancelar }) {
+export default function PedidoVendaDetalhes({ pedido: p, onFechar, onEditar, onEfetivar, onCancelar, onCopiar }) {
     return (
         <Modal
             open
@@ -30,6 +30,9 @@ export default function PedidoVendaDetalhes({ pedido: p, onFechar, onEditar, onE
             size="lg"
             actions={
                 <div style={{ display: "flex", gap: "8px" }}>
+                    <button className="ph-btn" title="Duplicar pedido" onClick={onCopiar}>
+                        <LuCopy size={14}/> Copiar
+                    </button>
                     {p.editavel && (
                         <button className="ph-btn" onClick={onEditar}>
                             <LuPencil size={14}/> Editar

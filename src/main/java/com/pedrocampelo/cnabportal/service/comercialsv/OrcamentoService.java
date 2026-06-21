@@ -8,6 +8,7 @@ import com.pedrocampelo.cnabportal.model.ItemOrcamento;
 import com.pedrocampelo.cnabportal.model.Orcamento;
 import com.pedrocampelo.cnabportal.model.Usuario;
 import com.pedrocampelo.cnabportal.repository.OrcamentoRepository;
+import com.pedrocampelo.cnabportal.service.NumeradorEmpresaService;
 import com.pedrocampelo.cnabportal.service.recebimentossv.ClienteService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,8 +30,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Slf4j
 public class OrcamentoService {
 
-    private final OrcamentoRepository orcamentoRepository;
-    private final ClienteService       clienteService;
+    private final OrcamentoRepository    orcamentoRepository;
+    private final ClienteService          clienteService;
+    private final NumeradorEmpresaService numeradorService;
 
     // ─────────────────────────────────────────────────────────────────────────
     // Listagem
@@ -72,7 +74,7 @@ public class OrcamentoService {
                 .empresa(usuario.getEmpresa())
                 .usuario(usuario)
                 .cliente(cliente)
-                .numero(gerarNumero())
+                .numero(gerarNumero(usuario.getEmpresa().getId()))
                 .status("RASCUNHO")
                 .dataEmissao(req.dataEmissao() != null ? req.dataEmissao() : java.time.LocalDate.now())
                 .validade(req.validade())
@@ -175,8 +177,8 @@ public class OrcamentoService {
         });
     }
 
-    private String gerarNumero() {
-        Long seq = orcamentoRepository.proximoNumeroSequencia();
+    private String gerarNumero(java.util.UUID empresaId) {
+        long seq = numeradorService.proximoNumero(empresaId, "ORC");
         return String.format("ORC-%05d", seq);
     }
 }

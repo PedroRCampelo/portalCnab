@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import {
     LuPlus, LuFileText, LuSearch, LuPencil, LuCircleCheck, LuCircleX,
-    LuChevronLeft, LuChevronRight, LuRotateCcw, LuX,
+    LuChevronLeft, LuChevronRight, LuRotateCcw, LuX, LuCopy,
 } from "react-icons/lu";
 import api from "../../services/api.js";
 import PageHeader          from "../../components/shell/PageHeader.jsx";
@@ -147,6 +147,17 @@ export default function PedidosVendaPage() {
         }
     }
 
+    async function copiarPedido(id) {
+        setErro("");
+        try {
+            await api.post(`/api/pedidos-venda/${id}/copiar`);
+            carregar();
+        } catch (err) {
+            const msg = err?.response?.data?.erro ?? err?.response?.data?.message ?? "Erro ao copiar pedido.";
+            setErro(msg);
+        }
+    }
+
     /* ── Colunas ────────────────────────────────────────────────────────── */
 
     const colunas = useMemo(() => [
@@ -182,6 +193,16 @@ export default function PedidosVendaPage() {
             sortable: true,
             render: p => (
                 <span style={{ color: "var(--ink-2)", fontSize: 13 }}>{p.descricao || "—"}</span>
+            ),
+        },
+        {
+            key: "criadoEm",
+            label: "Emissão",
+            sortable: true,
+            render: p => (
+                <span className="ui-table-num" style={{ fontSize: 13 }}>
+                    {p.criadoEm ? fmtData(p.criadoEm.slice(0, 10)) : "—"}
+                </span>
             ),
         },
         {
@@ -233,6 +254,7 @@ export default function PedidosVendaPage() {
                     onEditar={() => abrirEditar(p)}
                     onEfetivar={() => setConfirmEfetivar(p)}
                     onCancelar={() => setConfirmCancelar(p)}
+                    onCopiar={() => copiarPedido(p.id)}
                 />
             ),
         },
@@ -365,6 +387,7 @@ export default function PedidosVendaPage() {
                     onEditar={() => { setDetalhes(null); abrirEditar(detalhes); }}
                     onEfetivar={() => { setConfirmEfetivar(detalhes); setDetalhes(null); }}
                     onCancelar={() => { setConfirmCancelar(detalhes); setDetalhes(null); }}
+                    onCopiar={() => { copiarPedido(detalhes.id); setDetalhes(null); }}
                 />
             )}
 
@@ -443,7 +466,7 @@ export default function PedidosVendaPage() {
 
 /* ─── Ações inline ───────────────────────────────────────────────────────── */
 
-function AcoesInline({ pedido: p, onEditar, onEfetivar, onCancelar }) {
+function AcoesInline({ pedido: p, onEditar, onEfetivar, onCancelar, onCopiar }) {
     return (
         <div className="orc-actions" onClick={e => e.stopPropagation()}>
             {p.editavel && (
@@ -451,6 +474,9 @@ function AcoesInline({ pedido: p, onEditar, onEfetivar, onCancelar }) {
                     <LuPencil size={14}/>
                 </button>
             )}
+            <button className="orc-action" title="Copiar pedido" onClick={onCopiar}>
+                <LuCopy size={14}/>
+            </button>
             {p.efetivavel && (
                 <button className="orc-action orc-action--aprovar" title="Efetivar pedido" onClick={onEfetivar}>
                     <LuCircleCheck size={14}/>

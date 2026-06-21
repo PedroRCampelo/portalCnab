@@ -287,6 +287,16 @@ export default function TitulosPage() {
             },
         },
         {
+            key: "criadoEm",
+            label: "Emissão",
+            sortable: true,
+            render: t => (
+                <span className="ui-table-num" style={{ fontSize: 13 }}>
+                    {t.criadoEm ? fmtData(t.criadoEm.slice(0, 10)) : "—"}
+                </span>
+            ),
+        },
+        {
             key: "vencimento",
             label: "Vencimento",
             sortable: true,
