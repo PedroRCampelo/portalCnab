@@ -79,8 +79,8 @@ const FEATURE_GROUPS = [
 
 const FAQ = [
     {
-        q: "Como funciona o trial de 7 dias do Whallet+?",
-        a: "Ao criar sua conta, você ganha 7 dias com todas as features do Whallet+ liberadas. Não precisa cadastrar cartão. Quando os 7 dias acabarem, sua conta volta automaticamente para o plano Free se você não assinar — sem cobrança nenhuma.",
+        q: "O Whallet+ é realmente gratuito agora?",
+        a: "Sim. Durante o período beta, o Whallet+ está completamente gratuito. Basta criar uma conta e ativar — sem cartão de crédito, sem compromisso. Quando o período beta encerrar, avisaremos com antecedência.",
     },
     {
         q: "Se eu cancelar o Whallet+, perco meus dados?",
@@ -334,70 +334,22 @@ export default function PlanosPage() {
                                     className="pp-plan-cta pp-plan-cta--primary"
                                     onClick={() => navigate("/cadastro")}
                                 >
-                                    Começar 7 dias grátis
+                                    Começar grátis
                                     <LuArrowRight size={14}/>
                                 </button>
                             ) : temWhalletPlus ? (
-                                <>
-                                    <button className="pp-plan-cta pp-plan-cta--current">
-                                        Plano atual
-                                    </button>
-                                    {trial?.emTrial && trial.expiraEm && (
-                                        <div style={{
-                                            marginTop: 8,
-                                            padding: "6px 12px",
-                                            borderRadius: 8,
-                                            background: "rgba(21, 195, 221, 0.08)",
-                                            border: "1px solid rgba(21, 195, 221, 0.18)",
-                                            fontSize: 12,
-                                            color: "var(--cyan-dark)",
-                                            textAlign: "center",
-                                            lineHeight: 1.5,
-                                        }}>
-                                            Seu teste gratuito vai até{" "}
-                                            <strong>
-                                                {new Date(trial.expiraEm).toLocaleDateString("pt-BR", {
-                                                    day: "2-digit", month: "long",
-                                                })}
-                                            </strong>
-                                            {trial.diasRestantes > 0 && (
-                                                <> · {trial.diasRestantes} {trial.diasRestantes === 1 ? "dia restante" : "dias restantes"}</>
-                                            )}
-                                        </div>
-                                    )}
-                                </>
+                                <button className="pp-plan-cta pp-plan-cta--current">
+                                    Plano atual
+                                </button>
                             ) : (
-                                <>
-                                    {trial && !trial.jaUsou ? (
-                                        <>
-                                            <button
-                                                className="pp-plan-cta pp-plan-cta--primary"
-                                                onClick={handleAtivarTrial}
-                                                disabled={ativandoTrial}
-                                            >
-                                                {ativandoTrial ? "Ativando..." : "Experimentar grátis 7 dias"}
-                                                {!ativandoTrial && <LuArrowRight size={14}/>}
-                                            </button>
-                                            <button
-                                                className="pp-plan-cta pp-plan-cta--ghost"
-                                                onClick={handleAssinarPlus}
-                                                disabled={carregandoPlus}
-                                                style={{ marginTop: 6 }}
-                                            >
-                                                {carregandoPlus ? "Ativando..." : "Ativar sem trial"}
-                                            </button>
-                                        </>
-                                    ) : (
-                                        <button
-                                            className="pp-plan-cta pp-plan-cta--primary"
-                                            onClick={handleAssinarPlus}
-                                            disabled={carregandoPlus}
-                                        >
-                                            {carregandoPlus ? "Ativando..." : "Ativar grátis"}
-                                            {!carregandoPlus && <LuArrowRight size={14}/>}
-                                        </button>
-                                    )}
-                                </>
+                                <button
+                                    className="pp-plan-cta pp-plan-cta--primary"
+                                    onClick={handleAssinarPlus}
+                                    disabled={carregandoPlus}
+                                >
+                                    {carregandoPlus ? "Ativando..." : "Ativar grátis"}
+                                    {!carregandoPlus && <LuArrowRight size={14}/>}
+                                </button>
                             )}
                         </div>
                     </div>
@@ -626,7 +578,7 @@ export default function PlanosPage() {
                                 Comece grátis →
                             </button>
                             <div className="pp-cta-final-meta">
-                                7 dias de Whallet+ · Sem cartão · Cancele quando quiser
+                                Grátis durante o período beta · Sem cartão · Cancele quando quiser
                             </div>
                         </>
                     ) : !temWhalletPlus ? (
