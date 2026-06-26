@@ -31,16 +31,26 @@ const FEATURE_GROUPS = [
         ],
     },
     {
+        title: "Módulo comercial",
+        features: [
+            { name: "Cadastro de clientes e fornecedores",  free: false, plus: true },
+            { name: "Orçamentos · criar e editar",          free: false, plus: true },
+            { name: "Converter orçamento em pedido",        free: false, plus: true },
+            { name: "Pedidos de venda · criar e editar",    free: false, plus: true },
+            { name: "Efetivar pedido e gerar recebimento",  free: false, plus: true },
+            { name: "Cargas e roteirização de entregas",    free: false, plus: true },
+            { name: "Impressão de orçamento em PDF",        free: false, plus: true },
+        ],
+    },
+    {
         title: "Gestão financeira",
         features: [
             { name: "Visualizar telas (somente leitura)",   free: true,  plus: true },
             { name: "Recebimentos · criar e editar",        free: false, plus: true },
-            { name: "Cobrança via WhatsApp",                sub: "em manutenção · migração Meta API", free: false, plus: true },
             { name: "Títulos a pagar · criar e editar",     free: false, plus: true },
             { name: "Lançamento parcelado",                 free: false, plus: true },
             { name: "Importar títulos via Excel",           free: false, plus: true },
             { name: "Tipos de gasto (categorização)",       free: false, plus: true },
-            { name: "Cadastro de clientes",                 free: false, plus: true },
         ],
     },
     {
@@ -79,8 +89,8 @@ const FEATURE_GROUPS = [
 
 const FAQ = [
     {
-        q: "O Whallet+ é realmente gratuito agora?",
-        a: "Sim. Durante o período beta, o Whallet+ está completamente gratuito. Basta criar uma conta e ativar — sem cartão de crédito, sem compromisso. Quando o período beta encerrar, avisaremos com antecedência.",
+        q: "O Whallet+ é realmente gratuito?",
+        a: "Sim. Quem entra agora tem acesso vitalício ao Whallet+, sem custo. Acreditamos que os primeiros usuários são os mais importantes — e queremos recompensar essa confiança. Basta criar uma conta e ativar, sem cartão de crédito.",
     },
     {
         q: "Se eu cancelar o Whallet+, perco meus dados?",
@@ -100,7 +110,7 @@ const FAQ = [
     },
     {
         q: "Tenho funcionários. O Whallet+ atende vários usuários?",
-        a: "Hoje, o Whallet+ é por usuário (1 conta = 1 pessoa). Estamos finalizando os planos Time (até 3 pessoas) e Empresa (até 10 pessoas) — entre na lista de espera ali em cima pra ser avisado quando lançar.",
+        a: "Hoje, o Whallet+ é por usuário (1 conta = 1 pessoa). Estamos finalizando os planos Time (até 3 pessoas) e Empresa (até 10 pessoas). Entre em contato pelo e-mail para entrar na lista de espera.",
     },
 ];
 
@@ -117,9 +127,6 @@ export default function PlanosPage() {
     const [carregandoPag,     setCarregandoPag]     = useState(false);
     const [statusAssinatura,  setStatusAssinatura]  = useState(null);
     const [faqAberto,         setFaqAberto]         = useState(null);
-    const [waitlistEmail,     setWaitlistEmail]     = useState("");
-    const [waitlistEnviado,   setWaitlistEnviado]   = useState(false);
-    const [waitlistEnviando,  setWaitlistEnviando]  = useState(false);
     const [trial,             setTrial]             = useState(null);
     const [ativandoTrial,     setAtivandoTrial]     = useState(false);
 
@@ -209,20 +216,6 @@ export default function PlanosPage() {
             setErroCancelamento(err.response?.data?.mensagem ?? "Erro ao cancelar. Tente novamente.");
         } finally {
             setCancelando(false);
-        }
-    }
-
-    async function enviarWaitlist(e) {
-        e.preventDefault();
-        if (!waitlistEmail.includes("@")) return;
-        setWaitlistEnviando(true);
-        try {
-            await new Promise(r => setTimeout(r, 600));
-            setWaitlistEnviado(true);
-        } catch {
-            setWaitlistEnviado(true);
-        } finally {
-            setWaitlistEnviando(false);
         }
     }
 
@@ -392,69 +385,6 @@ export default function PlanosPage() {
                             </div>
                         ))}
                     </div>
-                </div>
-            </section>
-
-            {/* ── WAITLIST — Time / Empresa ────────────────────────── */}
-            <section className="pp-container">
-                <div className="pp-waitlist">
-                    <div className="pp-waitlist-content">
-                        <div className="pp-waitlist-eyebrow">Em breve</div>
-                        <h2 className="pp-waitlist-title">
-                            Quando você crescer,<br/>
-                            a gente <em>cresce junto.</em>
-                        </h2>
-                        <p className="pp-waitlist-desc">
-                            Estamos finalizando os planos pra times. Mesmo Whallet+ —
-                            mais usuários e gestão de papéis (DONO, MEMBRO, VISUALIZADOR).
-                        </p>
-                        <div className="pp-waitlist-tiers">
-                            <div className="pp-waitlist-tier">
-                                <span className="pp-waitlist-tier-num">TIME</span>
-                                <strong>R$ 49,90</strong>
-                                <span className="pp-waitlist-tier-meta">até 3 usuários</span>
-                            </div>
-                            <div className="pp-waitlist-tier">
-                                <span className="pp-waitlist-tier-num">EMPRESA</span>
-                                <strong>R$ 79,90</strong>
-                                <span className="pp-waitlist-tier-meta">até 10 usuários</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <form className="pp-waitlist-form" onSubmit={enviarWaitlist}>
-                        <label className="pp-waitlist-form-label">Lista de espera</label>
-
-                        {waitlistEnviado ? (
-                            <div className="pp-waitlist-form-success">
-                                <LuCheck size={16}/>
-                                Pronto! Avisaremos quando lançar.
-                            </div>
-                        ) : (
-                            <>
-                                <div className="pp-waitlist-form-row">
-                                    <input
-                                        type="email"
-                                        className="pp-waitlist-form-input"
-                                        placeholder="seu@email.com"
-                                        value={waitlistEmail}
-                                        onChange={e => setWaitlistEmail(e.target.value)}
-                                        required
-                                    />
-                                    <button
-                                        type="submit"
-                                        className="pp-waitlist-form-button"
-                                        disabled={waitlistEnviando}
-                                    >
-                                        {waitlistEnviando ? "..." : "Notifique-me"}
-                                    </button>
-                                </div>
-                                <div className="pp-waitlist-form-meta">
-                                    Sem spam · só quando lançar
-                                </div>
-                            </>
-                        )}
-                    </form>
                 </div>
             </section>
 
