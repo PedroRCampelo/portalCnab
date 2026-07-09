@@ -111,7 +111,7 @@ export default function ConversionCta() {
                         <h3 className="cv-cta-title">
                             {!autenticado
                                 ? "Curtiu? Crie conta grátis 🎉"
-                                : "Faça mais com o Whallet+"}
+                                : "Whallet+ grátis no beta 🎉"}
                         </h3>
                     </div>
                 </div>
@@ -124,8 +124,8 @@ export default function ConversionCta() {
                         </>
                     ) : (
                         <>
-                            Conversões ilimitadas, gestão financeira completa e cobrança
-                            via WhatsApp — tudo por <strong>R$ 39,90/mês</strong>.
+                            Conversões ilimitadas, gestão financeira completa e Elvis sem limites.
+                            Tudo <strong>gratuito durante o período beta</strong>.
                         </>
                     )}
                 </p>
@@ -155,7 +155,7 @@ export default function ConversionCta() {
                             </li>
                             <li>
                                 <LuMessageCircle size={11}/>
-                                <span>Elvis ilimitado + cobrança via WhatsApp</span>
+                                <span>Elvis ilimitado + Bot WhatsApp</span>
                             </li>
                             <li>
                                 <LuCircleCheck size={11}/>
@@ -179,7 +179,7 @@ export default function ConversionCta() {
                     ) : (
                         <>
                             <Link to="/planos" className="cv-cta-primary">
-                                Ver Whallet+
+                                Ativar grátis agora
                                 <LuArrowRight size={13}/>
                             </Link>
                         </>
