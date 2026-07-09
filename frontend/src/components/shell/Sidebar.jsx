@@ -1,10 +1,9 @@
 import { Link, useLocation } from "react-router-dom";
-import { FaFileAlt } from "react-icons/fa";
 import {
     LuActivity, LuHandCoins, LuWalletCards, LuUsers, LuTag,
-    LuFileText, LuBot, LuMessageCircle,
-    LuSettings, LuPin, LuPinOff, LuBellRing, LuFileSpreadsheet,
-    LuClipboardList, LuShoppingCart, LuFileCheck, LuTruck,
+    LuFileText,
+    LuSettings, LuPin, LuPinOff, LuBellRing,
+    LuShoppingCart, LuFileCheck, LuTruck,
 } from "react-icons/lu";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useShell } from "./ShellContext.jsx";
@@ -18,9 +17,7 @@ import "./Sidebar.css";
  *  Body (scrollável):
  *    - VISÃO GERAL: Fluxo de Caixa
  *    - GESTÃO: Recebimentos, Títulos, Clientes, Tipos de Gasto
- *    - RELATÓRIOS: Relatórios, Histórico CNAB
- *    - INTELIGÊNCIA: Insights, Agente Elvis
- *    - FERRAMENTAS: Conversor CNAB
+ *    - RELATÓRIOS: Relatórios
  *
  *  Footer (fixo):
  *    - Configurações
@@ -58,21 +55,7 @@ const MENU = [
     {
         label: "Relatórios",
         items: [
-            { to: "/relatorios", icon: LuFileText,      label: "Relatórios" },
-            { to: "/historico",  icon: LuClipboardList, label: "Histórico CNAB" },
-        ],
-    },
-    {
-        label: "Inteligência",
-        items: [
-            { to: "/assistente-cnab", icon: LuBot,            label: "Agente Elvis" },
-            { to: "/whatsapp",        icon: LuMessageCircle,  label: "WhatsApp Bot", disabled: true },
-        ],
-    },
-    {
-        label: "Ferramentas",
-        items: [
-            { to: "/valida-cnab", icon: LuFileSpreadsheet, label: "Conversor CNAB" },
+            { to: "/relatorios", icon: LuFileText, label: "Relatórios" },
         ],
     },
 ];
@@ -160,17 +143,6 @@ export default function Sidebar({ onItemClick }) {
                                     <LuUsers size={16}/>
                                 </span>
                                 <span className="sb-item-label">Usuários</span>
-                            </Link>
-                            <Link
-                                to="/admin/cnab-knowledge"
-                                onClick={handleItemClick}
-                                className={`sb-item ${isActive("/admin/cnab-knowledge") ? "active" : ""}`}
-                                data-tooltip="Base CNAB"
-                            >
-                                <span className="sb-item-icon">
-                                    <FaFileAlt size={16}/>
-                                </span>
-                                <span className="sb-item-label">Base CNAB</span>
                             </Link>
                         </div>
                     )}

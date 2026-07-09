@@ -31,7 +31,7 @@ export default function PaywallPage() {
     }
 
     function voltarParaConversor() {
-        navigate("/excel");
+        navigate("/");
     }
 
     return (
@@ -172,7 +172,7 @@ export default function PaywallPage() {
                     />
                     <FaqItem
                         pergunta="Posso usar grátis pra sempre?"
-                        resposta="Sim! O conversor CNAB pra Excel/PDF continua gratuito (8 conversões/mês). O Whallet+ é só pra quem quer o controle financeiro completo."
+                        resposta="Sim! Você pode visualizar seus dados no plano Free. O Whallet+ é pra quem quer o controle financeiro completo: criar, editar e acompanhar tudo."
                     />
                     <FaqItem
                         pergunta="Tem fidelidade ou taxa de cancelamento?"

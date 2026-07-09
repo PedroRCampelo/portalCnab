@@ -24,13 +24,6 @@ function fmtValor(centavos, moeda) {
 
 const FEATURE_GROUPS = [
     {
-        title: "CNAB",
-        features: [
-            { name: "Validar arquivos CNAB",                free: true,  plus: true },
-            { name: "Bot Elvis · assistente CNAB",          sub: "sujeito a uso justo", free: false, plus: true },
-        ],
-    },
-    {
         title: "Módulo comercial",
         features: [
             { name: "Cadastro de clientes e fornecedores",  free: false, plus: true },
@@ -102,7 +95,7 @@ const FAQ = [
     },
     {
         q: "Quais bancos são suportados?",
-        a: "Todos os principais bancos brasileiros: Itaú, Bradesco, Banco do Brasil, Caixa, Santander, Sicredi, Sicoob, Inter, Nubank, BTG, e mais. Para validação de CNAB, suportamos os formatos 240 e 400 da Febraban.",
+        a: "Todos os principais bancos brasileiros: Itaú, Bradesco, Banco do Brasil, Caixa, Santander, Sicredi, Sicoob, Inter, Nubank, BTG, e mais.",
     },
     {
         q: "Whallet substitui meu contador?",

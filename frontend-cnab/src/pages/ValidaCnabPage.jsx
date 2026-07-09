@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { LuFileSpreadsheet, LuFileText } from "react-icons/lu";
-import BankForm       from "../../components/BankForm.jsx";
-import ProtheusForm   from "../../components/ProtheusForm.jsx";
-import BannerAnonimo  from "../../components/BannerAnonimo.jsx";
-import ElvisMiniChat  from "../../components/ElvisMiniChat.jsx";
-import { useAuth }    from "../../context/AuthContext.jsx";
+import BankForm       from "../components/BankForm.jsx";
+import ProtheusForm   from "../components/ProtheusForm.jsx";
+import BannerAnonimo  from "../components/BannerAnonimo.jsx";
+import ElvisMiniChat  from "../components/ElvisMiniChat.jsx";
+import { useAuth }    from "../context/AuthContext.jsx";
 
 import ToolLayout                              from "./_ToolLayout.jsx";
 import { FormCard, SourceTabs, InfoCard, InfoTip } from "./_shared.jsx";

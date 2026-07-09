@@ -4,14 +4,14 @@ import {
     LuSend, LuPaperclip, LuX, LuChevronDown, LuBot, LuUser,
     LuFileText, LuSparkles, LuLock, LuArrowRight, LuCircleX,
 } from "react-icons/lu";
-import api from "../../services/api.js";
-import { useAuth } from "../../context/AuthContext.jsx";
+import api from "../services/api.js";
+import { useAuth } from "../context/AuthContext.jsx";
 import {
     getElvisQuota,
     isQuotaExcedidaError,
     getQuotaErrorInfo,
-} from "../../services/elvisQuotaService.js";
-import elvisImg from "../../assets/bots/elvis.png";
+} from "../services/elvisQuotaService.js";
+import elvisImg from "../assets/bots/elvis.png";
 
 /* ─── Constantes ─────────────────────────────────────────────────────────── */
 

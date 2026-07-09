@@ -4,10 +4,10 @@ import {
     LuSearch, LuFolderOpen, LuFileSpreadsheet, LuFileCode,
     LuRotateCcw, LuPlus,
 } from "react-icons/lu";
-import api from "../../services/api.js";
-import PageHeader from "../../components/shell/PageHeader.jsx";
-import DataTable  from "../../components/ui/DataTable.jsx";
-import EmptyState from "../../components/ui/EmptyState.jsx";
+import api from "../services/api.js";
+import PageHeader from "../components/shell/PageHeader.jsx";
+import DataTable  from "../components/ui/DataTable.jsx";
+import EmptyState from "../components/ui/EmptyState.jsx";
 
 /**
  * HistoricoPage — Histórico de remessas CNAB

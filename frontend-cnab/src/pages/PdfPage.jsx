@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { LuFileText } from "react-icons/lu";
-import BankForm      from "../../components/BankForm.jsx";
-import BannerAnonimo from "../../components/BannerAnonimo.jsx";
-import { useAuth }   from "../../context/AuthContext.jsx";
+import BankForm      from "../components/BankForm.jsx";
+import BannerAnonimo from "../components/BannerAnonimo.jsx";
+import { useAuth }   from "../context/AuthContext.jsx";
 
 import ToolLayout                          from "./_ToolLayout.jsx";
 import { FormCard, InfoCard, InfoTip }     from "./_shared.jsx";

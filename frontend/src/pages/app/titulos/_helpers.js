@@ -133,7 +133,7 @@ export const STATUS_OPS = [
 export const CAMPOS_OBRIGATORIOS = ["fornecedorNome", "vencimento", "valor"];
 
 /**
- * Estado inicial vazio (com todos os campos CNAB)
+ * Estado inicial vazio
  */
 export const TITULO_VAZIO = {
     // Identificação
@@ -160,36 +160,6 @@ export const TITULO_VAZIO = {
     // Outros
     observacao: "",
     status: "PENDENTE",
-
-    // CNAB — Boleto (Segmento J)
-    codigoBarras: "",
-    linhaDigitavel: "",
-
-    // CNAB — TED/DOC/Crédito em conta (Segmento A)
-    favorecidoBancoCode: "",
-    favorecidoAgencia: "",
-    favorecidoAgenciaDv: "",
-    favorecidoConta: "",
-    favorecidoContaDv: "",
-    favorecidoTipoConta: "CC",
-    favorecidoTipoInscricao: "2",
-    finalidadeTed: "",
-    finalidadeDoc: "",
-    aviso: "0",
-
-    // CNAB — PIX
-    tipoChavePix: "",
-    chavePix: "",
-
-    // CNAB — Endereço favorecido (Segmento B)
-    favorecidoLogradouro: "",
-    favorecidoCidade: "",
-    favorecidoEstado: "",
-    favorecidoCep: "",
-
-    // CNAB — Controle/Referência
-    seuNumero: "",
-    nossoNumero: "",
 };
 
 /**

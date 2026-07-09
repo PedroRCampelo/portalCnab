@@ -4,7 +4,7 @@ import {
     LuX, LuArrowRight, LuSparkles, LuMessageCircle,
     LuTrendingUp, LuCircleCheck,
 } from "react-icons/lu";
-import { useAuth } from "../../context/AuthContext.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
 
 /**
  * ConversionCta — Banner pós-conversão pra atrair pra Whallet+
