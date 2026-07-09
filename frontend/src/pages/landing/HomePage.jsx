@@ -6,6 +6,7 @@ import "./HomePage.css";
 import screenshotFluxo from "../../assets/screenshots/fluxo-caixa.png";
 import screenshotReceb from "../../assets/screenshots/recebimentos.png";
 import screenshotRelat from "../../assets/screenshots/relatorios.png";
+import screenshotElvis from "../../assets/screenshots/elvis.png";
 import logo from '../../assets/logos/logo.svg';
 import logoIcon from '../../assets/logos/logo-icon.svg';
 import heroVisual from '../../assets/lp-hero-visual.webp';
@@ -45,8 +46,8 @@ const FEATURES = [
         num: "01",
         title: "Fluxo de Caixa",
         titleEm: "inteligente",
-        desc: "Visão completa de entradas, saídas e saldo projetado. Categorização automática por IA e projeção inteligente.",
-        bullets: ["Dashboard visual em tempo real","Categorização automática por IA","Projeção de saldo futuro","Alertas de vencimento"],
+        desc: "Visão completa de entradas, saídas e saldo projetado. Importação CNAB automática com conciliação inteligente.",
+        bullets: ["Dashboard visual em tempo real","Importação CNAB 240/400 chars","Categorização automática por IA","Projeção de saldo futuro"],
         img: screenshotFluxo,
         url: "whallet.com.br/app/fluxo",
     },
@@ -67,6 +68,15 @@ const FEATURES = [
         bullets: ["Geração com IA (agente Anne)","Comparativo mês a mês","Insights automáticos","Download PDF/XLSX"],
         img: screenshotRelat,
         url: "whallet.com.br/app/relatorios",
+    },
+    {
+        num: "04",
+        title: "Elvis — seu",
+        titleEm: "consultor IA",
+        desc: "Pergunte qualquer coisa sobre CNAB, financeiro, ou seu próprio caixa. Elvis responde com contexto real.",
+        bullets: ["RAG sobre base CNAB completa","Entende seu histórico financeiro","Respostas com fontes citadas","100 consultas/mês no Whallet+"],
+        img: screenshotElvis,
+        url: "whallet.com.br/app/elvis",
     },
 ];
 
@@ -114,7 +124,7 @@ const PERSONAS = [
         tag: "PME",
         title: "Pequena Empresa",
         desc: "Equipes de 2-20 pessoas que lidam com clientes, bancos e fornecedores todo dia.",
-        items: ["Módulo Comercial completo (orçamentos + pedidos)", "Cargas e roteirização de entregas", "Dashboard consolidado"],
+        items: ["Módulo Comercial completo (orçamentos + pedidos)", "Importação CNAB multi-banco", "Dashboard consolidado"],
     },
     {
         tag: "CONTADOR",
@@ -128,7 +138,7 @@ const FAQ_DATA = [
     { q: "Como funciona o Bot WhatsApp?", a: "Depois de vincular seu número com um código de 6 dígitos, o bot fica disponível 24h. Você envia mensagens de texto ou áudio e ele responde com dados reais do seu caixa — saldos, vencimentos, relatórios. Atualmente estamos migrando para a API Oficial do Meta para garantir maior estabilidade. O serviço volta em breve." },
     { q: "Preciso instalar algum app?", a: "Não. O Whallet é 100% web. O bot funciona no seu WhatsApp normal — sem apps extras, sem configurações complexas." },
     { q: "Meus dados financeiros estão seguros?", a: "Sim. Usamos criptografia em trânsito e em repouso, autenticação JWT, e não armazenamos dados bancários de acesso. Hospedagem em servidores certificados." },
-    { q: "Posso testar antes de pagar?", a: "Sim! O plano Free é permanente e inclui acesso ao dashboard e relatórios básicos. O Whallet+ está gratuito durante o período beta — sem cartão, sem compromisso." },
+    { q: "Posso testar antes de pagar?", a: "Sim! O plano Free é permanente e inclui validação CNAB + 5 consultas Elvis/mês. O Whallet+ tem 7 dias grátis, sem cartão obrigatório no cadastro." },
     { q: "O bot entende áudio?", a: "Sim. Você grava um áudio no WhatsApp e o bot transcreve automaticamente, interpreta sua pergunta e responde com dados reais." },
 ];
 
@@ -473,7 +483,7 @@ export default function HomePage() {
                     <div className="lp-pain-list">
                         {[
                             { n: "DOR 01", t: "Planilhas que ninguém atualiza e todo mundo desconfia." },
-                            { n: "DOR 02", t: "Relatórios que chegam tarde demais pra tomar decisões." },
+                            { n: "DOR 02", t: "Arquivos CNAB que parecem código alienígena." },
                             { n: "DOR 03", t: "Zero visibilidade do caixa real — só achismo." },
                         ].map((p, i) => (
                             <div key={i} className={`lp-pain-item reveal reveal-d${i + 1}`}>
@@ -670,10 +680,11 @@ export default function HomePage() {
                         <div className="lp-plan">
                             <div className="lp-plan-name">FREE</div>
                             <div className="lp-plan-price">R$ 0 <span className="per">/ mês</span></div>
-                            <p className="lp-plan-desc">Para conhecer a plataforma e ter controle básico.</p>
+                            <p className="lp-plan-desc">Para conhecer a plataforma e validar seus CNABs.</p>
                             <ul className="lp-plan-feats">
+                                <li>Validação e visualização CNAB</li>
                                 <li>Dashboard básico</li>
-                                <li>Visualizar recebimentos e títulos</li>
+                                <li>Elvis — 5 consultas/mês</li>
                                 <li>1 empresa</li>
                             </ul>
                             <button className="lp-plan-cta free" onClick={() => navigate("/cadastro")}>Criar conta grátis</button>
@@ -699,9 +710,9 @@ export default function HomePage() {
                             <ul className="lp-plan-feats">
                                 <li>Tudo do Free</li>
                                 <li>Bot WhatsApp (texto + áudio)</li>
+                                <li>Elvis — 100 consultas/mês</li>
                                 <li>Agentes Aurora, Frank e Anne</li>
                                 <li>Relatórios avançados</li>
-                                <li>Módulo Comercial completo</li>
                                 <li>Suporte prioritário</li>
                             </ul>
                             <button className="lp-plan-cta pro" onClick={() => navigate("/cadastro")}>Ativar grátis agora</button>

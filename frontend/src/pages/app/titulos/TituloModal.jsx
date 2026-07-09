@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
-import { LuFileText, LuLayers } from "react-icons/lu";
+import {
+    LuFileText, LuLandmark, LuQrCode, LuMapPin, LuHash, LuLayers,
+} from "react-icons/lu";
 import Modal from "../../../components/ui/Modal.jsx";
+import Tabs from "../../../components/ui/Tabs.jsx";
 import {
     mascaraMoeda, mascaraDoc, parseMoeda, formatarMoedaParaInput,
     TIPOS_PAGAMENTO, STATUS_OPS, CAMPOS_OBRIGATORIOS, TITULO_VAZIO,
@@ -10,7 +13,9 @@ import {
  * TituloModal — Cadastro/edição de título a pagar
  * Sprint A3.6.5.2 · Refatoração
  *
- * Campos: Identificação, Fornecedor, Datas, Valores, Observação
+ * Modal com 2 abas:
+ *  - Geral: Identificação, Fornecedor, Datas, Valores, Observação
+ *  - CNAB: Boleto (J), TED/DOC (A), PIX, Endereço favorecido (B), Controle
  *
  * Botões do footer:
  *  - Cancelar (ghost)
@@ -29,6 +34,7 @@ export default function TituloModal({ titulo, tiposGasto = [], onSalvar, onParce
     const ehEdicao = !!titulo;
 
     const [form, setForm] = useState(TITULO_VAZIO);
+    const [abaAtiva, setAbaAtiva] = useState("geral");
     const [erro, setErro] = useState("");
 
     // Inicializa form quando titulo muda
@@ -53,10 +59,36 @@ export default function TituloModal({ titulo, tiposGasto = [], onSalvar, onParce
                 multa:    titulo.multa    ? formatarMoedaParaInput(titulo.multa)    : "",
                 observacao: titulo.observacao ?? "",
                 status: titulo.status ?? "PENDENTE",
+                // CNAB Boleto
+                codigoBarras: titulo.codigoBarras ?? "",
+                linhaDigitavel: titulo.linhaDigitavel ?? "",
+                // CNAB Seg A
+                favorecidoBancoCode: titulo.favorecidoBancoCode ?? "",
+                favorecidoAgencia: titulo.favorecidoAgencia ?? "",
+                favorecidoAgenciaDv: titulo.favorecidoAgenciaDv ?? "",
+                favorecidoConta: titulo.favorecidoConta ?? "",
+                favorecidoContaDv: titulo.favorecidoContaDv ?? "",
+                favorecidoTipoConta: titulo.favorecidoTipoConta ?? "CC",
+                favorecidoTipoInscricao: titulo.favorecidoTipoInscricao ?? "2",
+                finalidadeTed: titulo.finalidadeTed ?? "",
+                finalidadeDoc: titulo.finalidadeDoc ?? "",
+                aviso: titulo.aviso ?? "0",
+                // CNAB PIX
+                tipoChavePix: titulo.tipoChavePix ?? "",
+                chavePix: titulo.chavePix ?? "",
+                // CNAB Seg B
+                favorecidoLogradouro: titulo.favorecidoLogradouro ?? "",
+                favorecidoCidade: titulo.favorecidoCidade ?? "",
+                favorecidoEstado: titulo.favorecidoEstado ?? "",
+                favorecidoCep: titulo.favorecidoCep ?? "",
+                // CNAB Controle
+                seuNumero: titulo.seuNumero ?? "",
+                nossoNumero: titulo.nossoNumero ?? "",
             });
         } else {
             setForm({ ...TITULO_VAZIO });
         }
+        setAbaAtiva("geral");
         setErro("");
     }, [titulo]);
 
@@ -77,6 +109,7 @@ export default function TituloModal({ titulo, tiposGasto = [], onSalvar, onParce
         );
         if (faltando.length > 0) {
             setErro("Preencha todos os campos obrigatórios (marcados com *).");
+            setAbaAtiva("geral"); // joga pra aba Geral pra ver os erros
             return;
         }
         if (parseMoeda(form.valor) <= 0) {
@@ -104,6 +137,7 @@ export default function TituloModal({ titulo, tiposGasto = [], onSalvar, onParce
         // Validação mínima antes de parcelar
         if (!form.fornecedorNome || !form.valor) {
             setErro("Preencha Fornecedor e Valor antes de parcelar.");
+            setAbaAtiva("geral");
             return;
         }
         if (parseMoeda(form.valor) <= 0) {
@@ -134,7 +168,20 @@ export default function TituloModal({ titulo, tiposGasto = [], onSalvar, onParce
             }
         >
             <Modal.Body>
-                <div className="tm-tab-content">
+                {/* Tabs */}
+                <Tabs
+                    variant="underline"
+                    value={abaAtiva}
+                    onChange={setAbaAtiva}
+                    items={[
+                        { key: "geral", label: "Geral", icon: LuFileText },
+                        { key: "cnab",  label: "CNAB / Remessa", icon: LuLandmark },
+                    ]}
+                />
+
+                {/* ═══ ABA GERAL ═══ */}
+                {abaAtiva === "geral" && (
+                    <div className="tm-tab-content">
 
                         {/* Identificação — somente na edição (readonly) */}
                         {ehEdicao && (
@@ -269,7 +316,217 @@ export default function TituloModal({ titulo, tiposGasto = [], onSalvar, onParce
                             disabled={salvando}
                         />
                     </div>
+                )}
 
+                {/* ═══ ABA CNAB ═══ */}
+                {abaAtiva === "cnab" && (
+                    <div className="tm-tab-content">
+
+                        <div className="tm-info-box">
+                            Preencha os dados pra gerar remessa CNAB deste título.
+                            Preencha apenas o grupo correspondente ao tipo de pagamento.
+                        </div>
+
+                        {/* Boleto (Segmento J) */}
+                        <Secao icon={<LuFileText size={12}/>} title="Boleto (Segmento J)">
+                            <div className="tm-grid-2">
+                                <Campo
+                                    label="Código de barras"
+                                    value={form.codigoBarras}
+                                    onChange={v => atualizar("codigoBarras", v)}
+                                    maxLength={50}
+                                    disabled={salvando}
+                                />
+                                <Campo
+                                    label="Linha digitável"
+                                    value={form.linhaDigitavel}
+                                    onChange={v => atualizar("linhaDigitavel", v)}
+                                    maxLength={100}
+                                    disabled={salvando}
+                                />
+                            </div>
+                        </Secao>
+
+                        {/* TED / DOC / Crédito em conta (Segmento A) */}
+                        <Secao icon={<LuLandmark size={12}/>} title="TED / DOC / Crédito em conta (Segmento A)">
+                            <div className="tm-grid-3">
+                                <Campo
+                                    label="Banco favorecido"
+                                    value={form.favorecidoBancoCode}
+                                    onChange={v => atualizar("favorecidoBancoCode", v)}
+                                    maxLength={3}
+                                    placeholder="Ex: 341"
+                                    disabled={salvando}
+                                />
+                                <Campo
+                                    label="Tipo de conta"
+                                    tipo="select"
+                                    value={form.favorecidoTipoConta}
+                                    onChange={v => atualizar("favorecidoTipoConta", v)}
+                                    options={[
+                                        { value: "CC", label: "Conta Corrente" },
+                                        { value: "CP", label: "Poupança" },
+                                        { value: "PP", label: "Pgto" },
+                                    ]}
+                                    disabled={salvando}
+                                />
+                                <Campo
+                                    label="Tipo inscrição"
+                                    tipo="select"
+                                    value={form.favorecidoTipoInscricao}
+                                    onChange={v => atualizar("favorecidoTipoInscricao", v)}
+                                    options={[
+                                        { value: "1", label: "CPF" },
+                                        { value: "2", label: "CNPJ" },
+                                    ]}
+                                    disabled={salvando}
+                                />
+                            </div>
+
+                            <div className="tm-grid-conta">
+                                <Campo
+                                    label="Agência"
+                                    value={form.favorecidoAgencia}
+                                    onChange={v => atualizar("favorecidoAgencia", v)}
+                                    maxLength={5}
+                                    disabled={salvando}
+                                />
+                                <Campo
+                                    label="DV ag."
+                                    value={form.favorecidoAgenciaDv}
+                                    onChange={v => atualizar("favorecidoAgenciaDv", v)}
+                                    maxLength={1}
+                                    disabled={salvando}
+                                />
+                                <Campo
+                                    label="Conta"
+                                    value={form.favorecidoConta}
+                                    onChange={v => atualizar("favorecidoConta", v)}
+                                    maxLength={12}
+                                    disabled={salvando}
+                                />
+                                <Campo
+                                    label="DV conta"
+                                    value={form.favorecidoContaDv}
+                                    onChange={v => atualizar("favorecidoContaDv", v)}
+                                    maxLength={1}
+                                    disabled={salvando}
+                                />
+                            </div>
+
+                            <div className="tm-grid-3">
+                                <Campo
+                                    label="Finalidade TED"
+                                    value={form.finalidadeTed}
+                                    onChange={v => atualizar("finalidadeTed", v)}
+                                    maxLength={5}
+                                    placeholder="00001"
+                                    disabled={salvando}
+                                />
+                                <Campo
+                                    label="Finalidade DOC"
+                                    value={form.finalidadeDoc}
+                                    onChange={v => atualizar("finalidadeDoc", v)}
+                                    maxLength={2}
+                                    disabled={salvando}
+                                />
+                                <Campo
+                                    label="Aviso"
+                                    tipo="select"
+                                    value={form.aviso}
+                                    onChange={v => atualizar("aviso", v)}
+                                    options={[
+                                        { value: "0", label: "Não avisar" },
+                                        { value: "2", label: "Avisar favorecido" },
+                                    ]}
+                                    disabled={salvando}
+                                />
+                            </div>
+                        </Secao>
+
+                        {/* PIX */}
+                        <Secao icon={<LuQrCode size={12}/>} title="PIX">
+                            <div className="tm-grid-pix">
+                                <Campo
+                                    label="Tipo de chave"
+                                    tipo="select"
+                                    value={form.tipoChavePix}
+                                    onChange={v => atualizar("tipoChavePix", v)}
+                                    options={[
+                                        { value: "",         label: "— Selecione —" },
+                                        { value: "CPF",      label: "CPF" },
+                                        { value: "CNPJ",     label: "CNPJ" },
+                                        { value: "EMAIL",    label: "E-mail" },
+                                        { value: "TELEFONE", label: "Telefone" },
+                                        { value: "EVP",      label: "Chave aleatória (EVP)" },
+                                    ]}
+                                    disabled={salvando}
+                                />
+                                <Campo
+                                    label="Chave PIX"
+                                    value={form.chavePix}
+                                    onChange={v => atualizar("chavePix", v)}
+                                    maxLength={99}
+                                    disabled={salvando}
+                                />
+                            </div>
+                        </Secao>
+
+                        {/* Endereço favorecido (Segmento B) */}
+                        <Secao icon={<LuMapPin size={12}/>} title="Endereço do favorecido (Segmento B)">
+                            <Campo
+                                label="Logradouro"
+                                value={form.favorecidoLogradouro}
+                                onChange={v => atualizar("favorecidoLogradouro", v)}
+                                maxLength={40}
+                                disabled={salvando}
+                            />
+                            <div className="tm-grid-end">
+                                <Campo
+                                    label="Cidade"
+                                    value={form.favorecidoCidade}
+                                    onChange={v => atualizar("favorecidoCidade", v)}
+                                    maxLength={15}
+                                    disabled={salvando}
+                                />
+                                <Campo
+                                    label="UF"
+                                    value={form.favorecidoEstado}
+                                    onChange={v => atualizar("favorecidoEstado", v)}
+                                    maxLength={2}
+                                    disabled={salvando}
+                                />
+                                <Campo
+                                    label="CEP"
+                                    value={form.favorecidoCep}
+                                    onChange={v => atualizar("favorecidoCep", v)}
+                                    maxLength={8}
+                                    disabled={salvando}
+                                />
+                            </div>
+                        </Secao>
+
+                        {/* Controle / Referência */}
+                        <Secao icon={<LuHash size={12}/>} title="Controle / Referência">
+                            <div className="tm-grid-2">
+                                <Campo
+                                    label="Seu número"
+                                    value={form.seuNumero}
+                                    onChange={v => atualizar("seuNumero", v)}
+                                    maxLength={20}
+                                    disabled={salvando}
+                                />
+                                <Campo
+                                    label="Nosso número (retorno)"
+                                    value={form.nossoNumero}
+                                    onChange={v => atualizar("nossoNumero", v)}
+                                    maxLength={20}
+                                    disabled={salvando}
+                                />
+                            </div>
+                        </Secao>
+                    </div>
+                )}
 
                 {erro && <div className="tm-erro">{erro}</div>}
             </Modal.Body>
@@ -467,7 +724,7 @@ const COMPONENT_CSS = `
 }
 
 
-/* ── Info box ────────────────────────────────────────────────────────── */
+/* ── Info box (na aba CNAB) ──────────────────────────────────────────── */
 
 .tm-info-box {
     padding: 10px 12px;
@@ -480,7 +737,7 @@ const COMPONENT_CSS = `
     color: var(--ink-2);
 }
 
-/* ── Seção ───────────────────────────────────────────────────────────── */
+/* ── Seção (CNAB) ────────────────────────────────────────────────────── */
 
 .tm-secao {
     margin-bottom: 20px;

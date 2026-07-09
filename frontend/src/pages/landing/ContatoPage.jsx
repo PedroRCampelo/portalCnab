@@ -89,8 +89,8 @@ export default function ContatoPage() {
                         <div className="cont-card-content">
                             <h3 className="cont-card-title">Problemas técnicos</h3>
                             <p className="cont-card-desc">
-                                Bugs, dificuldade de cadastro ou login, ou outros
-                                problemas técnicos.
+                                Bugs, erros ao processar arquivo CNAB, dificuldade de
+                                cadastro ou login.
                             </p>
                             <a href="mailto:usewhallet@gmail.com?subject=Problema%20técnico" className="cont-card-link">
                                 Reportar bug
@@ -152,6 +152,9 @@ export default function ContatoPage() {
                 </li>
                 <li>
                     Veja os <Link to="/planos">planos disponíveis</Link> e o que cada um inclui
+                </li>
+                <li>
+                    Use o <Link to="/valida-cnab">conversor CNAB</Link> grátis sem precisar de cadastro
                 </li>
             </ul>
 

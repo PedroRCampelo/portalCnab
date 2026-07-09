@@ -30,9 +30,13 @@ api.interceptors.response.use(
             const emPaginaAuth = ["/login", "/cadastro", "/verificar-email", "/redefinir-senha", "/esqueci-senha", "/upgrade/sucesso", "/upgrade/cancelado"]
                 .includes(paginaAtual);
 
+            const ehRotaPublica = requestUrl.includes("/api/cnab/anonimo/")
+                || requestUrl.includes("/api/cnab/export-bank")
+                || requestUrl.includes("/api/cnab/report-bank");
+
             const estaAutenticado = !!localStorage.getItem("auth");
 
-            if (!emPaginaAuth && estaAutenticado) {
+            if (!emPaginaAuth && !ehRotaPublica && estaAutenticado) {
                 localStorage.removeItem("auth");
                 window.location.href = "/login?sessao=expirada";
             }

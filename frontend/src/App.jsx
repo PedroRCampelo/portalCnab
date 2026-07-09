@@ -48,7 +48,10 @@ import PedidosEmAbertoPage          from "./pages/app/relatorios/PedidosEmAberto
 import FunilComercialPage           from "./pages/app/relatorios/FunilComercialPage.jsx";
 import PrevisaoFaturamentoPage      from "./pages/app/relatorios/PrevisaoFaturamentoPage.jsx";
 
+import HistoricoPage             from "./pages/app/HistoricoPage.jsx";
+import AssistenteCnabPage        from "./pages/app/AssistenteCnabPage.jsx";
 import WhatsAppPage              from "./pages/app/WhatsAppPage.jsx";
+import CnabChatPage              from "./pages/app/CnabChatPage.jsx";
 import OrcamentosPage            from "./pages/app/OrcamentosPage.jsx";
 import PedidosVendaPage          from "./pages/app/PedidosVendaPage.jsx";
 import CargasPage               from "./pages/app/CargasPage.jsx";
@@ -58,17 +61,24 @@ import { UpgradeSucessoPage, UpgradeCanceladoPage } from "./pages/app/UpgradePag
 
 // ── Admin (envolvido em AppLayout) ───────────────────────────────────────────
 import AdminUsuariosPage         from "./pages/admin/AdminUsuariosPage.jsx";
+import CnabKnowledgePage         from "./pages/admin/CnabKnowledgePage.jsx";
+
+// ── Tools (públicas, fora do shell) ──────────────────────────────────────────
+import ExcelPage                 from "./pages/tools/ExcelPage.jsx";
+import PdfPage                   from "./pages/tools/PdfPage.jsx";
+import ValidaCnabPage            from "./pages/tools/ValidaCnabPage.jsx";
 
 
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Sprint A3.1 · App Shell
 //
-// Rotas dividas em 4 grupos:
+// Rotas dividas em 5 grupos:
 //   1. LANDING_ROUTES — sem sidebar nem topbar (HomePage, Login, Cadastro, Planos, etc)
 //   2. APP_ROUTES     — dentro de <AppLayout/> (TopBar + Sidebar)
-//   3. PUBLIC_LEGAL   — sem shell, páginas legais (Privacidade, Termos, Contato)
-//   4. UPGRADE        — retorno do Stripe pós-checkout (Sucesso, Cancelado)
+//   3. PUBLIC_TOOLS   — sem shell, página standalone (ValidaCnab, Excel, Pdf)
+//   4. PUBLIC_LEGAL   — sem shell, páginas legais (Privacidade, Termos, Contato)
+//   5. UPGRADE        — retorno do Stripe pós-checkout (Sucesso, Cancelado)
 // ─────────────────────────────────────────────────────────────────────────────
 
 const AUTH_ROUTES = ["/verificar-email", "/cadastro"];
@@ -80,6 +90,7 @@ const LANDING_ROUTES = [
     "/redefinir-senha",
     "/planos",
 ];
+const PUBLIC_TOOL_ROUTES  = ["/valida-cnab", "/excel", "/pdf"];
 const PUBLIC_LEGAL_ROUTES = ["/privacidade", "/termos", "/contato"];
 const UPGRADE_ROUTES      = ["/upgrade/sucesso", "/upgrade/cancelado"];
 
@@ -87,12 +98,13 @@ function AppShell() {
     const { pathname } = useLocation();
     const isAuth     = AUTH_ROUTES.some(r => pathname.startsWith(r));
     const isLanding  = LANDING_ROUTES.includes(pathname);
+    const isTool     = PUBLIC_TOOL_ROUTES.some(r => pathname.startsWith(r));
     const isLegal    = PUBLIC_LEGAL_ROUTES.some(r => pathname.startsWith(r));
     const isUpgrade  = UPGRADE_ROUTES.some(r => pathname.startsWith(r));
 
     // Rotas que usam o shell ERP (com AppLayout):
-    //   tudo que NÃO é landing nem auth nem legal nem upgrade
-    const useAppShell = !isLanding && !isAuth && !isLegal && !isUpgrade;
+    //   tudo que NÃO é landing nem tool nem auth nem legal nem upgrade
+    const useAppShell = !isLanding && !isAuth && !isTool && !isLegal && !isUpgrade;
 
     // Em rotas legacy (não-shell), aplicar classe antiga
     const shellClass = isLanding
@@ -136,6 +148,7 @@ function AppShell() {
                         <Route path="/relatorios-titulos"   element={<ProtectedRoute><AgingPagarPage/></ProtectedRoute>}/>
 
                         <Route path="/preferencias-alerta" element={<ProtectedRoute><PreferenciasAlertaPage/></ProtectedRoute>}/>
+                        <Route path="/historico"           element={<ProtectedRoute><HistoricoPage/></ProtectedRoute>}/>
                         <Route path="/paywall"             element={<ProtectedRoute><PaywallPage/></ProtectedRoute>}/>
 
                         {/* Módulo Comercial */}
@@ -144,10 +157,13 @@ function AppShell() {
                         <Route path="/cargas"        element={<ProtectedRoute><CargasPage/></ProtectedRoute>}/>
 
                         {/* IA */}
+                        <Route path="/assistente-cnab"     element={<AssistenteCnabPage/>}/>
                         <Route path="/whatsapp"            element={<ProtectedRoute><WhatsAppPage/></ProtectedRoute>}/>
 
                         {/* Admin */}
                         <Route path="/admin/usuarios"       element={<AdminRoute><AdminUsuariosPage/></AdminRoute>}/>
+                        <Route path="/admin/cnab-knowledge" element={<AdminRoute><CnabKnowledgePage/></AdminRoute>}/>
+                        <Route path="/admin/cnab-chat"      element={<AdminRoute><CnabChatPage/></AdminRoute>}/>
                     </Route>
                 </Routes>
             </>
@@ -157,8 +173,8 @@ function AppShell() {
     /* ── Caso 2: rotas legacy (landing, auth, tools, legal, upgrade) ──────── */
     return (
         <div className={shellClass}>
-            {!isLanding && !isLegal && !isUpgrade && <div className="bg-orb bg-orb--2" aria-hidden="true"/>}
-            {!isLanding && !isLegal && !isUpgrade && <BannerEmailPendente/>}
+            {!isLanding && !isTool && !isLegal && !isUpgrade && <div className="bg-orb bg-orb--2" aria-hidden="true"/>}
+            {!isLanding && !isTool && !isLegal && !isUpgrade && <BannerEmailPendente/>}
 
             <ScrollToTop/>
 
@@ -176,6 +192,11 @@ function AppShell() {
                 <Route path="/privacidade"      element={<PrivacidadePage/>}/>
                 <Route path="/termos"           element={<TermosPage/>}/>
                 <Route path="/contato"          element={<ContatoPage/>}/>
+
+                {/* Tools públicas */}
+                <Route path="/valida-cnab"      element={<ValidaCnabPage/>}/>
+                <Route path="/excel"            element={<ExcelPage/>}/>
+                <Route path="/pdf"              element={<PdfPage/>}/>
 
                 {/* Retorno do Stripe pós-checkout */}
                 <Route path="/upgrade/sucesso"   element={<UpgradeSucessoPage/>}/>

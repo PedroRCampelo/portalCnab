@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { LuArrowLeft, LuShield, LuCircleCheck, LuLayoutDashboard } from "react-icons/lu";
-import { useAuth } from "../context/AuthContext.jsx";
+import { useAuth } from "../../context/AuthContext.jsx";
 
 /**
  * ToolLayout — Layout compartilhado das ferramentas CNAB
@@ -91,13 +91,13 @@ export default function ToolLayout({
                         <span className="tool-back-spacer"/>
                     )}
 
-                    <Link to="/" className="tool-brand">CNAB Portal</Link>
+                    <Link to="/" className="tool-brand">whallet.</Link>
 
                     {autenticado ? (
-                        <a href="https://whallet.com.br/fluxo-caixa" className="tool-cta-app">
+                        <Link to="/fluxo-caixa" className="tool-cta-app">
                             <LuLayoutDashboard size={13}/>
                             <span className="tool-cta-app-text">Meu Whallet</span>
-                        </a>
+                        </Link>
                     ) : (
                         <Link to="/login" className="tool-login">Entrar</Link>
                     )}
@@ -146,9 +146,9 @@ export default function ToolLayout({
                         Arquivos não são salvos no servidor
                     </span>
                     <span className="tool-footer-spacer"/>
-                    <a href="https://whallet.com.br/privacidade" className="tool-footer-link">Privacidade</a>
-                    <a href="https://whallet.com.br/termos"      className="tool-footer-link">Termos</a>
-                    <a href="mailto:usewhallet@gmail.com"        className="tool-footer-link">Contato</a>
+                    <Link to="/privacidade" className="tool-footer-link">Privacidade</Link>
+                    <Link to="/termos"      className="tool-footer-link">Termos</Link>
+                    <Link to="/contato"     className="tool-footer-link">Contato</Link>
                 </div>
             </footer>
 

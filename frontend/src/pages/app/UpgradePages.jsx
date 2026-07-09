@@ -76,6 +76,14 @@ export function UpgradeSucessoPage() {
                         <ul className="upg-features">
                             <li>
                                 <LuCircleCheck size={14}/>
+                                Conversões CNAB ilimitadas
+                            </li>
+                            <li>
+                                <LuCircleCheck size={14}/>
+                                Elvis ilimitado (IA do CNAB)
+                            </li>
+                            <li>
+                                <LuCircleCheck size={14}/>
                                 Gestão financeira completa
                             </li>
                             <li>

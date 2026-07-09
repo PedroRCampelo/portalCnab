@@ -35,7 +35,7 @@ public class SecurityConfig {
     private final UserDetailsServiceImpl  userDetailsService;
     private final SecurityExceptionHandler exceptionHandler;
 
-    @Value("${app.cors.allowed-origins:http://localhost:5173,https://whallet.com.br,https://www.whallet.com.br,https://cnab.whallet.com.br}")
+    @Value("${app.cors.allowed-origins:http://localhost:5173,https://whallet.com.br,https://www.whallet.com.br}")
     private List<String> allowedOrigins;
 
     @Bean
