@@ -32,13 +32,35 @@ const MARQUEE_ITEMS = [
     "Sem planilha, sem estresse",
     "Orçamentos profissionais em PDF",
     "Pedidos de venda integrados",
-    "IA que entende seu caixa",
+    "IA que entende seu negócio",
     "Setup em 2 minutos",
     "Módulo Comercial completo",
     "Alertas de vencimento",
     "Relatórios automáticos",
-    "Conversão orçamento → pedido",
-    "Numeração por empresa",
+    "Conversão orçamento para pedido",
+    "CNAB para Excel e PDF",
+];
+
+const CNAB_CARDS = [
+    {
+        icon: "📊",
+        title: "CNAB para Excel",
+        desc: "Converta retornos bancários em planilhas editáveis. Visualize transações, filtre por período e importe no seu sistema de gestão.",
+        bullets: ["Suporte CNAB 240 e CNAB 400", "Linhas organizadas por tipo de registro", "Download imediato em .xlsx", "2 conversões gratuitas sem cadastro"],
+    },
+    {
+        icon: "📄",
+        title: "CNAB para PDF",
+        desc: "Gere relatórios em PDF com todas as transações formatadas. Ideal para arquivamento, auditoria e envio para contadores.",
+        bullets: ["Layout limpo e profissional", "Cabeçalho com dados do arquivo", "Agrupamento por lote e segmento", "Download imediato em .pdf"],
+    },
+];
+
+const CNAB_BANKS = [
+    { name: "Itaú", formats: "CNAB 240 e CNAB 400" },
+    { name: "Bradesco", formats: "CNAB 240 e CNAB 400" },
+    { name: "Banco do Brasil", formats: "CNAB 240" },
+    { name: "Caixa Econômica Federal", formats: "CNAB 240" },
 ];
 
 const FEATURES = [
@@ -64,14 +86,14 @@ const FEATURES = [
         num: "03",
         title: "Relatórios que",
         titleEm: "falam",
-        desc: "Anne gera relatórios narrativos. Não é gráfico mudo — é análise que você entende na primeira leitura.",
+        desc: "Anne gera relatórios narrativos. Não é gráfico mudo. É análise que você entende na primeira leitura.",
         bullets: ["Geração com IA (agente Anne)","Comparativo mês a mês","Insights automáticos","Download PDF/XLSX"],
         img: screenshotRelat,
         url: "whallet.com.br/app/relatorios",
     },
     {
         num: "04",
-        title: "Elvis — seu",
+        title: "Elvis, seu",
         titleEm: "consultor IA",
         desc: "Pergunte qualquer coisa sobre CNAB, financeiro, ou seu próprio caixa. Elvis responde com contexto real.",
         bullets: ["RAG sobre base CNAB completa","Entende seu histórico financeiro","Respostas com fontes citadas","100 consultas/mês no Whallet+"],
@@ -82,7 +104,7 @@ const FEATURES = [
 
 const STEPS = [
     { n: "1", title: "Crie sua conta", desc: "Cadastro rápido com e-mail ou Google. Sem cartão, sem compromisso." },
-    { n: "2", title: "Vincule o WhatsApp", desc: "Código de 6 dígitos no app → bot ativo. (Em breve — migrando para API Oficial do Meta)" },
+    { n: "2", title: "Vincule o WhatsApp", desc: "Código de 6 dígitos no app: bot ativo. (Em breve: migrando para API Oficial do Meta)" },
     { n: "3", title: "Gerencie pelo chat", desc: "Envie áudios, pergunte saldos, peça relatórios. Tudo pelo WhatsApp que você já usa." },
 ];
 
@@ -116,29 +138,29 @@ const COMERCIAL_CARDS = [
 const PERSONAS = [
     {
         tag: "MEI",
-        title: "Microempreendedor",
-        desc: "Quem fatura até R$ 81mil/ano e precisa de controle sem burocracia.",
+        title: "Microempreendedores",
+        desc: "Quem trabalha por conta própria e quer controle sem complicação.",
         items: ["Orçamentos em PDF com sua marca", "Fluxo de caixa simplificado", "Relatório mensal automático"],
     },
     {
         tag: "PME",
-        title: "Pequena Empresa",
-        desc: "Equipes de 2-20 pessoas que lidam com clientes, bancos e fornecedores todo dia.",
-        items: ["Módulo Comercial completo (orçamentos + pedidos)", "Importação CNAB multi-banco", "Dashboard consolidado"],
+        title: "Pequenas Empresas",
+        desc: "Equipes que precisam conectar vendas, operações e financeiro no dia a dia.",
+        items: ["Módulo Comercial completo (orçamentos e pedidos)", "Importação CNAB multi-banco", "Dashboard consolidado"],
     },
     {
-        tag: "CONTADOR",
-        title: "Escritório Contábil",
-        desc: "Profissionais que gerenciam o financeiro de múltiplos clientes.",
-        items: ["Multi-empresa num painel só", "Relatórios exportáveis por cliente", "Auditoria e rastreabilidade"],
+        tag: "GESTOR",
+        title: "Gestores Operacionais",
+        desc: "Quem toca os processos e precisa de visibilidade real sobre o que acontece.",
+        items: ["Painel consolidado multi-empresa", "Relatórios exportáveis por área", "Rastreabilidade completa"],
     },
 ];
 
 const FAQ_DATA = [
-    { q: "Como funciona o Bot WhatsApp?", a: "Depois de vincular seu número com um código de 6 dígitos, o bot fica disponível 24h. Você envia mensagens de texto ou áudio e ele responde com dados reais do seu caixa — saldos, vencimentos, relatórios. Atualmente estamos migrando para a API Oficial do Meta para garantir maior estabilidade. O serviço volta em breve." },
-    { q: "Preciso instalar algum app?", a: "Não. O Whallet é 100% web. O bot funciona no seu WhatsApp normal — sem apps extras, sem configurações complexas." },
+    { q: "Como funciona o Bot WhatsApp?", a: "Depois de vincular seu número com um código de 6 dígitos, o bot fica disponível 24h. Você envia mensagens de texto ou áudio e ele responde com dados reais do seu caixa: saldos, vencimentos, relatórios. Atualmente estamos migrando para a API Oficial do Meta para garantir maior estabilidade. O serviço volta em breve." },
+    { q: "Preciso instalar algum app?", a: "Não. O Whallet é 100% web. O bot funciona no seu WhatsApp normal, sem apps extras, sem configurações complexas." },
     { q: "Meus dados financeiros estão seguros?", a: "Sim. Usamos criptografia em trânsito e em repouso, autenticação JWT, e não armazenamos dados bancários de acesso. Hospedagem em servidores certificados." },
-    { q: "Posso testar antes de pagar?", a: "Sim! O plano Free é permanente e inclui validação CNAB + 5 consultas Elvis/mês. O Whallet+ tem 7 dias grátis, sem cartão obrigatório no cadastro." },
+    { q: "Preciso pagar para usar?", a: "Não. O plano Free é permanente e inclui validação CNAB e 5 consultas Elvis/mês. O Whallet+ está gratuito durante o período beta e dá acesso completo ao módulo comercial, financeiro e relatórios com IA." },
     { q: "O bot entende áudio?", a: "Sim. Você grava um áudio no WhatsApp e o bot transcreve automaticamente, interpreta sua pergunta e responde com dados reais." },
 ];
 
@@ -416,6 +438,7 @@ export default function HomePage() {
                     <div className="lp-nav-links">
                         <button className="lp-nav-link" onClick={() => scrollTo("recursos")}>Recursos</button>
                         <button className="lp-nav-link" onClick={() => scrollTo("comercial")}>Comercial</button>
+                        <button className="lp-nav-link" onClick={() => scrollTo("cnab")}>CNAB</button>
                         <button className="lp-nav-link" onClick={() => scrollTo("pra-quem")}>Pra quem</button>
                         <button className="lp-nav-link" onClick={() => scrollTo("precos")}>Preços</button>
                         <button className="lp-nav-link" onClick={() => scrollTo("duvidas")}>Dúvidas</button>
@@ -443,12 +466,12 @@ export default function HomePage() {
                     <div className="lp-hero-grid">
                         <div>
                             <h1 className="lp-hero-title">
-                                Seu financeiro<br />
-                                <span className="lp-hero-highlight">organizado.</span>
+                                Seus processos,<br />
+                                <span className="lp-hero-highlight">organizados.</span>
                             </h1>
                             <p className="lp-hero-sub">
-                                Controle financeiro com IA e WhatsApp.<br />
-                                Organize, acompanhe e cresça.
+                                Do orçamento ao caixa, tudo conectado.<br />
+                                Gestão comercial, financeiro e IA num só lugar.
                             </p>
                             <div className="lp-hero-ctas">
                                 <button className="lp-cta-primary" onClick={() => navigate("/cadastro")}>
@@ -462,7 +485,7 @@ export default function HomePage() {
                         </div>
 
                         <div className="lp-hero-visual">
-                            <img src={heroVisual} alt="Whallet — App mobile e dashboard web" className="lp-hero-visual-img" loading="eager" />
+                            <img src={heroVisual} alt="Whallet: App mobile e dashboard web" className="lp-hero-visual-img" loading="eager" />
                         </div>
                     </div>
                 </div>
@@ -477,14 +500,14 @@ export default function HomePage() {
                             <h2 className="lp-section-title">O dinheiro do seu negócio merece mais que uma <em>planilha.</em></h2>
                         </div>
                         <p className="lp-section-desc">
-                            Planilhas quebram. Sistemas legados custam caro. Você precisa de respostas — não de 47 abas abertas.
+                            Planilhas quebram. Sistemas legados custam caro. Você precisa de respostas, não de 47 abas abertas.
                         </p>
                     </div>
                     <div className="lp-pain-list">
                         {[
                             { n: "DOR 01", t: "Planilhas que ninguém atualiza e todo mundo desconfia." },
                             { n: "DOR 02", t: "Arquivos CNAB que parecem código alienígena." },
-                            { n: "DOR 03", t: "Zero visibilidade do caixa real — só achismo." },
+                            { n: "DOR 03", t: "Zero visibilidade do caixa real. Só achismo." },
                         ].map((p, i) => (
                             <div key={i} className={`lp-pain-item reveal reveal-d${i + 1}`}>
                                 <div className="lp-pain-num">{p.n}</div>
@@ -506,7 +529,7 @@ export default function HomePage() {
                             </h2>
                         </div>
                         <p className="lp-section-desc" style={{ color: "var(--ink-2)" }}>
-                            Orçamentos profissionais em PDF, pedidos de venda integrados e geração automática de recebimentos — tudo conectado.
+                            Orçamentos profissionais em PDF, pedidos de venda integrados e geração automática de recebimentos. Tudo conectado.
                         </p>
                     </div>
                     <div className="lp-comercial-grid">
@@ -556,7 +579,7 @@ export default function HomePage() {
                             </h2>
                         </div>
                         <p className="lp-section-desc" style={{ color: "var(--ink-2)" }}>
-                            Quatro pilares — fluxo de caixa, recebimentos, relatórios e IA — trabalhando juntos.
+                            Quatro pilares: fluxo de caixa, recebimentos, relatórios e IA, trabalhando juntos.
                         </p>
                     </div>
                     <div className="reveal">
@@ -595,7 +618,7 @@ export default function HomePage() {
                         <div>
                             <span className="lp-section-eyebrow" style={{ color: "var(--cyan-deep)" }}>PRA QUEM</span>
                             <h2 className="lp-section-title" style={{ color: "var(--navy-deep)" }}>
-                                Feito pra quem toca o financeiro <em>na prática.</em>
+                                Feito pra quem quer mais controle e <em>menos retrabalho.</em>
                             </h2>
                         </div>
                     </div>
@@ -610,6 +633,54 @@ export default function HomePage() {
                                 </ul>
                             </div>
                         ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* ═══ CNAB ═══ */}
+            <section className="lp-section" id="cnab" style={{ background: "#fff" }}>
+                <div className="lp-container">
+                    <div className="lp-section-head reveal" style={{ marginBottom: 48 }}>
+                        <div>
+                            <span className="lp-section-eyebrow" style={{ color: "var(--cyan-deep)" }}>CNAB</span>
+                            <h2 className="lp-section-title" style={{ color: "var(--navy-deep)" }}>
+                                Converta arquivos bancários <em>em segundos.</em>
+                            </h2>
+                        </div>
+                        <p className="lp-section-desc" style={{ color: "var(--ink-2)" }}>
+                            Importe retornos CNAB 240 ou 400 e exporte como planilha Excel ou PDF. Sem instalação, direto no navegador.
+                        </p>
+                    </div>
+                    <div className="lp-comercial-grid" style={{ marginBottom: 48 }}>
+                        {CNAB_CARDS.map((card, i) => (
+                            <div key={i} className={`lp-comercial-card reveal reveal-d${i + 1}`}>
+                                <div className="lp-comercial-icon">{card.icon}</div>
+                                <h3 className="lp-comercial-title">{card.title}</h3>
+                                <p className="lp-comercial-desc">{card.desc}</p>
+                                <ul className="lp-comercial-bullets">
+                                    {card.bullets.map((b, j) => <li key={j}>{b}</li>)}
+                                </ul>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="reveal">
+                        <p style={{ color: "var(--ink-2)", fontSize: 13, fontWeight: 600, textTransform: "uppercase", letterSpacing: ".08em", marginBottom: 16 }}>Bancos homologados</p>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
+                            {CNAB_BANKS.map((bank, i) => (
+                                <div key={i} style={{
+                                    background: "var(--surface, #f7f9fc)",
+                                    border: "1px solid var(--hair, #e5e9f0)",
+                                    borderRadius: 12,
+                                    padding: "16px 20px",
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: 4,
+                                }}>
+                                    <span style={{ fontWeight: 700, color: "var(--navy-deep)", fontSize: 15 }}>{bank.name}</span>
+                                    <span style={{ fontSize: 13, color: "var(--ink-2, #5a6a7e)" }}>{bank.formats}</span>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </section>
@@ -630,14 +701,14 @@ export default function HomePage() {
                             }}>
                                 <span style={{ fontSize: 18, flexShrink: 0 }}>🔧</span>
                                 <div style={{ fontSize: 13, lineHeight: 1.55 }}>
-                                    <strong style={{ display: "block", marginBottom: 3, color: "#c87f00" }}>Em manutenção — retornando em breve</strong>
+                                    <strong style={{ display: "block", marginBottom: 3, color: "#c87f00" }}>Em manutenção. Retornando em breve</strong>
                                     Estamos migrando para a <strong>API Oficial do Meta</strong> para garantir maior estabilidade.
                                     Cadastre-se e seja notificado quando o bot voltar.
                                 </div>
                             </div>
 
                             <p className="lp-wa-sub">
-                                Mande texto ou áudio — o bot transcreve, interpreta e
+                                Mande texto ou áudio: o bot transcreve, interpreta e
                                 responde com dados reais do seu caixa. É como ter um CFO no bolso.
                             </p>
                             <div className="lp-wa-actions">
@@ -679,12 +750,12 @@ export default function HomePage() {
                         {/* Free */}
                         <div className="lp-plan">
                             <div className="lp-plan-name">FREE</div>
-                            <div className="lp-plan-price">R$ 0 <span className="per">/ mês</span></div>
+                            <div className="lp-plan-price">Grátis</div>
                             <p className="lp-plan-desc">Para conhecer a plataforma e validar seus CNABs.</p>
                             <ul className="lp-plan-feats">
                                 <li>Validação e visualização CNAB</li>
                                 <li>Dashboard básico</li>
-                                <li>Elvis — 5 consultas/mês</li>
+                                <li>Elvis: 5 consultas/mês</li>
                                 <li>1 empresa</li>
                             </ul>
                             <button className="lp-plan-cta free" onClick={() => navigate("/cadastro")}>Criar conta grátis</button>
@@ -694,7 +765,6 @@ export default function HomePage() {
                             <span className="lp-plan-badge">MAIS POPULAR</span>
                             <div className="lp-plan-name">WHALLET+</div>
                             <div className="lp-plan-price">
-                                <span style={{ textDecoration: "line-through", opacity: 0.4, fontSize: "0.65em", marginRight: 6 }}>R$ 39,90</span>
                                 Grátis <span className="per">/ beta</span>
                             </div>
                             <div style={{
@@ -710,7 +780,7 @@ export default function HomePage() {
                             <ul className="lp-plan-feats">
                                 <li>Tudo do Free</li>
                                 <li>Bot WhatsApp (texto + áudio)</li>
-                                <li>Elvis — 100 consultas/mês</li>
+                                <li>Elvis: 100 consultas/mês</li>
                                 <li>Agentes Aurora, Frank e Anne</li>
                                 <li>Relatórios avançados</li>
                                 <li>Suporte prioritário</li>
