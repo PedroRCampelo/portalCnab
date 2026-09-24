@@ -59,7 +59,7 @@ public class WhatsappAIService {
             log.error("[WhatsApp IA] Erro ao processar mensagem: {}", e.getMessage());
             return new AcaoInterpretada("CONVERSA", null,
                     "⚠️ Estou com instabilidade no momento. Sua mensagem foi recebida!\n\n" +
-                    "Tente novamente em alguns instantes ou acesse *whallet.com.br* para lançar diretamente.");
+                    "Tente novamente em alguns instantes ou acesse *app.whallet.com.br* para lançar diretamente.");
         }
     }
 

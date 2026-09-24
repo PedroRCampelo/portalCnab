@@ -41,7 +41,7 @@ public class StripeService {
     @Value("${stripe.price-id-whallet-plus:}")
     private String priceIdWhalletPlus;
 
-    @Value("${app.url}")
+    @Value("${app.frontend-url}")
     private String appUrl;
 
     private static final UUID PLANO_GRATUITO     = UUID.fromString("10000000-0000-0000-0000-000000000001");

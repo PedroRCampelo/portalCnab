@@ -495,7 +495,7 @@ public class WhatsappService {
             };
         } catch (Exception e) {
             log.error("[WhatsApp] Erro {}: {}", acao, e.getMessage(), e);
-            return "⚠️ Não consegui processar essa operação. Tente fazer direto em *whallet.com.br*";
+            return "⚠️ Não consegui processar essa operação. Tente fazer direto em *app.whallet.com.br*";
         }
     }
 
