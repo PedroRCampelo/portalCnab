@@ -33,12 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@CrossOrigin(origins = {
-        "http://localhost:5173",
-        "https://whallet.com.br",
-        "https://www.whallet.com.br"
-})
-
 @RestController
 @RequestMapping("/api/cnab")
 public class CnabController {
